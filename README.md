@@ -29,7 +29,7 @@ aparece no site, e vice-versa.
 
 | Tela | O que tem |
 |---|---|
-| 🏠 **Início** | Estatísticas do desmatamento, **quatro gráficos** desenhados no canvas (barras, rosca, linha e radar), linha do tempo de duas décadas, soluções práticas e as avaliações da comunidade |
+| 🏠 **Início** | Estatísticas do desmatamento, **mapa interativo dos biomas** e gráficos desenhados no canvas (barras e linha), linha do tempo de duas décadas, soluções práticas e as avaliações da comunidade |
 | 🗺️ **Mapa** | Imagens de satélite com os **6 biomas** e a camada de **alertas do DETER-B**. Tocar num bioma abre a ficha: área, percentual desmatado e descrição |
 | 🐆 **Animais** | Catálogo de **9 espécies** com busca, filtros por bioma e status de conservação, tendência populacional e as principais ameaças |
 | 👤 **Conta** | Cadastro e login por e-mail e senha, foto de perfil e **avaliações em estrelas**, salvas e lidas em tempo real |
@@ -214,9 +214,9 @@ lib/
 ├── models/                    Animal · Bioma · AlertaDesmatamento · Avaliacao
 ├── services/                  Firebase · avaliações · leitura do GeoJSON
 ├── screens/                   app_shell · home · mapa · animais
-├── theme/app_theme.dart       paleta e breakpoints herdados do React
+├── theme/app_theme.dart       paleta, fontes e breakpoints, iguais aos do site
 └── widgets/
-    ├── charts/                  barras · rosca · linha · radar
+    ├── charts/                  barras · linha · mapa dos biomas
     ├── superficie_vidro.dart    cartão de vidro, com desfoque limitado a ele
     ├── animacao_na_tela.dart    revela ao entrar na tela, sem timer
     └── auth_modal.dart · reviews_section.dart · estrelas.dart · …
