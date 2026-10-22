@@ -57,3 +57,13 @@ final biomas = <Bioma>[
     buracos: pampaBuracos,
   ),
 ];
+
+/// Os anos que marcaram cada bioma, na linha do tempo do mapa — a mesma
+/// lista do `linhaDoTempoMapa` do site, do mais recente ao mais antigo.
+const linhaDoTempoMapa = <(String, String)>[
+  ('2023', 'Recorde de desmatamento na Amazônia: 11.568 km²'),
+  ('2020', 'Cerrado perde 7.340 km² de vegetação nativa'),
+  ('2018', 'Mata Atlântica tem apenas 12,4% de sua cobertura original'),
+  ('2015', 'Pantanal perde 12% de sua área para queimadas'),
+  ('2010', 'Caatinga tem 45% de sua área original desmatada'),
+];

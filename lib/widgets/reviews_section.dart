@@ -7,9 +7,11 @@ import 'package:flutter/services.dart' show LengthLimitingTextInputFormatter;
 import '../models/avaliacao.dart';
 import '../services/reviews_service.dart';
 import '../theme/app_theme.dart';
+import 'aviso_de_formulario.dart';
 import 'estrelas.dart';
 
-/// Secao "Avaliacoes do Site" — porte do Reviews.jsx.
+/// Secao de avaliacoes da Home — o `Avaliacoes` do site, com as notas como
+/// citacoes. Le e grava a mesma colecao que o site.
 class ReviewsSection extends StatefulWidget {
   const ReviewsSection({
     super.key,
@@ -174,124 +176,127 @@ class _ReviewsSectionState extends State<ReviewsSection> {
   @override
   Widget build(BuildContext context) {
     final logado = widget.usuario != null;
+    final mobile = Breakpoints.ehMobile(context);
+    final media = _resumo?.media;
+    final total = _resumo?.total ?? _lista.length;
+    final restantes = total - _lista.length;
 
-    return Container(
-      width: double.infinity,
-      color: AppCores.fundo,
-      padding: const EdgeInsets.symmetric(vertical: 72, horizontal: 24),
+    return Padding(
+      padding: EdgeInsets.symmetric(
+        horizontal: mobile ? 20 : 24,
+        vertical: mobile ? 64 : 112,
+      ),
       child: Center(
         child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 1200),
-          child: Builder(
-            builder: (context) {
-              final visiveis = _lista;
-              final media = _resumo?.media;
-              final total = _resumo?.total ?? _lista.length;
-              final restantes = total - _lista.length;
-
-              return Column(
+          constraints: const BoxConstraints(maxWidth: 1120),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Wrap(
+                alignment: WrapAlignment.spaceBetween,
+                crossAxisAlignment: WrapCrossAlignment.end,
+                spacing: 16,
+                runSpacing: 16,
                 children: [
-                  const Text(
-                    'COMUNIDADE',
-                    style: TextStyle(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w700,
-                      letterSpacing: 2,
-                      color: AppCores.verde,
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  const Text(
-                    'Avaliações do Site',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 32,
-                      fontWeight: FontWeight.w800,
-                      color: AppCores.texto,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-
-                  if (media != null) ...[
-                    const SizedBox(height: 16),
-                    _CartaoMedia(media: media, quantidade: total),
-                  ],
-                  const SizedBox(height: 48),
-
-                  if (_carregando)
-                    const Padding(
-                      padding: EdgeInsets.only(bottom: 32),
-                      child: CircularProgressIndicator(color: AppCores.verde),
-                    ),
-
-                  if (_falhou)
-                    _Aviso(
-                      texto: 'Não foi possível carregar as avaliações.',
-                      erro: true,
-                    ),
-
-                  if (visiveis.isNotEmpty)
-                    LayoutBuilder(
-                      builder: (context, c) {
-                        final colunas = (c.maxWidth / 340).floor().clamp(1, 3);
-                        return GridView.builder(
-                          shrinkWrap: true,
-                          physics: const NeverScrollableScrollPhysics(),
-                          itemCount: visiveis.length,
-                          gridDelegate:
-                              SliverGridDelegateWithFixedCrossAxisCount(
-                                crossAxisCount: colunas,
-                                crossAxisSpacing: 20,
-                                mainAxisSpacing: 20,
-                                mainAxisExtent: 172,
-                              ),
-                          itemBuilder: (_, i) =>
-                              _CartaoAvaliacao(avaliacao: visiveis[i]),
-                        );
-                      },
-                    ),
-
-                  if (restantes > 0 || _limite > _porPagina) ...[
-                    const SizedBox(height: 24),
-                    OutlinedButton(
-                      // De 12 em 12, até acabar: antes "Mostrar mais" baixava
-                      // a coleção inteira de uma vez.
-                      onPressed: () => _mudarLimite(
-                        restantes > 0 ? _limite + 12 : _porPagina,
-                      ),
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: AppCores.verde,
-                        side: const BorderSide(color: AppCores.verde),
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 28,
-                          vertical: 12,
-                        ),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Semantics(
+                        header: true,
+                        child: Text(
+                          'O que dizem do site',
+                          style: estiloTitulo(mobile ? 36 : 52, altura: 1.05),
                         ),
                       ),
-                      child: Text(
-                        restantes > 0
-                            ? 'Mostrar mais ($restantes restantes)'
-                            : 'Mostrar menos',
+                      const SizedBox(height: 12),
+                      const Text(
+                        'Opiniões de quem passou por aqui.',
+                        style: TextStyle(fontSize: 18, color: AppCores.tinta2),
                       ),
-                    ),
-                  ],
-
-                  const SizedBox(height: 48),
-                  _Formulario(
-                    logado: logado,
-                    nota: _nota,
-                    comentario: _comentario,
-                    enviando: _enviando,
-                    erro: _erro,
-                    sucesso: _sucesso,
-                    aoMudarNota: (n) => setState(() => _nota = n),
-                    aoEnviar: _enviar,
+                    ],
                   ),
+                  if (media != null && total > 0)
+                    _Media(media: media, quantidade: total),
                 ],
-              );
-            },
+              ),
+              const SizedBox(height: 40),
+
+              if (_carregando)
+                const Padding(
+                  padding: EdgeInsets.only(bottom: 24),
+                  child: Text(
+                    'Carregando avaliações...',
+                    style: TextStyle(fontSize: 16, color: AppCores.tinta3),
+                  ),
+                ),
+
+              if (_falhou)
+                const Padding(
+                  padding: EdgeInsets.only(bottom: 24),
+                  child: Text(
+                    'Não foi possível carregar as avaliações agora.',
+                    style: TextStyle(fontSize: 16, color: AppCores.tinta3),
+                  ),
+                ),
+
+              if (_lista.isNotEmpty)
+                LayoutBuilder(
+                  builder: (context, c) {
+                    final colunas = (c.maxWidth / 320).floor().clamp(1, 3);
+                    return Wrap(
+                      spacing: 40,
+                      runSpacing: 32,
+                      children: [
+                        for (final a in _lista)
+                          SizedBox(
+                            width: (c.maxWidth - 40 * (colunas - 1)) / colunas,
+                            child: _Citacao(avaliacao: a),
+                          ),
+                      ],
+                    );
+                  },
+                ),
+
+              if (restantes > 0 || _limite > _porPagina) ...[
+                const SizedBox(height: 32),
+                Center(
+                  child: TextButton(
+                    // De 12 em 12, até acabar: antes "Mostrar mais" baixava
+                    // a coleção inteira de uma vez.
+                    onPressed: () =>
+                        _mudarLimite(restantes > 0 ? _limite + 12 : _porPagina),
+                    style: TextButton.styleFrom(
+                      textStyle: const TextStyle(
+                        fontFamily: AppFontes.texto,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        decoration: TextDecoration.underline,
+                      ),
+                    ),
+                    child: Text(
+                      restantes > 0
+                          ? 'Mostrar mais ($restantes restantes)'
+                          : 'Mostrar menos',
+                    ),
+                  ),
+                ),
+              ],
+
+              const SizedBox(height: 56),
+              Center(
+                child: _Formulario(
+                  logado: logado,
+                  nota: _nota,
+                  comentario: _comentario,
+                  enviando: _enviando,
+                  erro: _erro,
+                  sucesso: _sucesso,
+                  aoMudarNota: (n) => setState(() => _nota = n),
+                  aoEnviar: _enviar,
+                ),
+              ),
+            ],
           ),
         ),
       ),
@@ -299,126 +304,85 @@ class _ReviewsSectionState extends State<ReviewsSection> {
   }
 }
 
-class _CartaoMedia extends StatelessWidget {
-  const _CartaoMedia({required this.media, required this.quantidade});
+class _Media extends StatelessWidget {
+  const _Media({required this.media, required this.quantidade});
 
   final double media;
   final int quantidade;
 
   @override
-  Widget build(BuildContext context) => Container(
-    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-    decoration: BoxDecoration(
-      color: Colors.white,
-      border: Border.all(color: AppCores.borda),
-      borderRadius: BorderRadius.circular(16),
-      boxShadow: const [
-        BoxShadow(
-          color: Color(0x0F000000),
-          blurRadius: 8,
-          offset: Offset(0, 2),
-        ),
-      ],
-    ),
-    child: Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Text(
-          media.toStringAsFixed(1).replaceAll('.', ','),
-          style: const TextStyle(
-            fontSize: 36,
-            fontWeight: FontWeight.w800,
-            color: AppCores.texto,
+  Widget build(BuildContext context) => Row(
+    mainAxisSize: MainAxisSize.min,
+    children: [
+      Text(
+        media.toStringAsFixed(1).replaceAll('.', ','),
+        style: estiloTitulo(40, altura: 1),
+      ),
+      const SizedBox(width: 12),
+      Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Estrelas(valor: media.round(), somenteLeitura: true),
+          const SizedBox(height: 2),
+          Text(
+            '$quantidade ${quantidade == 1 ? 'avaliação' : 'avaliações'}',
+            style: const TextStyle(fontSize: 14, color: AppCores.tinta3),
           ),
-        ),
-        const SizedBox(width: 10),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Estrelas(valor: media.round(), somenteLeitura: true),
-            const SizedBox(height: 2),
-            Text(
-              'Classificação do site • $quantidade '
-              '${quantidade == 1 ? 'avaliação' : 'avaliações'}',
-              style: const TextStyle(fontSize: 12, color: AppCores.textoSuave),
-            ),
-          ],
-        ),
-      ],
-    ),
+        ],
+      ),
+    ],
   );
 }
 
-class _CartaoAvaliacao extends StatelessWidget {
-  const _CartaoAvaliacao({required this.avaliacao});
+/// Uma avaliacao como citacao: nota, comentario e quem escreveu. Antes era um
+/// cartao com sombra, avatar grande e o texto cortado em quatro linhas.
+class _Citacao extends StatelessWidget {
+  const _Citacao({required this.avaliacao});
 
   final Avaliacao avaliacao;
 
   @override
   Widget build(BuildContext context) => Container(
-    padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 20),
-    decoration: BoxDecoration(
-      color: Colors.white,
-      border: Border.all(color: AppCores.borda),
-      borderRadius: BorderRadius.circular(16),
+    padding: const EdgeInsets.only(top: 20),
+    decoration: const BoxDecoration(
+      border: Border(top: BorderSide(color: AppCores.linha)),
     ),
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        Estrelas(valor: avaliacao.nota, somenteLeitura: true, tamanho: 15),
+        const SizedBox(height: 10),
+        Text(
+          avaliacao.comentario,
+          style: const TextStyle(
+            fontSize: 17,
+            height: 1.55,
+            color: AppCores.tinta,
+          ),
+        ),
+        const SizedBox(height: 16),
         Row(
           children: [
             _Avatar(nome: avaliacao.nome, url: avaliacao.fotoUrl),
-            const SizedBox(width: 12),
+            const SizedBox(width: 10),
             Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    avaliacao.nome,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w700,
-                      color: AppCores.texto,
+              child: Text.rich(
+                TextSpan(
+                  children: [
+                    TextSpan(text: avaliacao.nome),
+                    TextSpan(
+                      text: ' · ${avaliacao.tempoRelativo}',
+                      style: const TextStyle(color: AppCores.tinta3),
                     ),
-                  ),
-                  Row(
-                    children: [
-                      Estrelas(valor: avaliacao.nota, somenteLeitura: true),
-                      const SizedBox(width: 8),
-                      Flexible(
-                        child: Text(
-                          avaliacao.tempoRelativo,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
-                            fontSize: 12,
-                            color: Color(0xFF9CA3AF),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
+                  ],
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(fontSize: 15, color: AppCores.tinta2),
               ),
             ),
           ],
-        ),
-        const SizedBox(height: 12),
-        Expanded(
-          child: Text(
-            avaliacao.comentario,
-            maxLines: 4,
-            overflow: TextOverflow.ellipsis,
-            style: const TextStyle(
-              fontSize: 14,
-              height: 1.6,
-              color: AppCores.textoMedio,
-            ),
-          ),
         ),
       ],
     ),
@@ -433,45 +397,32 @@ class _Avatar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final inicial = nome.isEmpty ? '?' : nome.characters.first.toUpperCase();
+    final inicial = Center(
+      child: Text(
+        nome.isEmpty ? '?' : nome.characters.first.toUpperCase(),
+        style: const TextStyle(
+          fontSize: 14,
+          fontWeight: FontWeight.w600,
+          color: AppCores.mata,
+        ),
+      ),
+    );
 
     return Container(
-      width: 42,
-      height: 42,
+      width: 32,
+      height: 32,
       clipBehavior: Clip.antiAlias,
       decoration: const BoxDecoration(
         shape: BoxShape.circle,
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [Color(0xFFD1FAE5), Color(0xFFA7F3D0)],
-        ),
+        color: AppCores.mataClara,
       ),
       child: url.isEmpty
-          ? Center(
-              child: Text(
-                inicial,
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w700,
-                  color: AppCores.verde,
-                ),
-              ),
-            )
+          ? inicial
           : Image.network(
               url,
               fit: BoxFit.cover,
               // Avatar quebrado nao pode virar caixa cinza: cai na inicial.
-              errorBuilder: (_, _, _) => Center(
-                child: Text(
-                  inicial,
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w700,
-                    color: AppCores.verde,
-                  ),
-                ),
-              ),
+              errorBuilder: (_, _, _) => inicial,
             ),
     );
   }
@@ -500,58 +451,47 @@ class _Formulario extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => ConstrainedBox(
-    constraints: const BoxConstraints(maxWidth: 600),
+    constraints: const BoxConstraints(maxWidth: 560),
     child: Container(
-      padding: const EdgeInsets.all(32),
+      padding: const EdgeInsets.all(28),
       decoration: BoxDecoration(
-        color: Colors.white,
-        border: Border.all(color: AppCores.borda),
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x0F000000),
-            blurRadius: 20,
-            offset: Offset(0, 4),
-          ),
-        ],
+        color: AppCores.branco,
+        border: Border.all(color: AppCores.linha),
+        borderRadius: BorderRadius.circular(raioPadrao),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Text(
             logado ? 'Deixe sua avaliação' : 'Faça login para avaliar',
-            style: const TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w700,
-              color: AppCores.texto,
-            ),
+            style: estiloTitulo(22),
           ),
           const SizedBox(height: 20),
 
           if (sucesso) ...[
-            _Aviso(texto: '✓ Avaliação enviada com sucesso!', erro: false),
+            const AvisoDeFormulario(
+              texto: 'Obrigado! Sua avaliação foi publicada.',
+              erro: false,
+            ),
             const SizedBox(height: 16),
           ],
           if (erro.isNotEmpty) ...[
-            _Aviso(texto: erro, erro: true),
+            AvisoDeFormulario(texto: erro, erro: true),
             const SizedBox(height: 16),
           ],
 
           const Text(
-            'Sua nota:',
-            style: TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.w600,
-              color: AppCores.textoMedio,
-            ),
+            'Sua nota',
+            style: TextStyle(fontSize: 15, color: AppCores.tinta2),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 6),
           Align(
             alignment: Alignment.centerLeft,
             child: Estrelas(
               valor: nota,
               aoMudar: logado ? aoMudarNota : null,
               somenteLeitura: !logado,
+              tamanho: 28,
             ),
           ),
           const SizedBox(height: 14),
@@ -564,11 +504,12 @@ class _Formulario extends StatelessWidget {
             // qualquer tamanho e o servidor recusava sem dizer por quê.
             maxLength: maxComentario,
             inputFormatters: [LengthLimitingTextInputFormatter(maxComentario)],
+            style: const TextStyle(fontSize: 16, color: AppCores.tinta),
             decoration: InputDecoration(
               hintText: logado
                   ? 'Escreva seu comentário sobre o site...'
                   : 'Faça login para deixar um comentário...',
-              fillColor: logado ? Colors.white : const Color(0xFFF9FAFB),
+              fillColor: logado ? AppCores.branco : AppCores.papel2,
             ),
           ),
           const SizedBox(height: 14),
@@ -584,34 +525,6 @@ class _Formulario extends StatelessWidget {
             ),
           ),
         ],
-      ),
-    ),
-  );
-}
-
-class _Aviso extends StatelessWidget {
-  const _Aviso({required this.texto, required this.erro});
-
-  final String texto;
-  final bool erro;
-
-  @override
-  Widget build(BuildContext context) => Container(
-    width: double.infinity,
-    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-    decoration: BoxDecoration(
-      color: erro ? AppCores.erroFundo : AppCores.sucessoFundo,
-      border: Border.all(
-        color: erro ? AppCores.erroBorda : AppCores.sucessoBorda,
-      ),
-      borderRadius: BorderRadius.circular(8),
-    ),
-    child: Text(
-      texto,
-      style: TextStyle(
-        fontSize: 13,
-        fontWeight: erro ? FontWeight.normal : FontWeight.w600,
-        color: erro ? AppCores.erroTexto : AppCores.verde,
       ),
     ),
   );

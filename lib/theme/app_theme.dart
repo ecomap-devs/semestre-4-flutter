@@ -1,63 +1,92 @@
 import 'package:flutter/material.dart';
 
-/// Paleta herdada da versao React (verde #16a34a como cor de acao).
+/// Cores do app — as mesmas variáveis do `globals.css` do site
+/// (semestre-4-nextjs): tons de papel, mata e terra no lugar do verde #16a34a
+/// e dos cinzas azulados herdados do React. Use sempre a constante, nunca o
+/// hexadecimal solto, para que um ajuste aqui valha no app todo.
 class AppCores {
   const AppCores._();
 
-  static const verde = Color(0xFF16A34A);
-  static const verdeClaro = Color(0xFF4ADE80);
-  static const verdeFundo = Color(0xFFF0FDF4);
+  static const papel = Color(0xFFF6F3EC); // fundo das telas
+  static const papel2 = Color(
+    0xFFECE7DB,
+  ); // seção alternada, campo desabilitado
+  static const branco = Color(0xFFFFFDF8); // cartão sobre o papel
+  static const linha = Color(0xFFDDD6C6); // bordas e divisórias
 
-  static const texto = Color(0xFF111111);
-  static const textoSuave = Color(0xFF6B7280);
-  static const textoMedio = Color(0xFF374151);
-  static const borda = Color(0xFFE5E7EB);
-  static const fundo = Color(0xFFF8FAFC);
+  static const tinta = Color(0xFF1D2620); // títulos
+  static const tinta2 = Color(0xFF4A5249); // texto corrido
+  static const tinta3 = Color(0xFF7A8075); // legenda, data, texto de apoio
 
-  static const erroFundo = Color(0xFFFEF2F2);
-  static const erroBorda = Color(0xFFFECACA);
-  static const erroTexto = Color(0xFFDC2626);
+  static const mata = Color(0xFF2F5233); // cor principal: botão, link, destaque
+  static const mataEscura = Color(0xFF1F3A24); // faixa escura
+  static const mataNoite = Color(0xFF16291A); // rodapé, fundo sob as fotos
+  static const mataClara = Color(0xFFE3EADB); // aviso de sucesso, seleção
 
-  static const sucessoFundo = Color(0xFFF0FDF4);
-  static const sucessoBorda = Color(0xFFBBF7D0);
+  static const terra = Color(0xFFA4472A); // perda, alerta, erro
+  static const terraClara = Color(0xFFF3E1D8);
+  static const ocre = Color(0xFFB8862B); // estrelas, atenção
+  static const ocreClara = Color(0xFFF4E9CF);
+  static const sol = Color(0xFFE3B553); // destaque sobre fundo escuro
 
-  static const estrela = Color(0xFFF59E0B);
+  /// Texto claro sobre foto ou faixa escura (rgba(255,253,248,.78) no site).
+  static const claroSuave = Color(0xC7FFFDF8);
 
-  /// Cores do mapa — as mesmas do `biomeColors` do Mapa.jsx.
-  static const biomasMapa = <String, Color>{
-    'Amazônia': Color(0xFF0D5016),
-    'Cerrado': Color(0xFFD4A017),
-    'Caatinga': Color(0xFFFF6B35),
-    'Mata Atlântica': Color(0xFF4169E1),
-    'Pantanal': Color(0xFF8B4513),
-    'Pampa': Color(0xFF32CD32),
+  /// Escurecimento das fotos (rgb 16,24,18), em várias opacidades.
+  static const sombraFoto = Color(0xFF101812);
+
+  /// Vermelho dos alertas do DETER-B, no mapa e na legenda. Mais fechado que
+  /// os tons dos biomas, para não se confundir com a Caatinga.
+  static const alerta = Color(0xFFB4232A);
+
+  /// Cores dos biomas: tons de terra e de mata, mais perto da paisagem de
+  /// cada um. O Pantanal é azulado por ser a planície alagada. Valem para o
+  /// mapa, a Home e as etiquetas — antes eram duas paletas diferentes.
+  static const biomas = <String, Color>{
+    'Amazônia': Color(0xFF2F5A32),
+    'Cerrado': Color(0xFFC49A3A),
+    'Caatinga': Color(0xFFB8653A),
+    'Mata Atlântica': Color(0xFF6F9A5C),
+    'Pantanal': Color(0xFF4F8299),
+    'Pampa': Color(0xFFA7A35A),
   };
 
-  /// Cores dos graficos da Home — deliberadamente diferentes das do mapa,
-  /// como na versao React.
-  static const biomasGrafico = <String, Color>{
-    'Amazônia': Color(0xFF16A34A),
-    'Cerrado': Color(0xFFCA8A04),
-    'Mata Atlântica': Color(0xFF3B82F6),
-    'Caatinga': Color(0xFFF97316),
-    'Pantanal': Color(0xFFB45309),
-    'Pampa': Color(0xFF4ADE80),
-  };
-
-  static const statusFundo = <String, Color>{
-    'Criticamente ameaçada': Color(0xFFFEE2E2),
-    'Em perigo': Color(0xFFFEF3C7),
-    'Vulnerável': Color(0xFFFEF9C3),
-    'Extinta na natureza': Color(0xFFF3F4F6),
-  };
-
-  static const statusTexto = <String, Color>{
-    'Criticamente ameaçada': Color(0xFF991B1B),
-    'Em perigo': Color(0xFF92400E),
-    'Vulnerável': Color(0xFF854D0E),
-    'Extinta na natureza': Color(0xFF374151),
+  /// Cor do texto do status, do mais grave ao menos grave. Antes cada status
+  /// tinha um par de cores (fundo e texto do selo); o selo saiu.
+  static const status = <String, Color>{
+    'Extinta na natureza': tinta,
+    'Criticamente ameaçada': terra,
+    'Em perigo': ocre,
+    'Vulnerável': tinta3,
   };
 }
+
+/// Famílias de fonte declaradas no `pubspec.yaml`.
+class AppFontes {
+  const AppFontes._();
+
+  static const titulo = 'Fraunces';
+  static const texto = 'SourceSans3';
+}
+
+/// Raio padrão de cantos (`--raio` do site).
+const raioPadrao = 6.0;
+
+/// Título em serifa, com peso médio: o 800 em tudo era o que mais dava cara
+/// de modelo pronto.
+TextStyle estiloTitulo(
+  double tamanho, {
+  Color cor = AppCores.tinta,
+  FontWeight peso = FontWeight.w500,
+  double altura = 1.1,
+}) => TextStyle(
+  fontFamily: AppFontes.titulo,
+  fontSize: tamanho,
+  fontWeight: peso,
+  color: cor,
+  height: altura,
+  letterSpacing: -tamanho * 0.015,
+);
 
 /// Larguras de quebra herdadas do `useWindowSize()` da versao React.
 class Breakpoints {
@@ -73,66 +102,152 @@ class Breakpoints {
 }
 
 ThemeData construirTema() {
+  final cantos = RoundedRectangleBorder(
+    borderRadius: BorderRadius.circular(raioPadrao),
+  );
+  final borda = OutlineInputBorder(
+    borderRadius: BorderRadius.circular(raioPadrao),
+    borderSide: const BorderSide(color: AppCores.linha),
+  );
   final base = ThemeData(
     colorScheme: ColorScheme.fromSeed(
-      seedColor: AppCores.verde,
-      primary: AppCores.verde,
+      seedColor: AppCores.mata,
+      primary: AppCores.mata,
+      surface: AppCores.papel,
+      error: AppCores.terra,
     ),
     useMaterial3: true,
-    scaffoldBackgroundColor: AppCores.fundo,
-    fontFamily: 'Segoe UI',
+    scaffoldBackgroundColor: AppCores.papel,
+    fontFamily: AppFontes.texto,
   );
 
   return base.copyWith(
     appBarTheme: const AppBarTheme(
-      backgroundColor: Color(0xFF052E16),
-      foregroundColor: Colors.white,
+      backgroundColor: AppCores.papel,
+      foregroundColor: AppCores.tinta,
       surfaceTintColor: Colors.transparent,
-    ),
-    outlinedButtonTheme: OutlinedButtonThemeData(
-      style: OutlinedButton.styleFrom(
-        minimumSize: const Size(48, 50),
-        padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 16),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-      ),
-    ),
-    navigationBarTheme: const NavigationBarThemeData(
-      height: 70,
       elevation: 0,
-      surfaceTintColor: Colors.transparent,
+      scrolledUnderElevation: 0,
+      shape: Border(bottom: BorderSide(color: AppCores.linha)),
     ),
     textTheme: base.textTheme.apply(
-      bodyColor: AppCores.textoMedio,
-      displayColor: AppCores.texto,
+      bodyColor: AppCores.tinta2,
+      displayColor: AppCores.tinta,
+    ),
+    dividerTheme: const DividerThemeData(color: AppCores.linha),
+    navigationBarTheme: NavigationBarThemeData(
+      height: 68,
+      elevation: 0,
+      backgroundColor: AppCores.papel,
+      surfaceTintColor: Colors.transparent,
+      indicatorColor: AppCores.mataClara,
+      labelTextStyle: WidgetStateProperty.resolveWith(
+        (estados) => TextStyle(
+          fontSize: 13,
+          fontWeight: estados.contains(WidgetState.selected)
+              ? FontWeight.w600
+              : FontWeight.w400,
+          color: estados.contains(WidgetState.selected)
+              ? AppCores.tinta
+              : AppCores.tinta3,
+        ),
+      ),
+      iconTheme: WidgetStateProperty.resolveWith(
+        (estados) => IconThemeData(
+          color: estados.contains(WidgetState.selected)
+              ? AppCores.mata
+              : AppCores.tinta3,
+        ),
+      ),
+    ),
+    navigationRailTheme: const NavigationRailThemeData(
+      backgroundColor: AppCores.papel,
+      indicatorColor: AppCores.mataClara,
+      selectedIconTheme: IconThemeData(color: AppCores.mata),
+      unselectedIconTheme: IconThemeData(color: AppCores.tinta3),
+      selectedLabelTextStyle: TextStyle(
+        fontSize: 13,
+        fontWeight: FontWeight.w600,
+        color: AppCores.tinta,
+      ),
+      unselectedLabelTextStyle: TextStyle(fontSize: 13, color: AppCores.tinta3),
     ),
     inputDecorationTheme: InputDecorationTheme(
       filled: true,
-      fillColor: Colors.white,
-      contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
-      border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(14),
-        borderSide: const BorderSide(color: AppCores.borda, width: 1.5),
-      ),
-      enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(14),
-        borderSide: const BorderSide(color: AppCores.borda, width: 1.5),
-      ),
-      focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(14),
-        borderSide: const BorderSide(color: AppCores.verde, width: 1.5),
+      fillColor: AppCores.branco,
+      hintStyle: const TextStyle(color: AppCores.tinta3),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      border: borda,
+      enabledBorder: borda,
+      disabledBorder: borda,
+      focusedBorder: borda.copyWith(
+        borderSide: const BorderSide(color: AppCores.mata, width: 1.5),
       ),
     ),
     filledButtonTheme: FilledButtonThemeData(
       style: FilledButton.styleFrom(
-        backgroundColor: AppCores.verde,
-        foregroundColor: Colors.white,
-        disabledBackgroundColor: const Color(0xFF86EFAC),
-        disabledForegroundColor: Colors.white,
-        minimumSize: const Size(48, 50),
-        padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 16),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-        textStyle: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700),
+        backgroundColor: AppCores.mata,
+        foregroundColor: AppCores.branco,
+        disabledBackgroundColor: AppCores.mata.withValues(alpha: 0.6),
+        disabledForegroundColor: AppCores.branco,
+        minimumSize: const Size(48, 48),
+        padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 12),
+        shape: cantos,
+        textStyle: const TextStyle(
+          fontFamily: AppFontes.texto,
+          fontSize: 16,
+          fontWeight: FontWeight.w600,
+        ),
       ),
+    ),
+    outlinedButtonTheme: OutlinedButtonThemeData(
+      style: OutlinedButton.styleFrom(
+        foregroundColor: AppCores.mata,
+        side: const BorderSide(color: AppCores.mata),
+        minimumSize: const Size(48, 48),
+        padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 12),
+        shape: cantos,
+        textStyle: const TextStyle(
+          fontFamily: AppFontes.texto,
+          fontSize: 16,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+    ),
+    textButtonTheme: TextButtonThemeData(
+      style: TextButton.styleFrom(
+        foregroundColor: AppCores.mata,
+        textStyle: const TextStyle(
+          fontFamily: AppFontes.texto,
+          fontSize: 16,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+    ),
+    progressIndicatorTheme: const ProgressIndicatorThemeData(
+      color: AppCores.mata,
+    ),
+    bottomSheetTheme: const BottomSheetThemeData(
+      backgroundColor: AppCores.papel,
+      surfaceTintColor: Colors.transparent,
+    ),
+    dialogTheme: DialogThemeData(
+      backgroundColor: AppCores.branco,
+      surfaceTintColor: Colors.transparent,
+      shape: cantos,
+    ),
+    popupMenuTheme: const PopupMenuThemeData(
+      color: AppCores.branco,
+      surfaceTintColor: Colors.transparent,
+    ),
+    snackBarTheme: const SnackBarThemeData(
+      backgroundColor: AppCores.mataNoite,
+      contentTextStyle: TextStyle(
+        fontFamily: AppFontes.texto,
+        fontSize: 15,
+        color: AppCores.branco,
+      ),
+      behavior: SnackBarBehavior.floating,
     ),
   );
 }

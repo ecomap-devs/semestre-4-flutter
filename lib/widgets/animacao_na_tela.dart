@@ -150,3 +150,74 @@ class RevelarAoRolar extends StatelessWidget {
     },
   );
 }
+
+/// Entrada curta e finita, sem movimento quando o sistema o desabilita.
+class EntradaSuave extends StatelessWidget {
+  const EntradaSuave({super.key, required this.child});
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    if (MediaQuery.disableAnimationsOf(context)) return child;
+    return TweenAnimationBuilder<double>(
+      tween: Tween(begin: 0, end: 1),
+      duration: const Duration(milliseconds: 650),
+      curve: Curves.easeOutCubic,
+      child: child,
+      builder: (_, valor, conteudo) => Opacity(
+        opacity: valor,
+        child: Transform.translate(
+          offset: Offset(0, 18 * (1 - valor)),
+          child: conteudo,
+        ),
+      ),
+    );
+  }
+}
+
+/// O texto de [valor] com o numero dentro dele multiplicado por [progresso],
+/// mantendo o resto: "+30%", "1,5 mi ha", "1.173".
+///
+/// No formato brasileiro: virgula decimal, ponto de milhar. O numero de casas
+/// e o agrupamento saem do proprio texto, para "1,5" nao virar "1,50" no meio
+/// da contagem nem "1.173" perder o ponto.
+String textoContado(String valor, double progresso) {
+  final achado = RegExp(r'\d[\d.,]*').firstMatch(valor);
+  if (achado == null) return valor;
+  final numero = achado[0]!;
+  final decimais = numero.contains(',') ? numero.split(',')[1].length : 0;
+  final alvo = double.parse(numero.replaceAll('.', '').replaceAll(',', '.'));
+  final partes = (alvo * progresso).toStringAsFixed(decimais).split('.');
+  final inteiro = numero.contains('.')
+      ? partes[0].replaceAllMapped(
+          RegExp(r'(\d)(?=(\d{3})+$)'),
+          (m) => '${m[1]}.',
+        )
+      : partes[0];
+  final contado = partes.length > 1 ? '$inteiro,${partes[1]}' : inteiro;
+  return valor.replaceRange(achado.start, achado.end, contado);
+}
+
+/// Conta de zero ate o numero dentro do texto quando aparece na tela — o
+/// `Contador` do site. O leitor de tela recebe o valor final.
+class Contador extends StatelessWidget {
+  const Contador({super.key, required this.valor, this.estilo});
+
+  final String valor;
+  final TextStyle? estilo;
+
+  @override
+  Widget build(BuildContext context) => Semantics(
+    label: valor,
+    excludeSemantics: true,
+    child: AnimacaoNaTela(
+      duracao: const Duration(milliseconds: 1600),
+      builder: (_, t, _) => Text(
+        textoContado(valor, Curves.easeOutCubic.transform(t)),
+        maxLines: 1,
+        softWrap: false,
+        style: estilo,
+      ),
+    ),
+  );
+}

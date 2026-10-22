@@ -132,7 +132,8 @@ do Flutter.
 
 **Gráfico é `CustomPainter`, não biblioteca.** Foi decisão de projeto, herdada do
 SVG escrito à mão da versão React. Se precisar de um gráfico novo, pinte no canvas
-como os quatro que já existem em `lib/widgets/charts/`.
+como os que já existem em `lib/widgets/charts/` (barras, linha e o mapa dos
+biomas).
 
 **Trabalho pesado sai da thread da UI.** O GeoJSON é parseado em `compute()`. Se
 adicionar processamento caro, siga o mesmo caminho.

@@ -32,7 +32,11 @@ class Bioma {
   /// ponto aqui dentro NAO e do bioma.
   final List<List<LatLng>> buracos;
 
-  Color get cor => AppCores.biomasMapa[nome] ?? AppCores.verde;
+  Color get cor => AppCores.biomas[nome] ?? AppCores.mata;
+
+  /// "do" ou "da", para "45% do Cerrado" e "78% da Amazônia".
+  String get preposicao =>
+      const {'Cerrado', 'Pantanal', 'Pampa'}.contains(nome) ? 'do' : 'da';
 
   String get areaFormatada {
     if (areaKm2 >= 1000000) {
