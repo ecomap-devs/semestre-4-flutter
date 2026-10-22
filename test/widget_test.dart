@@ -9,6 +9,7 @@ import 'package:ecomapbrasil/main.dart';
 import 'package:ecomapbrasil/models/animal.dart';
 import 'package:ecomapbrasil/models/avaliacao.dart';
 import 'package:ecomapbrasil/models/bioma.dart';
+import 'package:ecomapbrasil/theme/app_theme.dart';
 import 'package:ecomapbrasil/widgets/estrelas.dart';
 
 void main() {
@@ -18,7 +19,8 @@ void main() {
       // 1200 -> 300 = -75%
       expect(onca.variacaoPercentual, closeTo(-75, 0.01));
       expect(onca.emRecuperacao, isFalse);
-      expect(onca.variacaoFormatada, '-75%');
+      // Sinal de menos tipografico, como no site.
+      expect(onca.variacaoFormatada, '−75%');
     });
 
     test('mico-leão-dourado é o único em recuperação no catálogo', () {
@@ -42,6 +44,22 @@ void main() {
         ameacas: [],
       );
       expect(a.variacaoPercentual, 0);
+    });
+
+    test('cor da tendência: alta, queda forte e queda moderada', () {
+      Animal chamado(String nome) => animais.firstWhere((a) => a.nome == nome);
+      expect(chamado('Mico-leão-dourado').corTendencia, AppCores.mata);
+      // Onça: -75%, mais da metade.
+      expect(chamado('Onça-pintada').corTendencia, AppCores.terra);
+      // Arara-azul: -35%.
+      expect(chamado('Arara-azul').corTendencia, AppCores.ocre);
+    });
+
+    test('população com separador de milhar', () {
+      expect(
+        animais.firstWhere((a) => a.nome == 'Lobo-guará').populacaoComMilhar,
+        '23.000',
+      );
     });
 
     test('população zero é rotulada como extinta na natureza', () {
@@ -110,6 +128,15 @@ void main() {
           }
         }
       }
+    });
+
+    test('preposição concorda com o nome do bioma', () {
+      String de(String nome) =>
+          biomas.firstWhere((b) => b.nome == nome).preposicao;
+      expect(de('Amazônia'), 'da');
+      expect(de('Cerrado'), 'do');
+      expect(de('Pampa'), 'do');
+      expect(de('Mata Atlântica'), 'da');
     });
 
     test('área grande sai em milhões, área menor em milhares', () {

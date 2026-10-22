@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/auth_modal.dart';
-import '../widgets/superficie_vidro.dart';
 import 'animais_screen.dart';
 import 'fotos_screen.dart';
 import 'home_screen.dart';
@@ -49,9 +48,7 @@ class _AppShellState extends State<AppShell> {
         // Aqui vale mostrar que algo esta acontecendo.
         if (snap.connectionState == ConnectionState.waiting) {
           return const Scaffold(
-            body: Center(
-              child: CircularProgressIndicator(color: AppCores.verde),
-            ),
+            body: Center(child: CircularProgressIndicator()),
           );
         }
 
@@ -62,6 +59,7 @@ class _AppShellState extends State<AppShell> {
             aoPedirLogin: _pedirLogin,
             aoAbrirMapa: () => setState(() => _indice = 1),
             aoAbrirAnimais: () => setState(() => _indice = 2),
+            aoAbrirFotos: () => setState(() => _indice = 3),
           ),
           const MapaScreen(),
           const AnimaisScreen(),
@@ -94,34 +92,29 @@ class _AppShellState extends State<AppShell> {
 
         return Scaffold(
           appBar: AppBar(
-            backgroundColor: const Color(0xFF052E16),
-            surfaceTintColor: Colors.transparent,
-            toolbarHeight: 72,
-            elevation: 0,
-            scrolledUnderElevation: 1,
+            toolbarHeight: ehMobile ? 56 : 64,
+            titleSpacing: ehMobile ? 16 : 24,
             title: Row(
               children: [
                 Image.asset('assets/img/logo.png', height: 30),
                 const SizedBox(width: 10),
-                const Text(
-                  'EcoMapBrasil',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w800,
-                    color: Colors.white,
-                  ),
-                ),
+                Text('EcoMapBrasil', style: estiloTitulo(20)),
               ],
             ),
             actions: [
               if (usuario == null)
-                TextButton.icon(
+                OutlinedButton(
                   onPressed: _pedirLogin,
-                  icon: const Icon(Icons.login, size: 18),
-                  label: const Text('Entrar'),
-                  style: TextButton.styleFrom(
-                    foregroundColor: AppCores.verdeClaro,
+                  style: OutlinedButton.styleFrom(
+                    minimumSize: const Size(48, 40),
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    textStyle: const TextStyle(
+                      fontFamily: AppFontes.texto,
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
+                  child: const Text('Entrar'),
                 )
               else
                 PopupMenuButton<String>(
@@ -136,7 +129,7 @@ class _AppShellState extends State<AppShell> {
                         usuario.displayName ?? usuario.email ?? 'Usuário',
                         style: const TextStyle(
                           fontWeight: FontWeight.w600,
-                          color: AppCores.texto,
+                          color: AppCores.tinta,
                         ),
                       ),
                     ),
@@ -144,10 +137,10 @@ class _AppShellState extends State<AppShell> {
                     const PopupMenuItem(value: 'sair', child: Text('Sair')),
                   ],
                   child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    padding: const EdgeInsets.symmetric(horizontal: 8),
                     child: CircleAvatar(
                       radius: 16,
-                      backgroundColor: AppCores.verdeFundo,
+                      backgroundColor: AppCores.mataClara,
                       foregroundImage: (usuario.photoURL ?? '').isEmpty
                           ? null
                           : NetworkImage(usuario.photoURL!),
@@ -155,67 +148,51 @@ class _AppShellState extends State<AppShell> {
                         (usuario.displayName ?? 'U').characters.first
                             .toUpperCase(),
                         style: const TextStyle(
-                          color: AppCores.verde,
-                          fontWeight: FontWeight.w700,
-                          fontSize: 13,
+                          color: AppCores.mata,
+                          fontWeight: FontWeight.w600,
+                          fontSize: 14,
                         ),
                       ),
                     ),
                   ),
                 ),
-              const SizedBox(width: 8),
+              SizedBox(width: ehMobile ? 12 : 20),
             ],
           ),
           body: ehMobile
               ? corpo
               : Row(
                   children: [
-                    SuperficieVidro(
-                      raio: 0,
-                      padding: EdgeInsets.zero,
-                      child: NavigationRail(
-                        selectedIndex: _indice,
-                        onDestinationSelected: (i) =>
-                            setState(() => _indice = i),
-                        labelType: NavigationRailLabelType.all,
-                        backgroundColor: Colors.transparent,
-                        indicatorColor: AppCores.verdeFundo,
-                        selectedIconTheme: const IconThemeData(
-                          color: AppCores.verde,
-                        ),
-                        selectedLabelTextStyle: const TextStyle(
-                          color: AppCores.verde,
-                          fontWeight: FontWeight.w600,
-                          fontSize: 12,
-                        ),
-                        destinations: [
-                          for (final d in _destinos)
-                            NavigationRailDestination(
-                              icon: Icon(d.icone),
-                              selectedIcon: Icon(d.ativo),
-                              label: Text(d.rotulo),
-                            ),
-                        ],
-                      ),
+                    NavigationRail(
+                      selectedIndex: _indice,
+                      onDestinationSelected: (i) => setState(() => _indice = i),
+                      labelType: NavigationRailLabelType.all,
+                      destinations: [
+                        for (final d in _destinos)
+                          NavigationRailDestination(
+                            icon: Icon(d.icone),
+                            selectedIcon: Icon(d.ativo),
+                            label: Text(d.rotulo),
+                          ),
+                      ],
                     ),
-                    const VerticalDivider(width: 1, color: AppCores.borda),
+                    const VerticalDivider(width: 1),
                     Expanded(child: corpo),
                   ],
                 ),
           bottomNavigationBar: ehMobile
-              ? SuperficieVidro(
-                  raio: 0,
-                  padding: EdgeInsets.zero,
+              ? DecoratedBox(
+                  decoration: const BoxDecoration(
+                    border: Border(top: BorderSide(color: AppCores.linha)),
+                  ),
                   child: NavigationBar(
                     selectedIndex: _indice,
                     onDestinationSelected: (i) => setState(() => _indice = i),
-                    backgroundColor: Colors.transparent,
-                    indicatorColor: AppCores.verdeFundo,
                     destinations: [
                       for (final d in _destinos)
                         NavigationDestination(
                           icon: Icon(d.icone),
-                          selectedIcon: Icon(d.ativo, color: AppCores.verde),
+                          selectedIcon: Icon(d.ativo),
                           label: d.rotulo,
                         ),
                     ],

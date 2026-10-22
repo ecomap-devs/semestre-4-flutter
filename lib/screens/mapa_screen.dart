@@ -6,13 +6,11 @@ import '../data/biomas_data.dart';
 import '../models/bioma.dart';
 import '../services/geojson_service.dart';
 import '../theme/app_theme.dart';
-import '../widgets/superficie_vidro.dart';
+import '../widgets/animacao_na_tela.dart';
 
 /// O fundo do mapa. Comeca no claro: biomas coloridos e alertas vermelhos
 /// aparecem muito mais sobre ele do que sobre o satelite escuro.
 enum _Fundo { claro, satelite }
-
-const _vermelhoAlerta = Color(0xFFDC2626);
 
 /// Abaixo deste zoom o alerta vira ponto; a partir dele, o poligono aparece.
 ///
@@ -46,8 +44,8 @@ class _DadosMapa {
             Polygon(
               points: parte.contorno,
               holePointsList: parte.buracos,
-              color: _vermelhoAlerta.withValues(alpha: 0.6),
-              borderColor: const Color(0xFFEF4444),
+              color: AppCores.alerta.withValues(alpha: 0.45),
+              borderColor: AppCores.alerta,
               borderStrokeWidth: 0.5,
             ),
       ],
@@ -56,7 +54,7 @@ class _DadosMapa {
           CircleMarker(
             point: a.centro,
             radius: 2.2,
-            color: _vermelhoAlerta.withValues(alpha: 0.75),
+            color: AppCores.alerta.withValues(alpha: 0.75),
           ),
       ];
 
@@ -87,8 +85,7 @@ class _MapaScreenState extends State<MapaScreen> {
   late final Future<_DadosMapa> _dados;
 
   Bioma? _selecionado;
-  bool _mostrarAlertas = true;
-  bool _legendaAberta = true;
+  bool _painelAberto = false;
   bool _detalhe = false;
   _Fundo _fundo = _Fundo.claro;
 
@@ -109,36 +106,17 @@ class _MapaScreenState extends State<MapaScreen> {
   /// Antes era `move(centro, 5)`: zoom fixo cortava a Amazonia e deixava o
   /// Pantanal minusculo. Enquadrar pelos limites serve aos dois.
   void _selecionar(Bioma b) {
-    setState(() => _selecionado = b);
     final ehMobile = Breakpoints.ehMobile(context);
+    setState(() {
+      _selecionado = b;
+      // No celular o painel fecha, para o mapa aparecer com o bioma.
+      if (ehMobile) _painelAberto = false;
+    });
     _mapa.fitCamera(
       CameraFit.bounds(
         bounds: b.limites,
-        // No celular a ficha ocupa o pe da tela; o bioma fica acima dela.
-        padding: EdgeInsets.fromLTRB(40, 70, 40, ehMobile ? 300 : 40),
-      ),
-    );
-  }
-
-  /// No celular a lista lateral não cabe: abre numa folha por baixo.
-  ///
-  /// Revisão de 01/10/2026: antes, no celular, a única forma de escolher um
-  /// bioma era acertar o dedo no ponto certo do mapa — sem alternativa para
-  /// leitor de tela.
-  void _abrirListaDeBiomas() {
-    showModalBottomSheet<void>(
-      context: context,
-      isScrollControlled: true,
-      showDragHandle: true,
-      builder: (contexto) => SizedBox(
-        height: MediaQuery.sizeOf(contexto).height * .7,
-        child: _ListaBiomas(
-          selecionado: _selecionado,
-          aoSelecionar: (b) {
-            Navigator.of(contexto).pop();
-            _selecionar(b);
-          },
-        ),
+        // A ficha ocupa o pe da tela; o bioma fica acima dela.
+        padding: EdgeInsets.fromLTRB(40, 70, 40, ehMobile ? 300 : 240),
       ),
     );
   }
@@ -227,15 +205,15 @@ class _MapaScreenState extends State<MapaScreen> {
   @override
   Widget build(BuildContext context) {
     final ehMobile = Breakpoints.ehMobile(context);
+    final larguraPainel = Breakpoints.ehTablet(context) ? 260.0 : 320.0;
 
     final mapa = FutureBuilder<_DadosMapa>(
       future: _dados,
       builder: (context, snap) {
         final dados = snap.data;
         final carregando = snap.connectionState == ConnectionState.waiting;
-        // No celular a ficha e a legenda disputam o pe da tela.
-        final mostrarLegenda =
-            _legendaAberta && !(ehMobile && _selecionado != null);
+        // A ficha do bioma toma o lugar da legenda, para nao se encavalarem.
+        final mostrarLegenda = _selecionado == null;
 
         return Stack(
           children: [
@@ -246,13 +224,14 @@ class _MapaScreenState extends State<MapaScreen> {
                 initialZoom: ehMobile ? 3.4 : 4,
                 minZoom: 2,
                 maxZoom: 12,
+                backgroundColor: AppCores.papel2,
                 onTap: (_, ponto) => _tocarNoMapa(ponto),
                 onPositionChanged: _mudouCamera,
               ),
               children: [
                 ..._camadasDeFundo(),
                 _camadaDeBiomas(),
-                if (_mostrarAlertas && dados != null)
+                if (dados != null)
                   _detalhe
                       ? PolygonLayer(polygons: dados.poligonos)
                       : CircleLayer(circles: dados.pontos),
@@ -260,129 +239,91 @@ class _MapaScreenState extends State<MapaScreen> {
               ],
             ),
 
-            if (carregando)
-              const Positioned(
-                top: 12,
-                left: 0,
-                right: 0,
-                child: Center(child: _Chip('Carregando alertas...')),
-              ),
-
-            if (snap.hasError)
-              const Positioned(
+            if (carregando || snap.hasError)
+              Positioned(
                 top: 12,
                 left: 0,
                 right: 0,
                 child: Center(
-                  child: _Chip('Não foi possível carregar os alertas'),
-                ),
-              ),
-
-            Positioned(
-              top: 12,
-              right: 12,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  if (dados != null)
-                    _BotaoMapa(
-                      icone: _mostrarAlertas
-                          ? Icons.visibility
-                          : Icons.visibility_off,
-                      corIcone: _mostrarAlertas
-                          ? AppCores.erroTexto
-                          : AppCores.textoSuave,
-                      rotulo: 'Alertas',
-                      ativo: _mostrarAlertas,
-                      aoTocar: () =>
-                          setState(() => _mostrarAlertas = !_mostrarAlertas),
+                  child: _CartaoFlutuante(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 14,
+                      vertical: 6,
                     ),
-                  const SizedBox(height: 8),
-                  _BotaoMapa(
-                    icone: _fundo == _Fundo.claro
-                        ? Icons.satellite_alt_outlined
-                        : Icons.map_outlined,
-                    rotulo: _fundo == _Fundo.claro ? 'Satélite' : 'Mapa',
-                    aoTocar: () => setState(
-                      () => _fundo = _fundo == _Fundo.claro
-                          ? _Fundo.satelite
-                          : _Fundo.claro,
+                    child: Text(
+                      snap.hasError
+                          ? 'Não foi possível carregar os alertas'
+                          : 'Carregando alertas...',
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: snap.hasError ? AppCores.terra : AppCores.tinta2,
+                      ),
                     ),
                   ),
-                  if (!_legendaAberta) ...[
-                    const SizedBox(height: 8),
-                    _BotaoMapa(
-                      icone: Icons.info_outline,
-                      rotulo: 'Legenda',
-                      aoTocar: () => setState(() => _legendaAberta = true),
-                    ),
-                  ],
-                ],
+                ),
               ),
-            ),
 
             Positioned(
-              left: 12,
               top: 12,
-              child: SuperficieVidro(
-                padding: const EdgeInsets.all(4),
-                raio: 16,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    IconButton(
-                      tooltip: 'Aproximar mapa',
-                      onPressed: () => _aproximar(1),
-                      icon: const Icon(Icons.add),
-                    ),
-                    IconButton(
-                      tooltip: 'Afastar mapa',
-                      onPressed: () => _aproximar(-1),
-                      icon: const Icon(Icons.remove),
-                    ),
-                    if (ehMobile)
-                      IconButton(
-                        tooltip: 'Escolher bioma',
-                        onPressed: _abrirListaDeBiomas,
-                        icon: const Icon(Icons.list_alt),
-                      ),
-                    IconButton(
-                      tooltip: 'Ver todo o Brasil',
-                      onPressed: () {
-                        setState(() => _selecionado = null);
-                        _mapa.move(_centroBrasil, ehMobile ? 3.4 : 4);
-                      },
-                      icon: const Icon(Icons.public),
-                    ),
-                  ],
+              right: 16,
+              child: _BotaoFundo(
+                fundo: _fundo,
+                aoTocar: () => setState(
+                  () => _fundo = _fundo == _Fundo.claro
+                      ? _Fundo.satelite
+                      : _Fundo.claro,
                 ),
               ),
             ),
+
+            // No celular o zoom e por pinca, e o +/− ficava escondido atras do
+            // botao Biomas.
+            if (!ehMobile)
+              Positioned(
+                left: 12,
+                top: 12,
+                child: _CartaoFlutuante(
+                  padding: EdgeInsets.zero,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      IconButton(
+                        tooltip: 'Aproximar mapa',
+                        onPressed: () => _aproximar(1),
+                        icon: const Icon(Icons.add, color: AppCores.tinta),
+                      ),
+                      const SizedBox(width: 28, child: Divider(height: 1)),
+                      IconButton(
+                        tooltip: 'Afastar mapa',
+                        onPressed: () => _aproximar(-1),
+                        icon: const Icon(Icons.remove, color: AppCores.tinta),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
 
             if (mostrarLegenda)
               Positioned(
-                left: 12,
-                bottom: 28,
-                right: ehMobile ? 12 : null,
+                left: 16,
+                right: ehMobile ? 16 : null,
+                bottom: ehMobile ? 84 : 32,
                 child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 340),
-                  child: _Legenda(
-                    dados: dados,
-                    detalhe: _detalhe,
-                    aoFechar: () => setState(() => _legendaAberta = false),
-                  ),
+                  constraints: const BoxConstraints(maxWidth: 320),
+                  child: _Legenda(dados: dados, detalhe: _detalhe),
                 ),
               ),
 
             if (_selecionado != null)
               Positioned(
-                left: 12,
-                right: 12,
-                bottom: 28,
+                left: 16,
+                right: ehMobile ? 16 : null,
+                bottom: ehMobile ? 84 : 32,
                 child: EntradaSuave(
                   key: ValueKey(_selecionado!.nome),
                   child: ConstrainedBox(
                     constraints: BoxConstraints(
+                      maxWidth: 320,
                       maxHeight: MediaQuery.sizeOf(context).height * .4,
                     ),
                     child: SingleChildScrollView(
@@ -395,9 +336,36 @@ class _MapaScreenState extends State<MapaScreen> {
                 ),
               ),
 
+            if (ehMobile && !_painelAberto)
+              Positioned(
+                right: 16,
+                bottom: 20,
+                child: FilledButton.icon(
+                  onPressed: () => setState(() => _painelAberto = true),
+                  icon: const Icon(Icons.layers_outlined, size: 18),
+                  label: const Text(
+                    'Biomas',
+                    semanticsLabel: 'Ver biomas e linha do tempo',
+                  ),
+                  style: FilledButton.styleFrom(
+                    elevation: 3,
+                    shadowColor: const Color(0x401D2620),
+                  ),
+                ),
+              ),
+
+            if (ehMobile)
+              _PainelCelular(
+                aberto: _painelAberto,
+                selecionado: _selecionado,
+                aoSelecionar: _selecionar,
+                aoFechar: () => setState(() => _painelAberto = false),
+              ),
+
             // A Esri pede o credito visivel sobre o mapa; IBGE e INPE sao as
             // fontes dos dados desenhados.
-            const Positioned(right: 6, bottom: 4, child: _Creditos()),
+            if (!ehMobile || !_painelAberto)
+              const Positioned(right: 6, bottom: 4, child: _Creditos()),
           ],
         );
       },
@@ -407,15 +375,49 @@ class _MapaScreenState extends State<MapaScreen> {
 
     return Row(
       children: [
+        Expanded(child: mapa),
+        const VerticalDivider(width: 1),
         SizedBox(
-          width: 260,
-          child: _ListaBiomas(
-            selecionado: _selecionado,
-            aoSelecionar: _selecionar,
+          width: larguraPainel,
+          child: ColoredBox(
+            color: AppCores.papel,
+            child: ListView(
+              padding: const EdgeInsets.fromLTRB(16, 20, 16, 20),
+              children: [
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 4),
+                  child: Text('Biomas', style: estiloTitulo(18)),
+                ),
+                const SizedBox(height: 6),
+                const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 4),
+                  child: Text(
+                    'Escolha um para centralizar o mapa nele.',
+                    style: TextStyle(fontSize: 14, color: AppCores.tinta3),
+                  ),
+                ),
+                const SizedBox(height: 10),
+                for (final b in biomas)
+                  _ItemBioma(
+                    bioma: b,
+                    ativo: b == _selecionado,
+                    compacto: larguraPainel < 300,
+                    aoEscolher: () => _selecionar(b),
+                  ),
+                const SizedBox(height: 28),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 4),
+                  child: Text('Linha do tempo', style: estiloTitulo(18)),
+                ),
+                const SizedBox(height: 14),
+                const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 4),
+                  child: _LinhaDoTempo(),
+                ),
+              ],
+            ),
           ),
         ),
-        const VerticalDivider(width: 1, color: AppCores.borda),
-        Expanded(child: mapa),
       ],
     );
   }
@@ -431,21 +433,62 @@ String _hectares(double ha) => ha >= 1000000
     ? '${(ha / 1000000).toStringAsFixed(1).replaceAll('.', ',')} mi ha'
     : '${_milhar(ha)} ha';
 
-class _Legenda extends StatelessWidget {
-  const _Legenda({
-    required this.dados,
-    required this.detalhe,
-    required this.aoFechar,
+/// Cartao branco que flutua sobre o mapa: legenda, botoes, avisos.
+class _CartaoFlutuante extends StatelessWidget {
+  const _CartaoFlutuante({
+    required this.child,
+    this.padding = const EdgeInsets.fromLTRB(14, 12, 14, 12),
   });
+
+  final Widget child;
+  final EdgeInsetsGeometry padding;
+
+  @override
+  Widget build(BuildContext context) => Container(
+    padding: padding,
+    decoration: BoxDecoration(
+      color: AppCores.branco,
+      border: Border.all(color: AppCores.linha),
+      borderRadius: BorderRadius.circular(raioPadrao),
+      boxShadow: const [
+        BoxShadow(
+          color: Color(0x1F1D2620),
+          blurRadius: 12,
+          offset: Offset(0, 2),
+        ),
+      ],
+    ),
+    child: child,
+  );
+}
+
+class _Quadrado extends StatelessWidget {
+  const _Quadrado(this.cor, {this.tamanho = 12});
+
+  final Color cor;
+  final double tamanho;
+
+  @override
+  Widget build(BuildContext context) => Container(
+    width: tamanho,
+    height: tamanho,
+    decoration: BoxDecoration(
+      color: cor,
+      borderRadius: BorderRadius.circular(2),
+    ),
+  );
+}
+
+class _Legenda extends StatelessWidget {
+  const _Legenda({required this.dados, required this.detalhe});
 
   final _DadosMapa? dados;
   final bool detalhe;
-  final VoidCallback aoFechar;
 
   static const _suave = TextStyle(
-    fontSize: 11,
+    fontSize: 13,
     height: 1.4,
-    color: AppCores.textoSuave,
+    color: AppCores.tinta3,
   );
 
   @override
@@ -457,57 +500,25 @@ class _Legenda extends StatelessWidget {
         ? '${d.anoMin}'
         : '${d.anoMin}–${d.anoMax}';
 
-    return SuperficieVidro(
-      padding: const EdgeInsets.fromLTRB(14, 6, 6, 12),
-      raio: 16,
+    return _CartaoFlutuante(
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
-            children: [
-              const Expanded(
-                child: Text(
-                  'Legenda',
-                  style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w700,
-                    color: AppCores.texto,
-                  ),
-                ),
-              ),
-              IconButton(
-                onPressed: aoFechar,
-                tooltip: 'Esconder legenda',
-                visualDensity: VisualDensity.compact,
-                icon: const Icon(Icons.close, size: 16),
-                color: AppCores.textoSuave,
-              ),
-            ],
-          ),
-          Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Container(
-                margin: const EdgeInsets.only(top: 3, right: 8),
-                width: 10,
-                height: 10,
-                decoration: const BoxDecoration(
-                  color: _vermelhoAlerta,
-                  shape: BoxShape.circle,
-                ),
+              const Padding(
+                padding: EdgeInsets.only(top: 4, right: 8),
+                child: _Quadrado(AppCores.alerta),
               ),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const Text(
-                      'Alerta de desmatamento',
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                        color: AppCores.texto,
-                      ),
+                      'Alertas de desmatamento',
+                      style: TextStyle(fontSize: 15, color: AppCores.tinta),
                     ),
                     Text(
                       d == null
@@ -530,34 +541,23 @@ class _Legenda extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 10),
-          const Text(
-            'Biomas (limites do IBGE) · toque para ver a ficha',
-            style: _suave,
-          ),
-          const SizedBox(height: 6),
+          const Text('Biomas, pelo limite do IBGE', style: _suave),
+          const SizedBox(height: 4),
           Wrap(
-            spacing: 10,
-            runSpacing: 4,
+            spacing: 12,
+            runSpacing: 2,
             children: [
               for (final b in biomas)
                 Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Container(
-                      width: 10,
-                      height: 10,
-                      decoration: BoxDecoration(
-                        color: b.cor.withValues(alpha: 0.35),
-                        border: Border.all(color: b.cor, width: 1.5),
-                        borderRadius: BorderRadius.circular(3),
-                      ),
-                    ),
-                    const SizedBox(width: 4),
+                    _Quadrado(b.cor, tamanho: 10),
+                    const SizedBox(width: 5),
                     Text(
                       b.nome,
                       style: const TextStyle(
-                        fontSize: 11,
-                        color: AppCores.textoMedio,
+                        fontSize: 14,
+                        color: AppCores.tinta2,
                       ),
                     ),
                   ],
@@ -577,55 +577,117 @@ class _Creditos extends StatelessWidget {
   Widget build(BuildContext context) => Container(
     padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
     decoration: BoxDecoration(
-      color: Colors.white.withValues(alpha: 0.8),
+      color: AppCores.branco.withValues(alpha: 0.8),
       borderRadius: BorderRadius.circular(4),
     ),
     child: const Text(
       'Mapa: Esri · Biomas: IBGE · Alertas: INPE',
-      style: TextStyle(fontSize: 9, color: AppCores.textoMedio),
+      style: TextStyle(fontSize: 10, color: AppCores.tinta2),
     ),
   );
 }
 
-class _BotaoMapa extends StatelessWidget {
-  const _BotaoMapa({
-    required this.icone,
-    required this.rotulo,
-    required this.aoTocar,
-    this.corIcone = AppCores.textoMedio,
-    this.ativo = true,
-  });
+/// Alterna entre o mapa claro e a imagem de satelite.
+class _BotaoFundo extends StatelessWidget {
+  const _BotaoFundo({required this.fundo, required this.aoTocar});
 
-  final IconData icone;
-  final Color corIcone;
-  final String rotulo;
-  final bool ativo;
+  final _Fundo fundo;
   final VoidCallback aoTocar;
 
   @override
-  Widget build(BuildContext context) => Semantics(
-    button: true,
-    toggled: ativo,
-    child: Material(
-      color: Colors.white,
-      borderRadius: BorderRadius.circular(10),
-      elevation: 3,
+  Widget build(BuildContext context) {
+    final claro = fundo == _Fundo.claro;
+    return Semantics(
+      button: true,
+      label: claro ? 'Mostrar imagem de satélite' : 'Mostrar mapa',
+      excludeSemantics: true,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: aoTocar,
+          borderRadius: BorderRadius.circular(raioPadrao),
+          child: _CartaoFlutuante(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  claro ? Icons.satellite_alt_outlined : Icons.map_outlined,
+                  size: 18,
+                  color: AppCores.mata,
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  claro ? 'Satélite' : 'Mapa',
+                  style: const TextStyle(fontSize: 15, color: AppCores.tinta),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Um bioma na lista do painel: amostra de cor, nome e quanto foi desmatado.
+class _ItemBioma extends StatelessWidget {
+  const _ItemBioma({
+    required this.bioma,
+    required this.ativo,
+    required this.compacto,
+    required this.aoEscolher,
+  });
+
+  final Bioma bioma;
+  final bool ativo;
+  final bool compacto;
+  final VoidCallback aoEscolher;
+
+  @override
+  Widget build(BuildContext context) => Padding(
+    padding: const EdgeInsets.only(bottom: 2),
+    child: Semantics(
+      button: true,
+      selected: ativo,
       child: InkWell(
-        onTap: aoTocar,
-        borderRadius: BorderRadius.circular(10),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        onTap: aoEscolher,
+        borderRadius: BorderRadius.circular(raioPadrao),
+        hoverColor: AppCores.papel2,
+        child: Container(
+          constraints: const BoxConstraints(minHeight: 44),
+          padding: EdgeInsets.symmetric(
+            horizontal: compacto ? 10 : 12,
+            vertical: compacto ? 8 : 9,
+          ),
+          decoration: BoxDecoration(
+            color: ativo ? AppCores.branco : Colors.transparent,
+            borderRadius: BorderRadius.circular(raioPadrao),
+            border: Border.all(
+              color: ativo ? AppCores.tinta3 : Colors.transparent,
+            ),
+          ),
           child: Row(
-            mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(icone, size: 16, color: corIcone),
-              const SizedBox(width: 8),
+              _Quadrado(bioma.cor),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  bioma.nome,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: compacto ? 15 : 16,
+                    color: AppCores.tinta,
+                  ),
+                ),
+              ),
               Text(
-                rotulo,
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                  color: ativo ? AppCores.texto : AppCores.textoSuave,
+                '${bioma.percentualDesmatado}% desmatado',
+                style: const TextStyle(
+                  fontSize: 14,
+                  color: AppCores.tinta3,
+                  fontFeatures: [FontFeature.tabularFigures()],
                 ),
               ),
             ],
@@ -636,108 +698,244 @@ class _BotaoMapa extends StatelessWidget {
   );
 }
 
-class _ListaBiomas extends StatelessWidget {
-  const _ListaBiomas({required this.selecionado, required this.aoSelecionar});
-
-  final Bioma? selecionado;
-  final ValueChanged<Bioma> aoSelecionar;
+class _LinhaDoTempo extends StatelessWidget {
+  const _LinhaDoTempo();
 
   @override
   Widget build(BuildContext context) => Container(
-    color: AppCores.fundo,
-    child: ListView(
-      padding: const EdgeInsets.all(16),
+    margin: const EdgeInsets.only(left: 5),
+    decoration: const BoxDecoration(
+      border: Border(left: BorderSide(color: AppCores.linha)),
+    ),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        const Text(
-          'EXPLORE O BRASIL',
-          style: TextStyle(
-            fontSize: 11,
-            fontWeight: FontWeight.w700,
-            letterSpacing: 2,
-            color: AppCores.verde,
-          ),
-        ),
-        const SizedBox(height: 10),
-        const Text(
-          'Seis biomas. Muitas conexões.',
-          style: TextStyle(
-            fontSize: 22,
-            fontWeight: FontWeight.w800,
-            color: AppCores.texto,
-          ),
-        ),
-        const SizedBox(height: 8),
-        const Text(
-          'Selecione um bioma para conhecer seu território e os impactos do desmatamento.',
-          style: TextStyle(
-            fontSize: 12,
-            height: 1.6,
-            color: AppCores.textoSuave,
-          ),
-        ),
-        const SizedBox(height: 20),
-        for (final b in biomas)
-          Padding(
-            padding: const EdgeInsets.only(bottom: 8),
-            child: Semantics(
-              button: true,
-              selected: selecionado?.nome == b.nome,
-              child: InkWell(
-                onTap: () => aoSelecionar(b),
-                borderRadius: BorderRadius.circular(10),
+        for (final (ano, texto) in linhaDoTempoMapa)
+          Stack(
+            clipBehavior: Clip.none,
+            children: [
+              Positioned(
+                left: -5.5,
+                top: 5,
                 child: Container(
-                  padding: const EdgeInsets.all(12),
+                  width: 10,
+                  height: 10,
                   decoration: BoxDecoration(
-                    color: selecionado?.nome == b.nome
-                        ? AppCores.verdeFundo
-                        : Colors.white,
-                    borderRadius: BorderRadius.circular(10),
-                    border: Border.all(
-                      color: selecionado?.nome == b.nome
-                          ? AppCores.verde
-                          : AppCores.borda,
-                    ),
-                  ),
-                  child: Row(
-                    children: [
-                      Container(
-                        width: 12,
-                        height: 12,
-                        decoration: BoxDecoration(
-                          color: b.cor,
-                          borderRadius: BorderRadius.circular(3),
-                        ),
-                      ),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: Text(
-                          b.nome,
-                          style: const TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w600,
-                            color: AppCores.texto,
-                          ),
-                        ),
-                      ),
-                      Text(
-                        '${b.percentualDesmatado}%',
-                        style: const TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w700,
-                          color: AppCores.erroTexto,
-                        ),
-                      ),
-                    ],
+                    color: AppCores.papel,
+                    shape: BoxShape.circle,
+                    border: Border.all(color: AppCores.mata, width: 2),
                   ),
                 ),
               ),
-            ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(18, 0, 0, 16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      ano,
+                      style: const TextStyle(
+                        fontSize: 14,
+                        color: AppCores.tinta3,
+                        fontFeatures: [FontFeature.tabularFigures()],
+                      ),
+                    ),
+                    Text(
+                      texto,
+                      style: const TextStyle(
+                        fontSize: 15,
+                        height: 1.45,
+                        color: AppCores.tinta2,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
       ],
     ),
   );
 }
 
+/// Painel que sobe do pe da tela no celular, com as abas Biomas e Linha do
+/// tempo. Revisao de 01/10/2026: antes, no celular, a unica forma de escolher
+/// um bioma era acertar o dedo no ponto certo do mapa — sem alternativa para
+/// leitor de tela.
+class _PainelCelular extends StatefulWidget {
+  const _PainelCelular({
+    required this.aberto,
+    required this.selecionado,
+    required this.aoSelecionar,
+    required this.aoFechar,
+  });
+
+  final bool aberto;
+  final Bioma? selecionado;
+  final ValueChanged<Bioma> aoSelecionar;
+  final VoidCallback aoFechar;
+
+  @override
+  State<_PainelCelular> createState() => _PainelCelularState();
+}
+
+class _PainelCelularState extends State<_PainelCelular> {
+  bool _linhaDoTempo = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final duracao = MediaQuery.disableAnimationsOf(context)
+        ? Duration.zero
+        : const Duration(milliseconds: 300);
+
+    return Positioned(
+      left: 0,
+      right: 0,
+      bottom: 0,
+      child: AnimatedSlide(
+        offset: widget.aberto ? Offset.zero : const Offset(0, 1),
+        duration: duracao,
+        curve: Curves.easeOutCubic,
+        child: Visibility(
+          visible: widget.aberto,
+          maintainState: true,
+          maintainAnimation: true,
+          maintainSize: true,
+          child: Container(
+            constraints: BoxConstraints(
+              maxHeight: MediaQuery.sizeOf(context).height * .6,
+            ),
+            decoration: const BoxDecoration(
+              color: AppCores.papel,
+              borderRadius: BorderRadius.vertical(top: Radius.circular(12)),
+              border: Border(top: BorderSide(color: AppCores.linha)),
+              boxShadow: [
+                BoxShadow(
+                  color: Color(0x261D2620),
+                  blurRadius: 20,
+                  offset: Offset(0, -4),
+                ),
+              ],
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Semantics(
+                  button: true,
+                  label: 'Fechar painel',
+                  excludeSemantics: true,
+                  child: InkWell(
+                    onTap: widget.aoFechar,
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(0, 10, 0, 6),
+                      child: Center(
+                        child: Container(
+                          width: 36,
+                          height: 4,
+                          decoration: BoxDecoration(
+                            color: AppCores.linha,
+                            borderRadius: BorderRadius.circular(2),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  decoration: const BoxDecoration(
+                    border: Border(bottom: BorderSide(color: AppCores.linha)),
+                  ),
+                  child: Row(
+                    children: [
+                      _Aba(
+                        rotulo: 'Biomas',
+                        ativa: !_linhaDoTempo,
+                        aoTocar: () => setState(() => _linhaDoTempo = false),
+                      ),
+                      const SizedBox(width: 20),
+                      _Aba(
+                        rotulo: 'Linha do tempo',
+                        ativa: _linhaDoTempo,
+                        aoTocar: () => setState(() => _linhaDoTempo = true),
+                      ),
+                    ],
+                  ),
+                ),
+                Flexible(
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.fromLTRB(12, 12, 12, 20),
+                    child: _linhaDoTempo
+                        ? const Padding(
+                            padding: EdgeInsets.fromLTRB(4, 4, 4, 0),
+                            child: _LinhaDoTempo(),
+                          )
+                        : Column(
+                            children: [
+                              for (final b in biomas)
+                                _ItemBioma(
+                                  bioma: b,
+                                  ativo: b == widget.selecionado,
+                                  compacto: true,
+                                  aoEscolher: () => widget.aoSelecionar(b),
+                                ),
+                            ],
+                          ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _Aba extends StatelessWidget {
+  const _Aba({
+    required this.rotulo,
+    required this.ativa,
+    required this.aoTocar,
+  });
+
+  final String rotulo;
+  final bool ativa;
+  final VoidCallback aoTocar;
+
+  @override
+  Widget build(BuildContext context) => Semantics(
+    button: true,
+    selected: ativa,
+    child: InkWell(
+      onTap: aoTocar,
+      child: Container(
+        constraints: const BoxConstraints(minHeight: 44),
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          border: Border(
+            bottom: BorderSide(
+              color: ativa ? AppCores.mata : Colors.transparent,
+              width: 2,
+            ),
+          ),
+        ),
+        child: Text(
+          rotulo,
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: ativa ? FontWeight.w600 : FontWeight.w400,
+            color: ativa ? AppCores.tinta : AppCores.tinta3,
+          ),
+        ),
+      ),
+    ),
+  );
+}
+
+/// O que o site mostra no balao ao clicar num bioma: nome, area, quanto foi
+/// desmatado e a descricao.
 class _FichaBioma extends StatelessWidget {
   const _FichaBioma({required this.bioma, required this.aoFechar});
 
@@ -745,77 +943,45 @@ class _FichaBioma extends StatelessWidget {
   final VoidCallback aoFechar;
 
   @override
-  Widget build(BuildContext context) => SuperficieVidro(
-    padding: const EdgeInsets.all(20),
+  Widget build(BuildContext context) => _CartaoFlutuante(
+    padding: const EdgeInsets.fromLTRB(16, 6, 6, 16),
     child: Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
           children: [
-            Container(
-              width: 14,
-              height: 14,
-              decoration: BoxDecoration(
-                color: bioma.cor,
-                borderRadius: BorderRadius.circular(4),
-              ),
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Text(
-                bioma.nome,
-                style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w800,
-                  color: AppCores.texto,
-                ),
-              ),
-            ),
+            _Quadrado(bioma.cor),
+            const SizedBox(width: 8),
+            Expanded(child: Text(bioma.nome, style: estiloTitulo(19))),
             IconButton(
               onPressed: aoFechar,
               icon: const Icon(Icons.close, size: 18),
-              color: AppCores.textoSuave,
+              color: AppCores.tinta3,
               tooltip: 'Fechar',
             ),
           ],
         ),
-        const SizedBox(height: 6),
-        Text(
-          bioma.descricao,
-          style: const TextStyle(
-            fontSize: 13,
-            height: 1.5,
-            color: AppCores.textoSuave,
-          ),
-        ),
-        const SizedBox(height: 16),
-        Row(
-          children: [
-            Expanded(
-              child: _Metrica(
-                rotulo: 'Área original',
-                valor: bioma.areaFormatada,
-                cor: AppCores.texto,
-              ),
-            ),
-            Expanded(
-              child: _Metrica(
-                rotulo: 'Desmatado',
+        Padding(
+          padding: const EdgeInsets.only(right: 10),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              _LinhaFicha(rotulo: 'Área total', valor: bioma.areaFormatada),
+              const SizedBox(height: 5),
+              _LinhaFicha(
+                rotulo: 'Desmatamento',
                 valor: '${bioma.percentualDesmatado}%',
-                cor: AppCores.erroTexto,
+                destaque: true,
               ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 12),
-        ClipRRect(
-          borderRadius: BorderRadius.circular(999),
-          child: LinearProgressIndicator(
-            value: bioma.percentualDesmatado / 100,
-            minHeight: 8,
-            backgroundColor: AppCores.borda,
-            valueColor: const AlwaysStoppedAnimation(AppCores.erroTexto),
+              const SizedBox(height: 8),
+              const Divider(height: 1),
+              const SizedBox(height: 8),
+              Text(
+                bioma.descricao,
+                style: const TextStyle(fontSize: 14, color: AppCores.tinta2),
+              ),
+            ],
           ),
         ),
       ],
@@ -823,50 +989,33 @@ class _FichaBioma extends StatelessWidget {
   );
 }
 
-class _Metrica extends StatelessWidget {
-  const _Metrica({
+class _LinhaFicha extends StatelessWidget {
+  const _LinhaFicha({
     required this.rotulo,
     required this.valor,
-    required this.cor,
+    this.destaque = false,
   });
 
   final String rotulo;
   final String valor;
-  final Color cor;
+  final bool destaque;
 
   @override
-  Widget build(BuildContext context) => Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
+  Widget build(BuildContext context) => Row(
+    mainAxisAlignment: MainAxisAlignment.spaceBetween,
     children: [
       Text(
         rotulo,
-        style: const TextStyle(fontSize: 11, color: AppCores.textoSuave),
+        style: const TextStyle(fontSize: 14, color: AppCores.tinta3),
       ),
-      const SizedBox(height: 2),
       Text(
         valor,
-        style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: cor),
+        style: TextStyle(
+          fontSize: 14,
+          fontWeight: destaque ? FontWeight.w600 : FontWeight.w400,
+          color: destaque ? AppCores.terra : AppCores.tinta2,
+        ),
       ),
     ],
-  );
-}
-
-class _Chip extends StatelessWidget {
-  const _Chip(this.texto);
-
-  final String texto;
-
-  @override
-  Widget build(BuildContext context) => Container(
-    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-    decoration: BoxDecoration(
-      color: Colors.white,
-      borderRadius: BorderRadius.circular(999),
-      boxShadow: const [BoxShadow(color: Color(0x22000000), blurRadius: 8)],
-    ),
-    child: Text(
-      texto,
-      style: const TextStyle(fontSize: 12, color: AppCores.textoMedio),
-    ),
   );
 }

@@ -45,7 +45,7 @@ class TelaDeConfiguracao extends StatelessWidget {
   Widget build(BuildContext context) => MaterialApp(
     debugShowCheckedModeBanner: false,
     home: Scaffold(
-      backgroundColor: AppCores.fundo,
+      backgroundColor: AppCores.papel,
       body: Center(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(32),
@@ -55,14 +55,14 @@ class TelaDeConfiguracao extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Icon(Icons.key_off, size: 40, color: AppCores.erroTexto),
+                const Icon(Icons.key_off, size: 40, color: AppCores.terra),
                 const SizedBox(height: 16),
                 const Text(
                   'Faltam credenciais',
                   style: TextStyle(
                     fontSize: 22,
                     fontWeight: FontWeight.w800,
-                    color: AppCores.texto,
+                    color: AppCores.tinta,
                   ),
                 ),
                 const SizedBox(height: 10),
@@ -73,7 +73,7 @@ class TelaDeConfiguracao extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 14,
                     height: 1.6,
-                    color: AppCores.textoMedio,
+                    color: AppCores.tinta2,
                   ),
                 ),
                 const SizedBox(height: 14),
@@ -81,7 +81,7 @@ class TelaDeConfiguracao extends StatelessWidget {
                   width: double.infinity,
                   padding: const EdgeInsets.all(14),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF111827),
+                    color: AppCores.mataNoite,
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: const SelectableText(
@@ -89,7 +89,7 @@ class TelaDeConfiguracao extends StatelessWidget {
                     style: TextStyle(
                       fontFamily: 'monospace',
                       fontSize: 13,
-                      color: Color(0xFF4ADE80),
+                      color: AppCores.mataClara,
                     ),
                   ),
                 ),
@@ -99,7 +99,7 @@ class TelaDeConfiguracao extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w700,
-                    color: AppCores.texto,
+                    color: AppCores.tinta,
                   ),
                 ),
                 const SizedBox(height: 8),
@@ -111,7 +111,7 @@ class TelaDeConfiguracao extends StatelessWidget {
                         const Icon(
                           Icons.close,
                           size: 14,
-                          color: AppCores.erroTexto,
+                          color: AppCores.terra,
                         ),
                         const SizedBox(width: 8),
                         SelectableText(
@@ -119,7 +119,7 @@ class TelaDeConfiguracao extends StatelessWidget {
                           style: const TextStyle(
                             fontFamily: 'monospace',
                             fontSize: 13,
-                            color: AppCores.erroTexto,
+                            color: AppCores.terra,
                           ),
                         ),
                       ],

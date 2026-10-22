@@ -3,18 +3,19 @@ import 'package:flutter/material.dart';
 import '../../theme/app_theme.dart';
 import '../animacao_na_tela.dart';
 
-/// Linha de tendencia populacional.
+/// Linha de tendencia populacional — o `MiniGrafico` do site.
 ///
-/// Serve tanto ao `LineChart()` da Home quanto ao `MiniLineChart` da tela de
-/// Animais — a diferenca e so tamanho e se mostra eixo.
+/// Serve ao cartao e a ficha da tela de Animais; a diferenca e so a altura.
+/// Linha fina, area clara por baixo, um ponto no fim e so o primeiro e o
+/// ultimo ano no eixo.
 class LinhaChart extends StatelessWidget {
   const LinhaChart({
     super.key,
     required this.valores,
     required this.rotulos,
-    this.cor = AppCores.verde,
+    this.cor = AppCores.mata,
     this.mostrarEixo = true,
-    this.altura = 180,
+    this.altura = 56,
   });
 
   final List<int> valores;
@@ -27,19 +28,25 @@ class LinhaChart extends StatelessWidget {
   Widget build(BuildContext context) {
     if (valores.length < 2) return SizedBox(height: altura);
 
-    return AnimacaoNaTela(
-      duracao: const Duration(milliseconds: 1500),
-      builder: (_, t, _) => SizedBox(
-        height: altura,
-        child: CustomPaint(
-          painter: _LinhaPainter(
-            valores: valores,
-            rotulos: rotulos,
-            cor: cor,
-            progresso: Curves.easeInOutCubic.transform(t),
-            mostrarEixo: mostrarEixo,
+    return Semantics(
+      label:
+          'População de ${rotulos.first} a ${rotulos.last}: '
+          '${valores.join(', ')}',
+      excludeSemantics: true,
+      child: AnimacaoNaTela(
+        duracao: const Duration(milliseconds: 600),
+        builder: (_, t, _) => SizedBox(
+          height: altura,
+          child: CustomPaint(
+            painter: _LinhaPainter(
+              valores: valores,
+              rotulos: rotulos,
+              cor: cor,
+              opacidade: Curves.easeOut.transform(t),
+              mostrarEixo: mostrarEixo,
+            ),
+            size: Size.infinite,
           ),
-          size: Size.infinite,
         ),
       ),
     );
@@ -51,106 +58,93 @@ class _LinhaPainter extends CustomPainter {
     required this.valores,
     required this.rotulos,
     required this.cor,
-    required this.progresso,
+    required this.opacidade,
     required this.mostrarEixo,
   });
 
   final List<int> valores;
   final List<String> rotulos;
   final Color cor;
-  final double progresso;
+  final double opacidade;
   final bool mostrarEixo;
 
   @override
   void paint(Canvas canvas, Size size) {
-    final margemBaixo = mostrarEixo ? 22.0 : 4.0;
-    final alturaGrafico = size.height - margemBaixo - 4;
+    const margemX = 4.0;
+    const margemTopo = 6.0;
+    final margemBaixo = mostrarEixo ? 18.0 : 4.0;
+    final largura = size.width - margemX * 2;
+    final base = size.height - margemBaixo;
+    final alturaGrafico = base - margemTopo;
 
+    // Como no site, o eixo comeca em zero (ou abaixo, se houver negativo), e
+    // a faixa nunca e zero: serie constante desenharia divisao por zero.
     final maximo = valores.reduce((a, b) => a > b ? a : b).toDouble();
-    final minimo = valores.reduce((a, b) => a < b ? a : b).toDouble();
-    // Faixa nunca zero: serie constante desenharia divisao por zero.
-    final faixa = (maximo - minimo).abs() < 1 ? 1.0 : maximo - minimo;
+    final menor = valores.reduce((a, b) => a < b ? a : b).toDouble();
+    final minimo = menor < 0 ? menor : 0.0;
+    final faixa = maximo - minimo == 0 ? 1.0 : maximo - minimo;
 
-    Offset pontoEm(int i) {
-      final x = (i / (valores.length - 1)) * size.width;
-      final norm = (valores[i] - minimo) / faixa;
-      return Offset(x, 4 + alturaGrafico * (1 - norm));
-    }
-
-    final caminho = Path();
-    final quantos = ((valores.length - 1) * progresso).clamp(
-      0,
-      valores.length - 1,
+    Offset pontoEm(int i) => Offset(
+      margemX + (i / (valores.length - 1)) * largura,
+      margemTopo + (1 - (valores[i] - minimo) / faixa) * alturaGrafico,
     );
-    caminho.moveTo(pontoEm(0).dx, pontoEm(0).dy);
-    for (var i = 1; i <= quantos.floor(); i++) {
-      final p = pontoEm(i);
-      caminho.lineTo(p.dx, p.dy);
+
+    canvas.drawLine(
+      Offset(margemX, base),
+      Offset(margemX + largura, base),
+      Paint()
+        ..color = AppCores.linha
+        ..strokeWidth = 1,
+    );
+
+    final linha = Path()..moveTo(pontoEm(0).dx, pontoEm(0).dy);
+    for (var i = 1; i < valores.length; i++) {
+      linha.lineTo(pontoEm(i).dx, pontoEm(i).dy);
     }
-
-    final indice = quantos.floor();
-    final fracao = (quantos - indice).toDouble();
-    final ponta = indice < valores.length - 1
-        ? Offset.lerp(pontoEm(indice), pontoEm(indice + 1), fracao)!
-        : pontoEm(indice);
-    caminho.lineTo(ponta.dx, ponta.dy);
-
-    // Area sob a curva.
-    final area = Path.from(caminho)
-      ..lineTo(ponta.dx, 4 + alturaGrafico)
-      ..lineTo(pontoEm(0).dx, 4 + alturaGrafico)
+    final ultimo = pontoEm(valores.length - 1);
+    final area = Path.from(linha)
+      ..lineTo(ultimo.dx, base)
+      ..lineTo(pontoEm(0).dx, base)
       ..close();
+
     canvas.drawPath(
       area,
-      Paint()
-        ..shader = LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [cor.withValues(alpha: 0.22), cor.withValues(alpha: 0.0)],
-        ).createShader(Rect.fromLTWH(0, 0, size.width, size.height)),
+      Paint()..color = cor.withValues(alpha: 0.1 * opacidade),
     );
-
     canvas.drawPath(
-      caminho,
+      linha,
       Paint()
-        ..color = cor
+        ..color = cor.withValues(alpha: opacidade)
         ..style = PaintingStyle.stroke
-        ..strokeWidth = 2.5
+        ..strokeWidth = 1.75
         ..strokeCap = StrokeCap.round
         ..strokeJoin = StrokeJoin.round,
     );
-
-    for (var i = 0; i <= quantos.floor(); i++) {
-      final p = pontoEm(i);
-      canvas.drawCircle(p, 3.5, Paint()..color = Colors.white);
-      canvas.drawCircle(
-        p,
-        3.5,
-        Paint()
-          ..color = cor
-          ..style = PaintingStyle.stroke
-          ..strokeWidth = 2,
-      );
-    }
+    canvas.drawCircle(
+      ultimo,
+      3,
+      Paint()..color = cor.withValues(alpha: opacidade),
+    );
 
     if (!mostrarEixo) return;
-    for (var i = 0; i < rotulos.length; i++) {
+    for (final (i, noFim) in [(0, false), (rotulos.length - 1, true)]) {
       final tp = TextPainter(
         text: TextSpan(
           text: rotulos[i],
-          style: const TextStyle(fontSize: 9, color: AppCores.textoSuave),
+          style: const TextStyle(
+            fontFamily: AppFontes.texto,
+            fontSize: 11,
+            color: AppCores.tinta3,
+          ),
         ),
         textDirection: TextDirection.ltr,
       )..layout();
-      final x = (i / (valores.length - 1)) * size.width - tp.width / 2;
-      tp.paint(
-        canvas,
-        Offset(x.clamp(0, size.width - tp.width), size.height - 14),
-      );
+      final x = noFim ? margemX + largura - tp.width : margemX;
+      tp.paint(canvas, Offset(x, size.height - tp.height));
     }
   }
 
   @override
   bool shouldRepaint(_LinhaPainter old) =>
-      old.progresso != progresso || old.valores != valores;
+      old.opacidade != opacidade || old.valores != valores || old.cor != cor;
 }

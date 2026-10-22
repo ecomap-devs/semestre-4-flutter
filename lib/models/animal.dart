@@ -35,10 +35,8 @@ class Animal {
   final List<String> anos;
   final List<String> ameacas;
 
-  Color get corStatusFundo => AppCores.statusFundo[status] ?? AppCores.borda;
-  Color get corStatusTexto =>
-      AppCores.statusTexto[status] ?? AppCores.textoMedio;
-  Color get corBioma => AppCores.biomasMapa[bioma] ?? AppCores.verde;
+  /// Cor do texto do status, como no site (`corDoStatus`).
+  Color get corStatus => AppCores.status[status] ?? AppCores.tinta3;
 
   /// Variacao do primeiro ao ultimo ano da serie, em %. Negativo = declinio.
   double get variacaoPercentual {
@@ -52,10 +50,18 @@ class Animal {
   /// mico-leao-dourado, o unico do catalogo em recuperacao.
   bool get emRecuperacao => variacaoPercentual > 0;
 
+  /// Cor da tendencia: mata se a populacao subiu, terra se caiu mais da
+  /// metade, ocre no meio-termo. A mesma regra do `corDaTendencia` do site.
+  Color get corTendencia {
+    if (emRecuperacao) return AppCores.mata;
+    if (variacaoPercentual < -50) return AppCores.terra;
+    return AppCores.ocre;
+  }
+
+  /// "+525%" ou "−75%", com o sinal de menos tipografico (−), nao o hifen.
   String get variacaoFormatada {
-    final v = variacaoPercentual;
-    final sinal = v > 0 ? '+' : '';
-    return '$sinal${v.toStringAsFixed(0)}%';
+    final v = variacaoPercentual.round();
+    return '${v >= 0 ? '+' : '−'}${v.abs()}%';
   }
 
   String get populacaoFormatada {
@@ -69,4 +75,10 @@ class Animal {
     }
     return '$populacao indivíduos';
   }
+
+  /// "6.500": a populacao com separador de milhar brasileiro.
+  String get populacaoComMilhar => populacao.toString().replaceAllMapped(
+    RegExp(r'(\d)(?=(\d{3})+$)'),
+    (m) => '${m[1]}.',
+  );
 }

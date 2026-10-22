@@ -1,7 +1,6 @@
 import 'package:ecomapbrasil/widgets/animacao_na_tela.dart';
 import 'package:ecomapbrasil/widgets/charts/barras_chart.dart';
 import 'package:ecomapbrasil/widgets/rolagem_suave.dart';
-import 'package:ecomapbrasil/widgets/superficie_vidro.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -152,26 +151,4 @@ void main() {
       expect(controlador.offset, controlador.position.maxScrollExtent - 100);
     },
   );
-
-  testWidgets('hover amplia o cartão e retorna ao sair', (tester) async {
-    await tester.pumpWidget(
-      const MaterialApp(
-        home: Center(
-          child: EfeitoHover(child: SizedBox(width: 200, height: 100)),
-        ),
-      ),
-    );
-    final mouse = await tester.createGesture(kind: PointerDeviceKind.mouse);
-    await mouse.addPointer(location: Offset.zero);
-    await mouse.moveTo(tester.getCenter(find.byType(EfeitoHover)));
-    await tester.pumpAndSettle();
-    expect(
-      tester.widget<AnimatedScale>(find.byType(AnimatedScale)).scale,
-      greaterThan(1),
-    );
-    await mouse.moveTo(Offset.zero);
-    await tester.pumpAndSettle();
-    expect(tester.widget<AnimatedScale>(find.byType(AnimatedScale)).scale, 1);
-    await mouse.removePointer();
-  });
 }
