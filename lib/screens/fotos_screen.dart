@@ -40,7 +40,7 @@ class _FotosScreenState extends State<FotosScreen> {
   Future<void> _escolher(ImageSource origem) async {
     final XFile? img;
     try {
-      // 1024 px basta para o Vision reconhecer o animal e mantem o envio
+      // 1024 px basta para o Gemini reconhecer o animal e mantem o envio
       // pequeno em rede movel.
       img = await ImagePicker().pickImage(
         source: origem,
