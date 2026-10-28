@@ -16,17 +16,29 @@
 // contra as chaves publicas do Google. Por isso o `verify_jwt` do gateway fica
 // desligado (supabase/config.toml) — ele so entende JWT do proprio Supabase.
 //
+// Login nao basta: o cadastro e aberto. Desde 28/10/2026 cada pessoa tem um
+// limite por minuto e por dia, contado no Postgres do Supabase
+// (supabase/limite-identificacao.sql, que precisa estar aplicado ANTES).
+//
 // Secrets (supabase secrets set ...):
 //   GEMINI_API_KEY       chave criada em aistudio.google.com
 //   FIREBASE_PROJECT_ID  o mesmo do env.json do app
 //   GEMINI_MODEL         opcional; troca o modelo sem republicar a funcao
 //   GEMINI_MODEL_RESERVA opcional; o modelo usado quando o principal esta
 //                        sobrecarregado
+//   LIMITE_POR_MINUTO    opcional; identificacoes por pessoa por minuto (5)
+//   LIMITE_POR_DIA       opcional; identificacoes por pessoa por dia (30)
+// A plataforma ja entrega SUPABASE_URL e SUPABASE_SECRET_KEYS; o limite usa a
+// chave secreta `default`. As chaves legadas (service_role) estao desativadas
+// neste projeto desde 08/09/2026.
 //
 // Os padroes sao apelidos ("-latest"), nao versoes fixas: em 01/10/2026 o
 // `gemini-2.5-flash` ja respondia 404, e versao fixa envelhece calada.
 
 import { createRemoteJWKSet, jwtVerify } from "npm:jose@5";
+
+import { chamarGemini, consultar, type Tentativa } from "./gemini.ts";
+import { inteiroPositivo, registrarUso } from "./limite.ts";
 
 const CHAVE_GEMINI = Deno.env.get("GEMINI_API_KEY") ?? "";
 const PROJETO_FIREBASE = Deno.env.get("FIREBASE_PROJECT_ID") ?? "";
@@ -35,46 +47,24 @@ const PROJETO_FIREBASE = Deno.env.get("FIREBASE_PROJECT_ID") ?? "";
 // flash-lite-latest (gemini-3.5-flash-lite) respondeu certo em 1,8 s, sem
 // gastar token pensando. O Flash completo fica de reserva, para quando o lite
 // estiver sobrecarregado.
-const MODELO = Deno.env.get("GEMINI_MODEL") || "gemini-flash-lite-latest";
-const MODELO_RESERVA = Deno.env.get("GEMINI_MODEL_RESERVA") ||
-  "gemini-flash-latest";
+const MODELOS = {
+  principal: Deno.env.get("GEMINI_MODEL") || "gemini-flash-lite-latest",
+  reserva: Deno.env.get("GEMINI_MODEL_RESERVA") || "gemini-flash-latest",
+};
 
-// A demora do nivel gratuito e fila, nao modelo: o mesmo flash-lite levou
-// 1,8 s num teste e 20 s no seguinte, sem gastar token pensando. Esperar a
-// fila andar nao adianta; o que adianta e nao depender de uma fila so. Se o
-// principal nao responder em PARALELO_APOS_MS, o reserva e chamado junto, e
-// vale a primeira resposta boa — a outra e cancelada. Se o principal falhar
-// antes disso (503, por exemplo), o reserva e chamado na hora.
-//
-// O custo: nos casos lentos, a mesma foto gasta duas consultas da cota.
-const PARALELO_APOS_MS = 6_000;
+const LIMITES = {
+  porMinuto: inteiroPositivo(Deno.env.get("LIMITE_POR_MINUTO"), 5),
+  porDia: inteiroPositivo(Deno.env.get("LIMITE_POR_DIA"), 30),
+};
+
+const SUPABASE = {
+  url: Deno.env.get("SUPABASE_URL") ?? "",
+  chaveSecreta: chaveSecretaPadrao(),
+};
 
 // Teto de tempo. No primeiro teste do site a chamada levou 106 s: sem limite,
 // uma chamada lenta segura a tela pelo tempo que o Google quiser.
 const TETO_TOTAL_MS = 50_000;
-
-/** Status que valem nova rodada: sobrecarga e erro interno do Google. */
-const PASSAGEIRO = new Set([500, 503]);
-
-/** Quanto cada chamada levou — volta na resposta para diagnosticar demora. */
-type Tentativa = {
-  modelo: string;
-  status: number | "tempo-esgotado" | "cancelada" | "erro-rede";
-  ms: number;
-};
-
-/**
- * Uma chamada terminada, com o corpo JA LIDO. Ler aqui dentro, antes da
- * disputa, e de proposito: a primeira versao da corrida devolvia o `Response`
- * e cancelava os perdedores com um sinal compartilhado — que tambem cortava a
- * leitura do corpo do vencedor. A funcao quebrava, a resposta de erro da
- * plataforma vinha sem CORS e o site mostrava "Sem conexao".
- */
-type Resultado = {
-  tentativa: Tentativa;
-  /** Presente quando o Google respondeu: status HTTP e corpo em texto. */
-  http?: { status: number; corpo: string };
-};
 
 // Chaves publicas que assinam os ID tokens do Firebase Auth.
 const CHAVES_FIREBASE = createRemoteJWKSet(
@@ -86,6 +76,8 @@ const CHAVES_FIREBASE = createRemoteJWKSet(
 // ~3 MB de imagem. O app ja reduz para 1024 px antes de mandar; isto e so o
 // teto para quem chamar a funcao por fora do app.
 const TAMANHO_MAXIMO_BASE64 = 4_000_000;
+// O corpo e `{"imagem":"..."}`: a imagem e quase tudo.
+const TAMANHO_MAXIMO_CORPO = TAMANHO_MAXIMO_BASE64 + 1_000;
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",
@@ -97,7 +89,8 @@ const CORS = {
 // O pedido ao modelo. A descricao e so do que se ve na foto: dado ambiental
 // (status de ameaca, populacao) gerado por IA seria numero inventado, e o
 // AGENTS.md proibe isso.
-const INSTRUCAO = `Voce identifica animais em fotos para um app brasileiro sobre fauna.
+const INSTRUCAO =
+  `Voce identifica animais em fotos para um app brasileiro sobre fauna.
 Responda em portugues do Brasil.
 - ehAnimal: false se nao houver animal na foto (pessoa, objeto, paisagem, desenho sem animal).
 - nomePopular: o nome popular no Brasil, ex.: "onça-pintada". Vazio se nao for animal.
@@ -114,8 +107,24 @@ const ESQUEMA = {
     confianca: { type: "STRING", enum: ["alta", "media", "baixa"] },
     descricao: { type: "STRING" },
   },
-  required: ["ehAnimal", "nomePopular", "nomeCientifico", "confianca", "descricao"],
+  required: [
+    "ehAnimal",
+    "nomePopular",
+    "nomeCientifico",
+    "confianca",
+    "descricao",
+  ],
 };
+
+/** A chave secreta `default` de SUPABASE_SECRET_KEYS (um JSON por nome). */
+function chaveSecretaPadrao(): string {
+  try {
+    const chaves = JSON.parse(Deno.env.get("SUPABASE_SECRET_KEYS") ?? "{}");
+    return typeof chaves?.default === "string" ? chaves.default : "";
+  } catch {
+    return "";
+  }
+}
 
 function responder(status: number, corpo: unknown): Response {
   return new Response(JSON.stringify(corpo), {
@@ -124,17 +133,19 @@ function responder(status: number, corpo: unknown): Response {
   });
 }
 
-async function usuarioValido(req: Request): Promise<boolean> {
+/** O uid de quem chama, se o ID token do Firebase for valido; senao, `null`. */
+async function uidValido(req: Request): Promise<string | null> {
   const token = req.headers.get("Authorization")?.replace(/^Bearer\s+/i, "");
-  if (!token) return false;
+  if (!token) return null;
   try {
-    await jwtVerify(token, CHAVES_FIREBASE, {
+    const { payload } = await jwtVerify(token, CHAVES_FIREBASE, {
       issuer: `https://securetoken.google.com/${PROJETO_FIREBASE}`,
       audience: PROJETO_FIREBASE,
     });
-    return true;
+    // O limite e contado por uid: token sem `sub` nao tem a quem contar.
+    return typeof payload.sub === "string" && payload.sub ? payload.sub : null;
   } catch {
-    return false;
+    return null;
   }
 }
 
@@ -146,110 +157,33 @@ function tipoDaImagem(base64: string): string {
   return "image/jpeg";
 }
 
-/**
- * Uma chamada ao Gemini, com o corpo lido ate o fim. Nunca lanca: falha vira
- * status na tentativa.
- */
-async function chamarGemini(
-  modelo: string,
-  corpo: string,
-  cancelar: AbortSignal,
-  prazo: number,
-): Promise<Resultado> {
-  const inicio = Date.now();
-  const limite = AbortSignal.timeout(Math.max(1, prazo - inicio));
-  try {
-    // A chave vai no cabecalho, nao na URL: URL aparece em log de erro.
-    const resposta = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/${modelo}:generateContent`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "x-goog-api-key": CHAVE_GEMINI,
-        },
-        body: corpo,
-        signal: AbortSignal.any([cancelar, limite]),
-      },
-    );
-    const texto = await resposta.text();
-    return {
-      tentativa: { modelo, status: resposta.status, ms: Date.now() - inicio },
-      http: { status: resposta.status, corpo: texto },
-    };
-  } catch {
-    const status = cancelar.aborted
-      ? "cancelada"
-      : limite.aborted
-      ? "tempo-esgotado"
-      : "erro-rede";
-    return { tentativa: { modelo, status, ms: Date.now() - inicio } };
-  }
-}
-
-/**
- * Uma rodada: o principal sai na frente, o reserva entra se o principal
- * demorar ou falhar, e vale a primeira resposta boa. Sem resposta boa, devolve
- * a ultima falha (com o corpo, para o log).
- */
-function rodada(
-  corpo: string,
-  prazo: number,
-  tentativas: Tentativa[],
-): Promise<Resultado> {
-  const cancelar = new AbortController();
-  return new Promise((resolver) => {
-    let ativas = 0;
-    let reservaChamado = false;
-    let terminou = false;
-
-    const encerrar = (r: Resultado) => {
-      terminou = true;
-      clearTimeout(relogio);
-      cancelar.abort();
-      resolver(r);
-    };
-
-    const chamar = (modelo: string) => {
-      ativas++;
-      chamarGemini(modelo, corpo, cancelar.signal, prazo).then((r) => {
-        ativas--;
-        tentativas.push(r.tentativa);
-        if (terminou) return;
-        if (r.http && r.http.status >= 200 && r.http.status < 300) {
-          return encerrar(r);
-        }
-
-        if (!reservaChamado) return chamarReserva();
-        if (ativas === 0) encerrar(r);
-      });
-    };
-
-    const chamarReserva = () => {
-      if (reservaChamado || terminou) return;
-      reservaChamado = true;
-      chamar(MODELO_RESERVA);
-    };
-
-    const relogio = setTimeout(chamarReserva, PARALELO_APOS_MS);
-    chamar(MODELO);
-  });
-}
-
 async function atender(req: Request): Promise<Response> {
   if (req.method === "OPTIONS") return new Response("ok", { headers: CORS });
   if (req.method !== "POST") {
     return responder(405, { erro: "metodo-invalido" });
   }
 
-  if (!CHAVE_GEMINI || !PROJETO_FIREBASE) {
-    console.error("Secrets GEMINI_API_KEY/FIREBASE_PROJECT_ID ausentes");
+  if (
+    !CHAVE_GEMINI || !PROJETO_FIREBASE || !SUPABASE.url ||
+    !SUPABASE.chaveSecreta
+  ) {
+    console.error(
+      "Configuracao incompleta: GEMINI_API_KEY, FIREBASE_PROJECT_ID, SUPABASE_URL ou a chave secreta `default`",
+    );
     return responder(500, { erro: "configuracao" });
   }
 
-  if (!(await usuarioValido(req))) {
+  const uid = await uidValido(req);
+  if (!uid) {
     console.warn("Chamada sem ID token valido do Firebase");
     return responder(401, { erro: "nao-autenticado" });
+  }
+
+  // Antes de ler o corpo: o teto da imagem so era conferido depois de o JSON
+  // inteiro estar na memoria.
+  const declarado = Number(req.headers.get("Content-Length"));
+  if (Number.isFinite(declarado) && declarado > TAMANHO_MAXIMO_CORPO) {
+    return responder(413, { erro: "imagem-grande" });
   }
 
   let imagem: unknown;
@@ -263,8 +197,19 @@ async function atender(req: Request): Promise<Response> {
     console.warn("Corpo sem imagem");
     return responder(400, { erro: "sem-imagem" });
   }
+  // Continua aqui para o corpo sem `Content-Length` (envio em partes).
   if (imagem.length > TAMANHO_MAXIMO_BASE64) {
     return responder(413, { erro: "imagem-grande" });
+  }
+
+  // Conta so pedido valido: um corpo errado nao gasta o limite de ninguem.
+  const veredito = await registrarUso(uid, LIMITES, SUPABASE);
+  if (veredito === null) {
+    return responder(503, { erro: "limite-indisponivel" });
+  }
+  if (veredito !== "ok") {
+    console.warn("Limite atingido", veredito);
+    return responder(429, { erro: veredito });
   }
 
   const corpo = JSON.stringify({
@@ -285,15 +230,13 @@ async function atender(req: Request): Promise<Response> {
 
   const prazo = Date.now() + TETO_TOTAL_MS;
   const tentativas: Tentativa[] = [];
-
-  let { http } = await rodada(corpo, prazo, tentativas);
-  // Os dois modelos sobrecarregados ao mesmo tempo: uma rodada a mais, se der
-  // tempo. Chave ou modelo errado falharia igual de novo, entao nao repete.
-  if (http && PASSAGEIRO.has(http.status) && prazo - Date.now() > 8_000) {
-    console.warn("Gemini sobrecarregado nos dois modelos; nova rodada");
-    await new Promise((r) => setTimeout(r, 1_000));
-    ({ http } = await rodada(corpo, prazo, tentativas));
-  }
+  const { http } = await consultar(
+    MODELOS,
+    (modelo, cancelar) =>
+      chamarGemini(modelo, corpo, CHAVE_GEMINI, cancelar, prazo),
+    prazo,
+    tentativas,
+  );
 
   if (!http) {
     console.error("Gemini nao respondeu a tempo", JSON.stringify(tentativas));
@@ -303,7 +246,9 @@ async function atender(req: Request): Promise<Response> {
   if (http.status < 200 || http.status >= 300) {
     console.error("Gemini respondeu", http.status, http.corpo);
     // Cota do nivel gratuito estourada: o app mostra "aguarde um momento".
-    if (http.status === 429) return responder(429, { erro: "cota", tentativas });
+    if (http.status === 429) {
+      return responder(429, { erro: "cota", tentativas });
+    }
     // O status do Google volta junto (sem a chave) para o motivo aparecer ate
     // no painel de Invocations, mesmo quando o log atrasa.
     return responder(502, {
@@ -317,7 +262,10 @@ async function atender(req: Request): Promise<Response> {
   try {
     dados = JSON.parse(http.corpo);
   } catch {
-    console.error("Gemini devolveu corpo que nao e JSON", http.corpo.slice(0, 200));
+    console.error(
+      "Gemini devolveu corpo que nao e JSON",
+      http.corpo.slice(0, 200),
+    );
     return responder(502, { erro: "resposta-invalida", tentativas });
   }
   const texto = dados?.candidates?.[0]?.content?.parts?.[0]?.text;
@@ -325,7 +273,9 @@ async function atender(req: Request): Promise<Response> {
     // Acontece quando o filtro de seguranca do Gemini bloqueia a imagem.
     console.error(
       "Gemini sem texto",
-      JSON.stringify(dados?.promptFeedback ?? dados?.candidates?.[0]?.finishReason),
+      JSON.stringify(
+        dados?.promptFeedback ?? dados?.candidates?.[0]?.finishReason,
+      ),
     );
     return responder(422, { erro: "imagem-recusada" });
   }
@@ -351,7 +301,8 @@ async function atender(req: Request): Promise<Response> {
   // `_diagnostico` vai junto e os parsers do app e do site o ignoram.
   return responder(
     200,
-    typeof identificacao === "object" && identificacao !== null && !Array.isArray(identificacao)
+    typeof identificacao === "object" && identificacao !== null &&
+      !Array.isArray(identificacao)
       ? { ...identificacao, _diagnostico: diagnostico }
       : identificacao,
   );

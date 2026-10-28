@@ -164,6 +164,16 @@ Teste novo em `test/`. Cubra pelo menos:
 Não precisa testar layout pixel a pixel. Teste comportamento: o widget dispara o
 callback? A tela de erro lista o que falta?
 
+A Edge Function e o SQL do limite por pessoa têm testes em Deno, também na CI (job
+`Edge Function`): a corrida dos modelos com `fetch` falso, e o SQL num Postgres em
+WebAssembly com os papéis do Supabase. Mexeu em `supabase/`, rode:
+
+```bash
+deno fmt --check supabase
+deno check supabase/functions/identificar-animal/index.ts
+deno test --allow-read --allow-env supabase
+```
+
 ---
 
 ## Git
@@ -290,5 +300,12 @@ Tudo acima vale. Além disso:
   Google Cloud no Brasil pedia CNPJ. Dois cuidados do nível gratuito: o
   Google pode usar as fotos enviadas (a tela avisa) e a cota é por minuto e por dia —
   como o cadastro é aberto, qualquer conta nova consegue gastá-la.
+  **Limite por pessoa desde 28/10/2026:** 5 identificações por minuto e 30 por dia
+  (`LIMITE_POR_MINUTO` e `LIMITE_POR_DIA` mudam sem republicar), contadas pelo uid em
+  `supabase/limite-identificacao.sql`. Só pedido aceito conta. Pedido acima do limite
+  volta 429 com `limite-minuto` ou `limite-dia`, e o app e o site mostram mensagens
+  diferentes da cota do Gemini (`cota`). Sem a tabela, a função recusa tudo com 503:
+  **o SQL entra antes da função nova**. Limite que fica: muitas contas novas ainda
+  somam, porque o cadastro continua aberto.
 - 🟢 **O app já foi executado** (09/09/2026), no navegador e no emulador Android, sem
   exceção nas telas. Falta confirmar o toque no mapa num aparelho Android de verdade.

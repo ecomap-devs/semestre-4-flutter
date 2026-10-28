@@ -161,3 +161,25 @@ jobs:
 
       - name: Testar as regras no emulador
         run: npm test
+
+  # A Edge Function da identificacao por foto e o SQL do limite por pessoa
+  # (revisao de 28/10/2026). Os testes usam `fetch` falso e um Postgres em
+  # WebAssembly: nao falam com o Google nem com o banco de producao.
+  funcao:
+    name: Edge Function
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - uses: denoland/setup-deno@22d081ff2d3a40755e97629de92e3bcbfa7cf2ed # v2.0.5
+        with:
+          deno-version: "2.9.5"
+
+      - name: Conferir formatação
+        run: deno fmt --check supabase
+
+      - name: Conferir tipos
+        run: deno check supabase/functions/identificar-animal/index.ts
+
+      - name: Testar a função e o SQL do limite
+        run: deno test --allow-read --allow-env supabase

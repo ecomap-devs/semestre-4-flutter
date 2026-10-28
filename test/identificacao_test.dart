@@ -81,6 +81,17 @@ void main() {
       expect(msg(502), contains('Não foi possível identificar'));
     });
 
+    test('separa os limites da pessoa da cota do Gemini', () {
+      String msg(Object? details) => IdentificacaoService.mensagemDeErro(
+        FunctionException(status: 429, details: details),
+      );
+      expect(msg({'erro': 'limite-minuto'}), contains('Aguarde um minuto'));
+      expect(msg({'erro': 'limite-dia'}), contains('limite de identificações'));
+      expect(msg({'erro': 'cota'}), contains('Muitas consultas seguidas'));
+      // Corpo que nao e JSON chega como texto: cai na mensagem geral do 429.
+      expect(msg('Too Many Requests'), contains('Muitas consultas seguidas'));
+    });
+
     test('mantém a mensagem própria e esconde erro desconhecido', () {
       expect(
         IdentificacaoService.mensagemDeErro(
