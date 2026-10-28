@@ -33,9 +33,9 @@ void main() {
     expect(mapas, 1);
     expect(especies, 1);
 
-    await tester.tap(find.bySemanticsLabel('Mostrar Arara-azul'));
+    await tester.tap(find.bySemanticsLabel('Mostrar Arara-azul-de-lear'));
     await tester.pump();
-    expect(find.text('Arara-azul'), findsOneWidget);
+    expect(find.text('Arara-azul-de-lear'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 
@@ -54,7 +54,7 @@ void main() {
     expect(find.text('Onça-pintada'), findsOneWidget);
     await tester.pump(const Duration(milliseconds: 6100));
     await tester.pump();
-    expect(find.text('Arara-azul'), findsOneWidget);
+    expect(find.text('Arara-azul-de-lear'), findsOneWidget);
     // Desmonta antes do fim: o relogio da abertura nunca para sozinho.
     await tester.pumpWidget(const SizedBox());
   });
@@ -112,11 +112,11 @@ void main() {
     await tester.enterText(find.byType(TextField), 'onca');
     await tester.pumpAndSettle();
     expect(find.text('Onça-pintada'), findsOneWidget);
-    expect(find.text('Arara-azul'), findsNothing);
+    expect(find.text('Arara-azul-de-lear'), findsNothing);
 
-    await tester.enterText(find.byType(TextField), 'pantanal');
+    await tester.enterText(find.byType(TextField), 'caatinga');
     await tester.pumpAndSettle();
-    expect(find.text('Arara-azul'), findsOneWidget);
+    expect(find.text('Arara-azul-de-lear'), findsOneWidget);
     expect(find.text('Onça-pintada'), findsNothing);
 
     await tester.tap(find.byIcon(Icons.clear));
@@ -125,6 +125,33 @@ void main() {
       tester.widget<TextField>(find.byType(TextField)).controller!.text,
       isEmpty,
     );
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('"Só ameaçadas" deixa de fora as não ameaçadas', (tester) async {
+    // No computador, onde o seletor de status fica sempre a vista.
+    tester.view.physicalSize = const Size(1280, 1600);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: construirTema(),
+        home: const Scaffold(body: AnimaisScreen()),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.scrollUntilVisible(
+      find.text('Qualquer status'),
+      300,
+      scrollable: find.byType(Scrollable).first,
+    );
+    expect(find.text('45 espécies'), findsOneWidget);
+
+    await tester.tap(find.text('Qualquer status'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Só ameaçadas').last);
+    await tester.pumpAndSettle();
+    expect(find.text('27 espécies'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 
@@ -183,12 +210,12 @@ void main() {
 
     await tester.tap(find.text('Cerrado'));
     await tester.pump();
-    expect(find.text('45%'), findsOneWidget);
+    expect(find.text('53%'), findsOneWidget);
     expect(find.textContaining('do Cerrado', findRichText: true), findsOne);
 
     await tester.tap(find.text('Amazônia'));
     await tester.pump();
-    expect(find.text('78%'), findsOneWidget);
+    expect(find.text('20%'), findsOneWidget);
     expect(find.textContaining('da Amazônia', findRichText: true), findsOne);
   });
 
@@ -215,7 +242,7 @@ void main() {
       desenho.topLeft + Offset(desenho.width * .3, desenho.height * .3),
     );
     await tester.pump();
-    expect(find.text('78%'), findsOneWidget);
+    expect(find.text('20%'), findsOneWidget);
   });
 
   group('textoContado', () {

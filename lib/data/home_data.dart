@@ -1,8 +1,15 @@
-/// Dados estaticos da Home — os mesmos do `dados/inicio.ts` do site.
+/// Dados da Home — os mesmos do `dados/inicio.ts` do site.
 ///
-/// Sao valores de referencia herdados do React, nao numeros oficiais (README,
-/// "Sobre os dados").
+/// Os de desmatamento vem do PRODES (INPE), e a linha do tempo mora em
+/// `linha_do_tempo.dart`. As especies e o numero de especies ameacadas vem da
+/// lista nacional do MMA (`especies_data.dart`).
 library;
+
+import 'animais_data.dart';
+import 'biomas_data.dart';
+import 'especies_data.dart';
+import 'linha_do_tempo.dart';
+import 'prodes_data.dart';
 
 const _supabaseAnimais =
     'https://wqvxjttidoxcblkfjoaf.supabase.co/storage/v1/object/public/animals';
@@ -28,113 +35,24 @@ class Slide {
 
 const slides = <Slide>[
   Slide('$_supabaseAnimais/onca-pintada.png', 'Onça-pintada'),
-  Slide('$_supabaseAnimais/arara-azul-de-lear_01_0.png', 'Arara-azul'),
+  Slide('$_supabaseAnimais/arara-azul-de-lear_01_0.png', 'Arara-azul-de-lear'),
   Slide('$_supabaseAnimais/lobo-guara.png', 'Lobo-guará'),
   Slide('$_supabaseAnimais/micoleao-cke.png', 'Mico-leão-dourado'),
 ];
 
 /// Os quatro numeros da faixa escura. O valor e texto: o `Contador` conta so
-/// a parte numerica e mantem o resto ("+30%", "1,5 mi ha").
+/// a parte numerica e mantem o resto ("−20%", "6 biomas").
 class Numero {
   const Numero(this.valor, this.rotulo);
   final String valor;
   final String rotulo;
 }
 
-const numeros = <Numero>[
-  Numero('+30%', 'Aumento no desmatamento na última década'),
-  Numero('1,5 mi ha', 'Área queimada anualmente no Brasil'),
-  Numero('1.173', 'Espécies animais ameaçadas de extinção'),
-  Numero('6 biomas', 'Biomas brasileiros afetados pelo desmatamento'),
-];
-
-/// Especie em destaque na Home, com a queda da populacao sobre a foto.
-class AnimalDestaque {
-  const AnimalDestaque({
-    required this.nome,
-    required this.status,
-    required this.descricao,
-    required this.bioma,
-    required this.populacao,
-    required this.imagem,
-  });
-
-  final String nome;
-  final String status;
-  final String descricao;
-  final String bioma;
-
-  /// Variacao da populacao, como "-60%".
-  final String populacao;
-
-  /// Links diretos para sites de terceiros, como no React. Se algum sair do
-  /// ar, o cartao cai num placeholder.
-  final String imagem;
-}
-
-const animaisDestaque = <AnimalDestaque>[
-  AnimalDestaque(
-    nome: 'Onça-pintada',
-    status: 'Criticamente ameaçada',
-    descricao:
-        'Perdeu 50% de seu habitat na Mata Atlântica nos últimos 15 anos.',
-    bioma: 'Mata Atlântica',
-    populacao: '-60%',
-    imagem: 'https://static.biologianet.com/2020/05/onca-pintada.jpg',
-  ),
-  AnimalDestaque(
-    nome: 'Arara-azul',
-    status: 'Em perigo',
-    descricao:
-        'Apenas 6.500 indivíduos restantes devido à perda de habitat no '
-        'Pantanal.',
-    bioma: 'Pantanal',
-    populacao: '-40%',
-    imagem:
-        'https://imagens.ebc.com.br/7mrmO9tFuEk0CPiJHKLEqTCk9R4=/1170x700/'
-        'smart/https://agenciabrasil.ebc.com.br/sites/default/files/'
-        'thumbnails/image/2024/09/18/arara-azul-de-lear_01_0.jpg'
-        '?itok=wDa3CBCI',
-  ),
-  AnimalDestaque(
-    nome: 'Mico-leão-dourado',
-    status: 'Criticamente ameaçada',
-    descricao:
-        'Restam apenas 2.500 indivíduos na natureza devido ao desmatamento.',
-    bioma: 'Mata Atlântica',
-    populacao: '-70%',
-    imagem: 'https://static.todamateria.com.br/upload/mi/co/micoleao-cke.jpg',
-  ),
-  AnimalDestaque(
-    nome: 'Lobo-guará',
-    status: 'Vulnerável',
-    descricao: 'Perdeu 30% de seu habitat no Cerrado nos últimos 20 anos.',
-    bioma: 'Cerrado',
-    populacao: '-35%',
-    imagem:
-        'https://s3.static.brasilescola.uol.com.br/be/2020/08/lobo-guara.jpg',
-  ),
-  AnimalDestaque(
-    nome: 'Tucano-de-bico-preto',
-    status: 'Em perigo',
-    descricao: 'População em declínio devido à fragmentação florestal.',
-    bioma: 'Amazônia',
-    populacao: '-25%',
-    imagem:
-        'https://www.parquedasaves.com.br/wp-content/uploads/2019/08/'
-        'large-6.jpg',
-  ),
-  AnimalDestaque(
-    nome: 'Perereca-verde-da-mata',
-    status: 'Criticamente ameaçada',
-    descricao: 'Endêmica de pequenas áreas ameaçadas pelo desmatamento.',
-    bioma: 'Mata Atlântica',
-    populacao: '-80%',
-    imagem:
-        'https://portal.pcs.ifsuldeminas.edu.br/images/campus_pocos_caldas/'
-        'noticias/2020/junho/20200630/perereca-folhagem/figura_1.jpg',
-  ),
-];
+/// As seis primeiras ameacadas do catalogo (a secao e "Espécies ameaçadas").
+/// Ate 28/10/2026 a Home tinha a propria
+/// lista, com fotos de sites de terceiros e uma "queda da populacao" sem
+/// fonte em cada cartao.
+final animaisDestaque = animais.where((a) => a.ehAmeacada).take(6).toList();
 
 class Solucao {
   const Solucao(this.titulo, this.texto);
@@ -175,76 +93,109 @@ const solucoes = <Solucao>[
   ),
 ];
 
-class ItemLinhaTempo {
-  const ItemLinhaTempo(this.ano, this.titulo, this.texto);
-  final String ano;
-  final String titulo;
-  final String texto;
+// ── Desmatamento, calculado do PRODES (prodes_data.dart) ──
+//
+// Ate 28/10/2026 estes numeros eram de referencia, herdados do React ("+30%
+// na ultima decada", Amazonia com 780 mil km² desmatados). Agora saem do que o
+// INPE mediu.
+
+/// 2025 -> "ago/2024 a jul/2025": o ano do PRODES vai de agosto a julho.
+String _periodoPorExtenso(int fim) => 'ago/${fim - 1} a jul/$fim';
+
+/// O periodo mais recente que os seis biomas ja tem consolidado. Cada bioma e
+/// mapeado no seu ritmo, e somar anos diferentes daria um total que nao existe.
+final int _fimComum = () {
+  final candidatos = [
+    for (final p in prodes['Amazônia']?.anos ?? const <PeriodoProdes>[])
+      if (biomas.every((b) => prodes[b.nome]?.noPeriodo(p.fim) != null)) p.fim,
+  ];
+  if (candidatos.isEmpty) {
+    throw StateError('PRODES sem um período comum aos seis biomas');
+  }
+  return candidatos.reduce((a, b) => a > b ? a : b);
+}();
+
+double _totalNoPeriodo(int fim) =>
+    biomas.fold(0, (s, b) => s + (prodes[b.nome]?.noPeriodo(fim) ?? 0));
+
+/// Variacao do total dos seis biomas sobre o periodo anterior, em %; `null`
+/// quando algum bioma nao foi medido no anterior.
+int? get _variacao {
+  final temAnterior = biomas.every(
+    (b) => prodes[b.nome]?.noPeriodo(_fimComum - 1) != null,
+  );
+  if (!temAnterior) return null;
+  return ((_totalNoPeriodo(_fimComum) / _totalNoPeriodo(_fimComum - 1) - 1) *
+          100)
+      .round();
 }
 
-const linhaDoTempo = <ItemLinhaTempo>[
-  ItemLinhaTempo(
-    '2005',
-    'Pampa sofre impactos crescentes',
-    'Expansão agropecuária avança sobre os campos nativos',
+final numeros = <Numero>[
+  Numero(
+    formatarMilhar(_totalNoPeriodo(_fimComum)),
+    'km² de vegetação nativa desmatados nos seis biomas de '
+    '${_periodoPorExtenso(_fimComum)}',
   ),
-  ItemLinhaTempo(
-    '2010',
-    'Caatinga afetada',
-    'Caatinga tem 45% de sua área original desmatada',
+  if (_variacao case final v?)
+    Numero(
+      // Sinal de menos tipografico (−), nao o hifen.
+      '${v > 0
+          ? '+'
+          : v < 0
+          ? '−'
+          : ''}${v.abs()}%',
+      'no desmatamento dos seis biomas em relação a '
+          '${_periodoPorExtenso(_fimComum - 1)}',
+    ),
+  Numero(
+    formatarMilhar(listaNacional.ameacadas),
+    'Espécies da fauna ameaçadas de extinção no Brasil, segundo a lista '
+    'nacional do MMA',
   ),
-  ItemLinhaTempo(
-    '2013',
-    'Novo Código Florestal',
-    'Brasil aprova novo Código Florestal com impacto nos biomas',
-  ),
-  ItemLinhaTempo(
-    '2015',
-    'Queimadas no Pantanal',
-    'Pantanal perde 12% de sua área para queimadas',
-  ),
-  ItemLinhaTempo(
-    '2018',
-    'Mata Atlântica reduzida',
-    'Mata Atlântica tem apenas 12,4% de sua cobertura original',
-  ),
-  ItemLinhaTempo(
-    '2020',
-    'Perdas no Cerrado',
-    'Cerrado perde 7.340 km² de vegetação nativa',
-  ),
-  ItemLinhaTempo(
-    '2022',
-    'Seca no Pantanal',
-    'Pantanal enfrenta pior seca em décadas',
-  ),
-  ItemLinhaTempo(
-    '2023',
-    'Recorde de desmatamento',
-    'Recorde de desmatamento na Amazônia: 11.568 km²',
-  ),
+  const Numero('6 biomas', 'Biomas brasileiros afetados pelo desmatamento'),
 ];
 
-/// Area desmatada por bioma, em mil km² — a serie do grafico de barras.
+/// Area ja desmatada por bioma, em mil km² — a serie do grafico de barras,
+/// da maior para a menor.
 class ValorBioma {
   const ValorBioma(this.nome, this.valor);
   final String nome;
   final int valor;
 }
 
-const areaPorBioma = <ValorBioma>[
-  ValorBioma('Amazônia', 780),
-  ValorBioma('Cerrado', 520),
-  ValorBioma('Mata Atlântica', 320),
-  ValorBioma('Caatinga', 150),
-  ValorBioma('Pantanal', 90),
-  ValorBioma('Pampa', 60),
+final areaPorBioma = [
+  for (final b in biomas)
+    ValorBioma(b.nome, ((prodes[b.nome]?.acumuladoKm2 ?? 0) / 1000).round()),
+]..sort((a, b) => b.valor.compareTo(a.valor));
+
+/// Quanto cada bioma perdeu no periodo comum mais recente, do que mais perdeu
+/// ao que menos perdeu. Substituiu a "comparacao por regiao" do React, cujos
+/// percentuais nao vinham de fonte nenhuma.
+final ultimoPeriodo = (
+  rotulo: _periodoPorExtenso(_fimComum),
+  biomas: [
+    for (final b in biomas)
+      (nome: b.nome, km2: prodes[b.nome]?.noPeriodo(_fimComum) ?? 0.0),
+  ]..sort((a, b) => b.km2.compareTo(a.km2)),
+);
+
+const _meses = [
+  'janeiro',
+  'fevereiro',
+  'março',
+  'abril',
+  'maio',
+  'junho',
+  'julho',
+  'agosto',
+  'setembro',
+  'outubro',
+  'novembro',
+  'dezembro',
 ];
 
-/// Percentual desmatado por regiao.
-const comparacaoRegional = <(String, int)>[
-  ('Norte (Amazônia)', 78),
-  ('Centro-Oeste (Cerrado/Pantanal)', 45),
-  ('Nordeste (Caatinga)', 15),
-  ('Sudeste/Sul (Mata Atlântica/Pampa)', 32),
-];
+/// "16 de outubro de 2026", para a nota de fonte.
+final dadosAtualizadosEm = () {
+  final d = DateTime.parse(prodesAtualizadoEm);
+  return '${d.day} de ${_meses[d.month - 1]} de ${d.year}';
+}();

@@ -129,14 +129,13 @@ provavelmente o papel está confuso — repense antes de criar pasta nova.
 GeoJSON tem 6,7 MB e milhares de features; uma malformada não pode derrubar o mapa
 inteiro. Prefira pular o registro ruim a explodir a tela.
 
-**Imagem de rede sempre tem `errorBuilder`.** As fotos vêm do Supabase e podem
-falhar (offline, bucket movido). Cai num placeholder, nunca no ícone de erro cinza
+**Imagem de rede sempre tem `errorBuilder`.** As fotos vêm do Supabase e do
+Wikimedia Commons e podem falhar (offline, bucket movido, arquivo renomeado). Cai num placeholder, nunca no ícone de erro cinza
 do Flutter.
 
 **Gráfico é `CustomPainter`, não biblioteca.** Foi decisão de projeto, herdada do
 SVG escrito à mão da versão React. Se precisar de um gráfico novo, pinte no canvas
-como os que já existem em `lib/widgets/charts/` (barras, linha e o mapa dos
-biomas).
+como os que já existem em `lib/widgets/charts/` (barras e o mapa dos biomas).
 
 **Trabalho pesado sai da thread da UI.** O GeoJSON é parseado em `compute()`. Se
 adicionar processamento caro, siga o mesmo caminho.
@@ -155,11 +154,14 @@ partir da largura disponível, com `LayoutBuilder`.
 
 Teste novo em `test/`. Cubra pelo menos:
 
-- **Cálculo** — a lógica de tendência populacional, formatação, agregação.
+- **Cálculo** — os números da Home e a linha do tempo tirados do PRODES, formatação,
+  agregação.
 - **Parser** — o caminho feliz **e** o dado malformado. Todo parser deste repo tem
   teste de entrada inválida, e é assim que continua.
 - **Integridade dos dados** — se você adicionar espécie ou bioma, os testes de
-  "série e anos do mesmo tamanho" e "anel fecha" já cobrem, mas confira se passam.
+  "toda espécie tem status gerado", "foto de terceiros sempre tem autor, licença e
+  link" e "anel fecha" já cobrem, mas confira se passam. Espécie nova precisa estar
+  também no `especies.ts` do site, e foto de fora do Supabase precisa de `credito`.
 
 Não precisa testar layout pixel a pixel. Teste comportamento: o widget dispara o
 callback? A tela de erro lista o que falta?
@@ -250,9 +252,10 @@ regras: `firebase deploy --only firestore:rules`.
 
 Tudo acima vale. Além disso:
 
-- **Não invente dado ambiental.** Os números deste repo vêm da versão React e são
-  valores de referência declarados como tais no README. Se precisar de número novo,
-  peça a fonte — não preencha com estimativa plausível.
+- **Não invente dado ambiental.** Os números deste repo vêm do PRODES, do MMA e da
+  IUCN, copiados do site (README, "Sobre os dados"). Se precisar de número novo, peça
+  a fonte — não preencha com estimativa plausível. `prodes_data.dart` e
+  `especies_data.dart` não se editam à mão: copie do site.
 - **Não crie `firebase_options.dart` com chaves dentro**, nem sugira `flutterfire
   configure` sem avisar que o arquivo é ignorado de propósito.
 - **Não suba nada** (`git push`, `firebase deploy`) sem pedido explícito.
@@ -282,8 +285,10 @@ Tudo acima vale. Além disso:
   apaga o que já está lá.
 - 🟡 **GeoJSON de 6,7 MB embarcado** nos assets. Funciona, mas engorda o APK
   (1,48 MB comprimido). Alternativas: servir remoto ou simplificar polígonos.
-- 🟡 **Dados de referência hardcoded** em `lib/data/`. Próxima etapa é trocar por
-  fonte oficial (PRODES/INPE, ICMBio, IBGE, MapBiomas).
+- 🟡 **Dados copiados do site** (28/10/2026). Desmatamento (PRODES) e status das
+  espécies (MMA, IUCN) agora têm fonte, mas `prodes_data.dart` e `especies_data.dart`
+  são cópia do que o site gera e não se atualizam sozinhos. Falta um jeito de copiar
+  automaticamente, ou de o app ler o mesmo arquivo do site.
 - 🟡 **Identificação por foto** (aba Fotos, 01/10/2026). O app chama a Edge Function
   `supabase/functions/identificar-animal`, que confere o ID token do Firebase e consulta
   o **Gemini** pelo nível gratuito do Google AI Studio. A chave é **secret do Supabase**

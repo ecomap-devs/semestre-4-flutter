@@ -31,7 +31,7 @@ aparece no site, e vice-versa.
 |---|---|
 | 🏠 **Início** | Abertura em tela cheia com fotos que se alternam, números do desmatamento, **mapa dos biomas** em que dá para tocar, espécies em destaque, gráfico de barras desenhado no canvas, linha do tempo de duas décadas, soluções práticas e as avaliações da comunidade |
 | 🗺️ **Mapa** | Os **6 biomas** pelo limite do IBGE e a camada de **alertas do DETER-B**, sobre mapa claro ou satélite. Painel com a lista de biomas e a linha do tempo (aba própria no celular), legenda dos alertas, e a ficha do bioma ao tocar: área, percentual desmatado e descrição |
-| 🐆 **Animais** | Catálogo de **9 espécies** com busca que ignora acento, filtros por bioma e status de conservação, a tendência da população em gráfico de linha e as principais ameaças |
+| 🐆 **Animais** | Catálogo de **45 espécies** dos seis biomas, 27 delas na lista nacional de fauna ameaçada, com busca que ignora acento, filtros por bioma e status (inclusive "Só ameaçadas"), o status no Brasil (MMA) e no mundo (IUCN), a população onde há estimativa publicada (com a fonte) e as principais ameaças |
 | 📷 **Fotos** | **Identificação de animal por foto**: tire uma foto ou escolha da galeria, e o Gemini diz qual é o animal, com o nome científico e o grau de confiança. Exige login |
 | 👤 **Conta** | Cadastro e login por e-mail e senha, foto de perfil e **avaliações em estrelas**, salvas e lidas em tempo real |
 
@@ -219,17 +219,20 @@ A `main` é protegida: PR obrigatório, **1 aprovação** e os checks `Análise 
 ```
 lib/
 ├── config/env.dart            credenciais via --dart-define, com checagem
-├── data/                      dados de referência portados do React
+├── data/                      dados estáticos, os mesmos do site
 │   ├── animais_data.dart        catálogo de espécies
-│   ├── biomas_data.dart         os 6 biomas: área, percentual e descrição
+│   ├── especies_data.dart       status no MMA e na IUCN (cópia do site)
+│   ├── prodes_data.dart         desmatamento do PRODES por bioma (cópia do site)
+│   ├── biomas_data.dart         os 6 biomas: área e percentual do PRODES
 │   ├── biomas_contornos.dart    limite do IBGE (gerado por tool/biomas/gerar.mjs)
-│   └── home_data.dart           estatísticas, soluções, linha do tempo
+│   ├── linha_do_tempo.dart      marcos calculados do PRODES
+│   └── home_data.dart           os números, os destaques e as soluções
 ├── models/                    Animal · Bioma · AlertaDesmatamento · Avaliacao · Identificacao
 ├── services/                  Firebase · avaliações · leitura do GeoJSON · identificação por foto
 ├── screens/                   app_shell · home · mapa · animais · fotos
 ├── theme/app_theme.dart       paleta, fontes e breakpoints, iguais aos do site
 └── widgets/
-    ├── charts/                  barras · linha · mapa dos biomas
+    ├── charts/                  barras · mapa dos biomas
     ├── abertura.dart            a abertura da Home, com as fotos que se alternam
     ├── animacao_na_tela.dart    revela ao entrar na tela, sem timer
     ├── imagem_com_reserva.dart  foto de rede que cai num placeholder se falhar
@@ -253,9 +256,24 @@ Os contornos dos biomas são o limite oficial do **IBGE** ("Biomas do Brasil",
 1:5.000.000), simplificados para o mapa por [`tool/biomas/gerar.mjs`](tool/biomas/gerar.mjs),
 que diz como refazê-los. O site usa a mesma receita.
 
-Os demais números (percentuais por bioma, séries populacionais das espécies e a linha do
-tempo) são **valores de referência** herdados da versão React. Trocá-los por fonte
-oficial (PRODES/INPE, ICMBio, IBGE, MapBiomas) é a próxima etapa.
+Desde 28/10/2026 os demais números são os mesmos do site, com a mesma fonte:
+
+| No app | De onde vem |
+|---|---|
+| Percentual desmatado e área de cada bioma | **PRODES (INPE)**: tudo o que já foi mapeado como desmatado ÷ área do bioma no IBGE (2019) |
+| Números da Home, "Área desmatada por bioma" e "Desmatado no último ano medido" | PRODES, por bioma, no período mais recente que os seis já têm consolidado |
+| Linha do tempo (Home e mapa) | Calculada em `lib/data/linha_do_tempo.dart` da taxa oficial da Amazônia Legal e do acumulado por bioma. Só PPCDAm, Moratória da Soja e Código Florestal são escritos à mão, sem número |
+| Status das espécies e "1.259 espécies ameaçadas" | Lista nacional do **MMA** (avaliação de 2021); fora dela, "Não ameaçada". No mundo, a Lista Vermelha da **IUCN**, pelo GBIF |
+| População de uma espécie | Só onde há estimativa publicada, com a fonte na ficha |
+| Fotos das espécies | As sete primeiras, no bucket `animals` do Supabase. As outras, do **Wikimedia Commons**, com autor, licença e link na ficha (`credito` em `animais_data.dart`), como as licenças Creative Commons exigem |
+
+`prodes_data.dart` e `especies_data.dart` são **cópia** do `prodes.ts` e do `especies.ts`
+que o site gera (os workflows de lá abrem PR todo mês quando o INPE ou o MMA publicam dado
+novo). Quando o site atualizar, copie de novo e rode os testes: `test/dados_test.dart`
+fixa os números que o site mostra, então a diferença aparece lá. Até 28/10/2026 eram
+valores de referência herdados do React, e alguns muito longe do real: a Amazônia
+aparecia 78% desmatada (o PRODES mede 20%) e cada espécie tinha uma série de população
+inventada.
 
 ## 🤝 Contribuindo
 

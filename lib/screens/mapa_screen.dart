@@ -3,6 +3,7 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 
 import '../data/biomas_data.dart';
+import '../data/linha_do_tempo.dart';
 import '../models/bioma.dart';
 import '../services/geojson_service.dart';
 import '../theme/app_theme.dart';
@@ -710,7 +711,7 @@ class _LinhaDoTempo extends StatelessWidget {
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        for (final (ano, texto) in linhaDoTempoMapa)
+        for (final item in linhaDoTempoMapa)
           Stack(
             clipBehavior: Clip.none,
             children: [
@@ -733,7 +734,7 @@ class _LinhaDoTempo extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      ano,
+                      '${item.ano}',
                       style: const TextStyle(
                         fontSize: 14,
                         color: AppCores.tinta3,
@@ -741,7 +742,7 @@ class _LinhaDoTempo extends StatelessWidget {
                       ),
                     ),
                     Text(
-                      texto,
+                      item.texto,
                       style: const TextStyle(
                         fontSize: 15,
                         height: 1.45,
