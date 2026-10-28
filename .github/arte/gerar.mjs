@@ -38,18 +38,12 @@ const r1 = (n) => Math.round(n * 10) / 10;
 const geojson = JSON.parse(ler('assets/data/alertas-desmatamento.json'));
 const alertas = geojson.features;
 
-// Os biomas: cada bloco `Bioma(` do Dart, com os seus `LatLng(lat, lng)`.
-const biomasDart = ler('lib/data/biomas_data.dart');
-const biomas = biomasDart
-  .split(/\n\s*Bioma\(/)
-  .slice(1)
-  .map((bloco) => ({
-    nome: /nome:\s*'([^']+)'/.exec(bloco)[1],
-    pontos: [...bloco.matchAll(/LatLng\(([-\d.]+),\s*([-\d.]+)\)/g)].map((m) => [
-      Number(m[2]),
-      Number(m[1]),
-    ]),
-  }));
+// Os biomas: cada `Bioma(` da lista do Dart, pelo nome. Os contornos moram em
+// biomas_contornos.dart desde a troca para o limite do IBGE, e aqui só a
+// contagem interessa.
+const biomas = [
+  ...ler('lib/data/biomas_data.dart').matchAll(/\bBioma\(\s*nome:\s*'([^']+)'/g),
+].map((m) => m[1]);
 
 const especies = (ler('lib/data/animais_data.dart').match(/\bnome:/g) ?? []).length;
 const graficos = readdirSync(join(raiz, 'lib/widgets/charts')).filter((f) => f.endsWith('.dart')).length;
