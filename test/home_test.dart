@@ -6,34 +6,39 @@ import 'package:ecomapbrasil/models/avaliacao.dart';
 import 'package:ecomapbrasil/screens/home_screen.dart';
 import 'package:ecomapbrasil/services/reviews_service.dart';
 import 'package:ecomapbrasil/theme/app_theme.dart';
+import 'package:ecomapbrasil/widgets/reviews_section.dart';
 
-/// Avaliacoes sem Firestore: duas fixas e o resumo delas.
+/// Avaliacoes sem Firestore. Por padrao, duas fixas e o resumo delas;
+/// `total` e `lidos` simulam a colecao com documentos que a lista nao mostra.
 class _AvaliacoesFalsas implements ReviewsService {
+  _AvaliacoesFalsas({this.quantas = 2, int? total, int? lidos})
+    : total = total ?? quantas,
+      lidos = lidos ?? quantas;
+
+  final int quantas;
+  final int total;
+  final int lidos;
+
   @override
-  Stream<List<Avaliacao>> observar({required int limite}) => Stream.value([
-    Avaliacao(
-      id: '1',
-      uid: 'a',
-      nome: 'Ana',
-      fotoUrl: '',
-      nota: 5,
-      comentario: 'Gostei muito do mapa.',
-      criadoEm: DateTime(2026, 10, 1),
-    ),
-    Avaliacao(
-      id: '2',
-      uid: 'b',
-      nome: 'Beto',
-      fotoUrl: '',
-      nota: 4,
-      comentario: 'Bem explicado.',
-      criadoEm: DateTime(2026, 10, 2),
-    ),
-  ]);
+  Stream<PaginaAvaliacoes> observar({required int limite}) => Stream.value((
+    avaliacoes: [
+      for (var i = 0; i < quantas; i++)
+        Avaliacao(
+          id: '$i',
+          uid: 'u$i',
+          nome: i.isEven ? 'Ana' : 'Beto',
+          fotoUrl: '',
+          nota: i.isEven ? 5 : 4,
+          comentario: i == 0 ? 'Gostei muito do mapa.' : 'Bem explicado $i.',
+          criadoEm: DateTime(2026, 10, 1 + i),
+        ),
+    ],
+    lidos: lidos,
+  ));
 
   @override
   Future<ResumoAvaliacoes> resumo() async =>
-      const ResumoAvaliacoes(total: 2, media: 4.5);
+      ResumoAvaliacoes(total: total, media: 4.5);
 
   @override
   Future<void> publicar({
@@ -99,4 +104,39 @@ void main() {
       expect(tester.takeException(), isNull);
     });
   }
+
+  group('Mostrar mais', () {
+    Future<void> montar(WidgetTester tester, _AvaliacoesFalsas falsas) async {
+      tester.view.physicalSize = const Size(1440, 3000);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: construirTema(),
+          home: Scaffold(
+            body: SingleChildScrollView(
+              child: ReviewsSection(
+                usuario: null,
+                aoPedirLogin: () {},
+                service: falsas,
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('aparece quando o Firestore ainda tem mais', (tester) async {
+      await montar(tester, _AvaliacoesFalsas(quantas: 6, total: 7));
+      expect(find.text('Mostrar mais (1 restante)'), findsOneWidget);
+    });
+
+    // O total da agregacao conta tambem documento que a lista recusa: so com
+    // ele, o botao ficava na tela sem trazer nada.
+    testWidgets('some quando veio menos que o limite', (tester) async {
+      await montar(tester, _AvaliacoesFalsas(quantas: 5, total: 8, lidos: 5));
+      expect(find.textContaining('Mostrar mais'), findsNothing);
+    });
+  });
 }
