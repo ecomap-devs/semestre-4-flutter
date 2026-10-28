@@ -5,6 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../data/home_data.dart';
+import '../data/linha_do_tempo.dart';
+import '../models/animal.dart';
 import '../services/reviews_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/abertura.dart';
@@ -476,7 +478,7 @@ class _FraseDoMico extends StatelessWidget {
               children: [
                 TextSpan(text: 'Restam cerca de '),
                 TextSpan(
-                  text: '2.500',
+                  text: '4.800',
                   style: TextStyle(color: AppCores.sol),
                 ),
                 TextSpan(text: ' micos-leões-dourados na natureza.'),
@@ -492,7 +494,8 @@ class _FraseDoMico extends StatelessWidget {
         ),
         const SizedBox(height: 20),
         const Text(
-          'Mico-leão-dourado, Mata Atlântica',
+          'Mico-leão-dourado, Mata Atlântica · censo de 2023 da Associação '
+          'Mico-Leão-Dourado',
           style: TextStyle(fontSize: 18, color: AppCores.claroSuave),
         ),
       ],
@@ -519,8 +522,8 @@ class _Especies extends StatelessWidget {
         const _TituloSecao(
           titulo: 'Espécies ameaçadas',
           intro:
-              'Seis animais que estão perdendo o lugar onde vivem, e quanto a '
-              'população de cada um já caiu.',
+              'Seis espécies da lista nacional de fauna ameaçada e o que está '
+              'acontecendo com cada uma.',
         ),
         LayoutBuilder(
           builder: (context, c) {
@@ -562,7 +565,7 @@ class _Especies extends StatelessWidget {
 class _CartaoDestaque extends StatelessWidget {
   const _CartaoDestaque({required this.animal});
 
-  final AnimalDestaque animal;
+  final Animal animal;
 
   @override
   Widget build(BuildContext context) => Column(
@@ -571,52 +574,13 @@ class _CartaoDestaque extends StatelessWidget {
       ClipRRect(
         borderRadius: BorderRadius.circular(raioPadrao),
         child: AspectRatio(
-          aspectRatio: 4 / 5,
-          child: Stack(
-            fit: StackFit.expand,
-            children: [
-              ImagemComReserva(url: animal.imagem),
-              // A queda da populacao em destaque, sobre a propria foto.
-              Align(
-                alignment: Alignment.bottomCenter,
-                child: Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.fromLTRB(18, 48, 18, 16),
-                  decoration: const BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.bottomCenter,
-                      end: Alignment.topCenter,
-                      colors: [Color(0xD9101812), Color(0x00101812)],
-                    ),
-                  ),
-                  child: Wrap(
-                    crossAxisAlignment: WrapCrossAlignment.end,
-                    spacing: 8,
-                    children: [
-                      Text(
-                        animal.populacao.replaceFirst('-', '−'),
-                        style: estiloTitulo(
-                          44,
-                          cor: AppCores.branco,
-                          peso: FontWeight.w400,
-                          altura: 1,
-                        ),
-                      ),
-                      const Padding(
-                        padding: EdgeInsets.only(bottom: 4),
-                        child: Text(
-                          'da população',
-                          style: TextStyle(
-                            fontSize: 15,
-                            color: AppCores.claroSuave,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ],
+          // Foto inteira, no mesmo 4:3 do catalogo. Ate 28/10/2026 era
+          // recortada em 4:5 e trazia por cima uma "queda da populacao" sem
+          // fonte.
+          aspectRatio: 4 / 3,
+          child: ColoredBox(
+            color: AppCores.linha,
+            child: ImagemComReserva(url: animal.imagem, ajuste: BoxFit.contain),
           ),
         ),
       ),
@@ -626,7 +590,7 @@ class _CartaoDestaque extends StatelessWidget {
         style: TextStyle(
           fontSize: 14,
           fontWeight: FontWeight.w600,
-          color: AppCores.status[animal.status] ?? AppCores.tinta3,
+          color: animal.corStatus,
         ),
       ),
       const SizedBox(height: 4),
@@ -634,6 +598,8 @@ class _CartaoDestaque extends StatelessWidget {
       const SizedBox(height: 8),
       Text(
         animal.descricao,
+        maxLines: 3,
+        overflow: TextOverflow.ellipsis,
         style: const TextStyle(
           fontSize: 16,
           height: 1.5,
@@ -642,7 +608,7 @@ class _CartaoDestaque extends StatelessWidget {
       ),
       const SizedBox(height: 8),
       Text(
-        animal.bioma,
+        '${animal.bioma} · no mundo (IUCN): ${animal.iucnOuNaoAvaliada}',
         style: const TextStyle(fontSize: 14, color: AppCores.tinta3),
       ),
     ],
@@ -664,9 +630,14 @@ class _Dados extends StatelessWidget {
           const SizedBox(height: 24),
           const BarrasChart(),
           const SizedBox(height: 42),
-          Text('Desmatamento por região', style: _subtitulo),
+          Text('Desmatado no último ano medido', style: _subtitulo),
+          const SizedBox(height: 6),
+          Text(
+            'De ${ultimoPeriodo.rotulo}',
+            style: const TextStyle(fontSize: 15, color: AppCores.tinta3),
+          ),
           const SizedBox(height: 20),
-          const _ComparacaoRegional(),
+          const _UltimoPeriodo(),
         ],
       ),
     );
@@ -708,10 +679,11 @@ class _Dados extends StatelessWidget {
                   ),
           ),
           const SizedBox(height: 40),
-          const Text(
-            'Fontes: INPE, IBGE e MapBiomas Alerta. Valores aproximados, para '
-            'fins educativos.',
-            style: TextStyle(fontSize: 14, color: AppCores.tinta3),
+          Text(
+            'Desmatamento: PRODES/INPE, pelo TerraBrasilis, atualizado em '
+            '$dadosAtualizadosEm. Área dos biomas: IBGE (2019). Na linha do '
+            'tempo, as taxas são as oficiais da Amazônia Legal.',
+            style: const TextStyle(fontSize: 14, color: AppCores.tinta3),
           ),
         ],
       ),
@@ -719,16 +691,18 @@ class _Dados extends StatelessWidget {
   }
 }
 
-class _ComparacaoRegional extends StatelessWidget {
-  const _ComparacaoRegional();
+/// O desmatamento de cada bioma no periodo mais recente do PRODES — o
+/// `UltimoPeriodo` do site.
+class _UltimoPeriodo extends StatelessWidget {
+  const _UltimoPeriodo();
 
   @override
   Widget build(BuildContext context) => LayoutBuilder(
     builder: (context, c) => _Grade(
-      colunas: (c.maxWidth / 200).floor().clamp(1, 2),
+      colunas: (c.maxWidth / 160).floor().clamp(1, 3),
       espacoV: 16,
       children: [
-        for (final (rotulo, pct) in comparacaoRegional)
+        for (final b in ultimoPeriodo.biomas)
           Container(
             padding: const EdgeInsets.only(top: 12),
             decoration: const BoxDecoration(
@@ -737,10 +711,23 @@ class _ComparacaoRegional extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('$pct%', style: estiloTitulo(32)),
+                Text.rich(
+                  TextSpan(
+                    children: [
+                      TextSpan(text: '${formatarMilhar(b.km2)} '),
+                      TextSpan(
+                        text: 'km²',
+                        style: estiloTitulo(18, cor: AppCores.tinta2),
+                      ),
+                    ],
+                  ),
+                  style: estiloTitulo(32).copyWith(
+                    fontFeatures: const [FontFeature.tabularFigures()],
+                  ),
+                ),
                 const SizedBox(height: 4),
                 Text(
-                  rotulo,
+                  b.nome,
                   style: const TextStyle(fontSize: 14, color: AppCores.tinta3),
                 ),
               ],
@@ -786,7 +773,7 @@ class _LinhaDoTempo extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      item.ano,
+                      '${item.ano}',
                       style: const TextStyle(
                         fontSize: 14,
                         color: AppCores.tinta3,

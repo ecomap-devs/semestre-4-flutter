@@ -42,8 +42,14 @@ class _ReviewsSectionState extends State<ReviewsSection> {
   // A assinatura vive no estado, e não no `build`: antes o stream era criado
   // de novo a cada reconstrução, e o app reassinava a coleção à toa.
   int _limite = _porPagina;
-  StreamSubscription<List<Avaliacao>>? _assinatura;
+  StreamSubscription<PaginaAvaliacoes>? _assinatura;
   List<Avaliacao> _lista = const [];
+
+  // Veio menos que o limite: nao ha mais o que buscar. O total da agregacao
+  // nao decide isto sozinho, porque conta tambem o que a lista nao mostra
+  // (documento que `Avaliacao.doFirestore` recusa, ou sem `criadoEm`, que o
+  // `orderBy` deixa de fora).
+  bool _acabou = false;
   bool _carregando = true;
   bool _falhou = false;
   ResumoAvaliacoes? _resumo;
@@ -75,10 +81,11 @@ class _ReviewsSectionState extends State<ReviewsSection> {
     _assinatura = _service
         .observar(limite: _limite)
         .listen(
-          (lista) {
+          (pagina) {
             if (!mounted) return;
             setState(() {
-              _lista = lista;
+              _lista = pagina.avaliacoes;
+              _acabou = pagina.lidos < _limite;
               _carregando = false;
               _falhou = false;
             });
@@ -180,6 +187,10 @@ class _ReviewsSectionState extends State<ReviewsSection> {
     final media = _resumo?.media;
     final total = _resumo?.total ?? _lista.length;
     final restantes = total - _lista.length;
+    // Antes valia so `restantes > 0`: com um documento recusado na colecao, a
+    // conta nunca zerava, e "Mostrar mais (1 restantes)" ficava na tela sem
+    // trazer nada.
+    final temMais = !_acabou && restantes > 0;
 
     return Padding(
       padding: EdgeInsets.symmetric(
@@ -258,14 +269,14 @@ class _ReviewsSectionState extends State<ReviewsSection> {
                   },
                 ),
 
-              if (restantes > 0 || _limite > _porPagina) ...[
+              if ((temMais || _limite > _porPagina) && total > _porPagina) ...[
                 const SizedBox(height: 32),
                 Center(
                   child: TextButton(
                     // De 12 em 12, até acabar: antes "Mostrar mais" baixava
                     // a coleção inteira de uma vez.
                     onPressed: () =>
-                        _mudarLimite(restantes > 0 ? _limite + 12 : _porPagina),
+                        _mudarLimite(temMais ? _limite + 12 : _porPagina),
                     style: TextButton.styleFrom(
                       textStyle: const TextStyle(
                         fontFamily: AppFontes.texto,
@@ -275,8 +286,9 @@ class _ReviewsSectionState extends State<ReviewsSection> {
                       ),
                     ),
                     child: Text(
-                      restantes > 0
-                          ? 'Mostrar mais ($restantes restantes)'
+                      temMais
+                          ? 'Mostrar mais ($restantes '
+                                '${restantes == 1 ? 'restante' : 'restantes'})'
                           : 'Mostrar menos',
                     ),
                   ),

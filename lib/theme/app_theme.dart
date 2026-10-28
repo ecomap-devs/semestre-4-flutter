@@ -52,12 +52,17 @@ class AppCores {
   };
 
   /// Cor do texto do status, do mais grave ao menos grave. Antes cada status
-  /// tinha um par de cores (fundo e texto do selo); o selo saiu.
+  /// tinha um par de cores (fundo e texto do selo); o selo saiu. Os nomes sao
+  /// os da lista nacional do MMA (`especies_data.dart`), e "Não ameaçada"
+  /// para quem esta fora dela.
   static const status = <String, Color>{
+    'Extinta': tinta,
     'Extinta na natureza': tinta,
-    'Criticamente ameaçada': terra,
+    'Regionalmente extinta': tinta,
+    'Criticamente em perigo': terra,
     'Em perigo': ocre,
     'Vulnerável': tinta3,
+    'Não ameaçada': mata,
   };
 }
 

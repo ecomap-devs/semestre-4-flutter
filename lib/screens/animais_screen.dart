@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 
 import '../data/animais_data.dart';
+import '../data/especies_data.dart';
+import '../data/linha_do_tempo.dart';
 import '../models/animal.dart';
 import '../theme/app_theme.dart';
 import '../widgets/animacao_na_tela.dart';
-import '../widgets/charts/linha_chart.dart';
 import '../widgets/imagem_com_reserva.dart';
 import '../widgets/rolagem_suave.dart';
 
@@ -49,7 +50,7 @@ class _AnimaisScreenState extends State<AnimaisScreen> {
           normalizarBusca(a.nome).contains(termo) ||
           normalizarBusca(a.bioma).contains(termo);
       final casaBioma = _bioma == 'Todos' || a.bioma == _bioma;
-      final casaStatus = _status == 'Todos' || a.status == _status;
+      final casaStatus = passaNoFiltroStatus(a, _status);
       return casaBusca && casaBioma && casaStatus;
     }).toList();
   }
@@ -150,10 +151,13 @@ class _AnimaisScreenState extends State<AnimaisScreen> {
                 border: Border(top: BorderSide(color: AppCores.linha)),
               ),
               padding: EdgeInsets.symmetric(horizontal: margem, vertical: 20),
-              child: const Text(
-                '© 2025 EcoMapBrasil · Dados de conservação baseados em IUCN, '
-                'ICMBio e WWF Brasil.',
-                style: TextStyle(fontSize: 14, color: AppCores.tinta3),
+              child: Text(
+                '© 2025 EcoMapBrasil · Status no Brasil: lista nacional de '
+                'fauna ameaçada do MMA (avaliação de ${listaNacional.ano}). '
+                'No mundo: Lista Vermelha da IUCN, pelo GBIF. População: a '
+                'fonte de cada estimativa está na ficha. Fotos do Wikimedia '
+                'Commons: autor e licença na ficha.',
+                style: const TextStyle(fontSize: 14, color: AppCores.tinta3),
               ),
             ),
           ),
@@ -192,14 +196,17 @@ class _Abertura extends StatelessWidget {
   Widget build(BuildContext context) {
     final mobile = Breakpoints.ehMobile(context);
     final resumo = [
-      (animais.length, 'espécies listadas'),
       (
-        animais.where((a) => a.status == 'Criticamente ameaçada').length,
-        'criticamente ameaçadas',
+        formatarMilhar(listaNacional.ameacadas),
+        'espécies da fauna ameaçadas no Brasil',
       ),
       (
-        animais.where((a) => a.status == 'Extinta na natureza').length,
-        'extinta na natureza',
+        formatarMilhar(animais.where((a) => a.ehAmeacada).length),
+        'delas neste catálogo',
+      ),
+      (
+        formatarMilhar(animais.length),
+        'espécies no catálogo, ameaçadas ou não',
       ),
     ];
 
@@ -261,10 +268,10 @@ class _Abertura extends StatelessWidget {
                       ConstrainedBox(
                         constraints: const BoxConstraints(maxWidth: 600),
                         child: Text(
-                          'Cada uma depende de um pedaço de mata que está '
-                          'sumindo. Toque numa espécie para ver como a '
-                          'população dela mudou desde '
-                          '${animais.first.anos.first}.',
+                          'Ameaçada ou não, cada uma depende de um pedaço de '
+                          'mata que está sumindo. Toque numa espécie para ver '
+                          'o status dela no Brasil e no mundo, e quantas '
+                          'restam, onde alguém contou.',
                           style: TextStyle(
                             fontSize: mobile ? 17 : 20,
                             height: 1.45,
@@ -562,7 +569,15 @@ class _CartaoAnimal extends StatelessWidget {
             borderRadius: BorderRadius.circular(raioPadrao),
             child: AspectRatio(
               aspectRatio: 4 / 3,
-              child: ImagemComReserva(url: animal.imagem),
+              // A foto inteira: com `cover`, o animal saia cortado em
+              // algumas especies.
+              child: ColoredBox(
+                color: AppCores.linha,
+                child: ImagemComReserva(
+                  url: animal.imagem,
+                  ajuste: BoxFit.contain,
+                ),
+              ),
             ),
           ),
           const SizedBox(height: 14),
@@ -577,10 +592,7 @@ class _CartaoAnimal extends StatelessWidget {
           const SizedBox(height: 2),
           Text(animal.nome, style: estiloTitulo(22)),
           const SizedBox(height: 2),
-          Text(
-            animal.bioma,
-            style: const TextStyle(fontSize: 14, color: AppCores.tinta3),
-          ),
+          _CientificoEBioma(animal: animal, fonte: 14),
           const SizedBox(height: 8),
           Text(
             animal.descricao,
@@ -593,43 +605,20 @@ class _CartaoAnimal extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 14),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              const Text(
-                'População',
-                style: TextStyle(fontSize: 14, color: AppCores.tinta3),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text.rich(
-                  TextSpan(
-                    children: [
-                      TextSpan(
-                        text: animal.populacao == 0
-                            ? 'extinta · '
-                            : '${animal.populacaoComMilhar} indivíduos · ',
-                      ),
-                      TextSpan(
-                        text: animal.variacaoFormatada,
-                        style: TextStyle(
-                          color: animal.corTendencia,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ],
-                  ),
-                  textAlign: TextAlign.right,
-                  style: const TextStyle(fontSize: 14, color: AppCores.tinta2),
+          // Ate 28/10/2026 aqui ficavam a populacao, a variacao desde 2000 e
+          // um grafico da serie. Nenhuma fonte tem essa serie para estas
+          // especies: os numeros eram inventados.
+          Text.rich(
+            TextSpan(
+              children: [
+                const TextSpan(text: 'No mundo (IUCN): '),
+                TextSpan(
+                  text: animal.iucnOuNaoAvaliada,
+                  style: const TextStyle(color: AppCores.tinta2),
                 ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 2),
-          LinhaChart(
-            valores: animal.tendencia,
-            rotulos: animal.anos,
-            cor: animal.corTendencia,
+              ],
+            ),
+            style: const TextStyle(fontSize: 14, color: AppCores.tinta3),
           ),
           const SizedBox(height: 10),
           const ExcludeSemantics(
@@ -659,15 +648,13 @@ class _FichaAnimal extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final mobile = Breakpoints.ehMobile(context);
-    final periodo = '${animal.anos.first}–${animal.anos.last}';
+    // Os dois status lado a lado: o do Brasil e o do mundo.
     final dados = [
-      (
-        'População estimada',
-        animal.populacao == 0 ? 'Extinta' : animal.populacaoComMilhar,
-        animal.populacao == 0 ? AppCores.terra : AppCores.tinta,
-      ),
-      ('Variação ($periodo)', animal.variacaoFormatada, animal.corTendencia),
+      ('No Brasil (MMA)', animal.status, animal.corStatus),
+      ('No mundo (IUCN)', animal.iucn ?? 'Não avaliada', AppCores.tinta),
     ];
+    final populacao = animal.populacao;
+    final credito = animal.credito;
 
     return ListView(
       controller: controlador,
@@ -678,7 +665,13 @@ class _FichaAnimal extends StatelessWidget {
           child: Stack(
             fit: StackFit.expand,
             children: [
-              ImagemComReserva(url: animal.imagem),
+              ColoredBox(
+                color: AppCores.linha,
+                child: ImagemComReserva(
+                  url: animal.imagem,
+                  ajuste: BoxFit.contain,
+                ),
+              ),
               Positioned(
                 top: 12,
                 right: 12,
@@ -696,6 +689,18 @@ class _FichaAnimal extends StatelessWidget {
             ],
           ),
         ),
+        // As licencas Creative Commons exigem autor e licenca junto da foto.
+        if (credito != null)
+          Padding(
+            padding: mobile
+                ? const EdgeInsets.fromLTRB(18, 6, 18, 0)
+                : const EdgeInsets.fromLTRB(32, 6, 32, 0),
+            child: SelectableText(
+              'Foto: ${credito.autor} · ${credito.licenca} · Wikimedia '
+              'Commons: ${credito.link}',
+              style: const TextStyle(fontSize: 13, color: AppCores.tinta3),
+            ),
+          ),
         Padding(
           padding: mobile
               ? const EdgeInsets.fromLTRB(18, 20, 18, 28)
@@ -703,24 +708,12 @@ class _FichaAnimal extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                animal.status,
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                  color: animal.corStatus,
-                ),
-              ),
-              const SizedBox(height: 4),
               Semantics(
                 header: true,
                 child: Text(animal.nome, style: estiloTitulo(mobile ? 26 : 32)),
               ),
-              const SizedBox(height: 4),
-              Text(
-                '${animal.bioma} · ${animal.regiao}',
-                style: const TextStyle(fontSize: 15, color: AppCores.tinta3),
-              ),
+              const SizedBox(height: 2),
+              _CientificoEBioma(animal: animal, fonte: 15, comRegiao: true),
               const SizedBox(height: 16),
               Text(
                 animal.descricao,
@@ -749,7 +742,11 @@ class _FichaAnimal extends StatelessWidget {
                           children: [
                             Text(
                               valor,
-                              style: estiloTitulo(mobile ? 26 : 30, cor: cor),
+                              style: estiloTitulo(
+                                mobile ? 22 : 26,
+                                cor: cor,
+                                altura: 1.15,
+                              ),
                             ),
                             Text(
                               rotulo,
@@ -766,15 +763,32 @@ class _FichaAnimal extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: 24),
-              Text('População de $periodo', style: estiloTitulo(18)),
-              const SizedBox(height: 10),
-              LinhaChart(
-                valores: animal.tendencia,
-                rotulos: animal.anos,
-                cor: animal.corTendencia,
-                altura: 90,
-              ),
-              const SizedBox(height: 24),
+              if (populacao != null) ...[
+                Text('População estimada', style: estiloTitulo(18)),
+                const SizedBox(height: 6),
+                // Sem `url_launcher` no app, a fonte vai por extenso, com o
+                // endereco selecionavel para copiar.
+                SelectableText.rich(
+                  TextSpan(
+                    children: [
+                      TextSpan(text: '${populacao.texto}. '),
+                      TextSpan(
+                        text: '${populacao.fonte}: ${populacao.link}',
+                        style: const TextStyle(
+                          fontSize: 14,
+                          color: AppCores.tinta3,
+                        ),
+                      ),
+                    ],
+                  ),
+                  style: const TextStyle(
+                    fontSize: 16,
+                    height: 1.5,
+                    color: AppCores.tinta2,
+                  ),
+                ),
+                const SizedBox(height: 24),
+              ],
               Text('Principais ameaças', style: estiloTitulo(18)),
               const SizedBox(height: 8),
               for (final ameaca in animal.ameacas)
@@ -794,6 +808,35 @@ class _FichaAnimal extends StatelessWidget {
       ],
     );
   }
+}
+
+/// "Panthera onca · Mata Atlântica", com o nome cientifico em italico.
+class _CientificoEBioma extends StatelessWidget {
+  const _CientificoEBioma({
+    required this.animal,
+    required this.fonte,
+    this.comRegiao = false,
+  });
+
+  final Animal animal;
+  final double fonte;
+  final bool comRegiao;
+
+  @override
+  Widget build(BuildContext context) => Text.rich(
+    TextSpan(
+      children: [
+        TextSpan(
+          text: animal.cientifico,
+          style: const TextStyle(fontStyle: FontStyle.italic),
+        ),
+        TextSpan(
+          text: ' · ${animal.bioma}${comRegiao ? ' · ${animal.regiao}' : ''}',
+        ),
+      ],
+    ),
+    style: TextStyle(fontSize: fonte, color: AppCores.tinta3),
+  );
 }
 
 class _Vazio extends StatelessWidget {

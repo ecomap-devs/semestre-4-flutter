@@ -5,6 +5,7 @@ import 'package:latlong2/latlong.dart';
 import 'package:ecomapbrasil/config/env.dart';
 import 'package:ecomapbrasil/data/animais_data.dart';
 import 'package:ecomapbrasil/data/biomas_data.dart';
+import 'package:ecomapbrasil/data/especies_data.dart';
 import 'package:ecomapbrasil/main.dart';
 import 'package:ecomapbrasil/models/animal.dart';
 import 'package:ecomapbrasil/models/avaliacao.dart';
@@ -14,68 +15,125 @@ import 'package:ecomapbrasil/widgets/estrelas.dart';
 
 void main() {
   group('Animal', () {
-    test('variação percentual é negativa para espécie em declínio', () {
-      final onca = animais.firstWhere((a) => a.nome == 'Onça-pintada');
-      // 1200 -> 300 = -75%
-      expect(onca.variacaoPercentual, closeTo(-75, 0.01));
-      expect(onca.emRecuperacao, isFalse);
-      // Sinal de menos tipografico, como no site.
-      expect(onca.variacaoFormatada, '−75%');
+    test('status vem da lista nacional e da IUCN, não escrito à mão', () {
+      Animal chamado(String nome) => animais.firstWhere((a) => a.nome == nome);
+      // A onça é vulnerável no Brasil e quase ameaçada no mundo; até
+      // 28/10/2026 aparecia como "criticamente ameaçada".
+      expect(chamado('Onça-pintada').status, 'Vulnerável');
+      expect(chamado('Onça-pintada').iucn, 'Quase ameaçada');
+      // Reintroduzida em 2022: CR aqui, ainda EW na IUCN.
+      expect(chamado('Ararinha-azul').status, 'Criticamente em perigo');
+      expect(chamado('Ararinha-azul').iucn, 'Extinta na natureza');
     });
 
-    test('mico-leão-dourado é o único em recuperação no catálogo', () {
-      final emAlta = animais.where((a) => a.emRecuperacao).toList();
-      expect(emAlta, hasLength(1));
-      expect(emAlta.single.nome, 'Mico-leão-dourado');
-      expect(emAlta.single.variacaoFormatada, startsWith('+'));
+    test('toda espécie do catálogo tem status gerado', () {
+      expect(animais, hasLength(45));
+      for (final a in animais) {
+        final status = statusEspecies[a.cientifico];
+        expect(status, isNotNull, reason: a.nome);
+        // Fora da lista nacional, e só aí, aparece como não ameaçada.
+        expect(a.ehAmeacada, status!.nacional != null, reason: a.nome);
+        expect(AppCores.status.containsKey(a.status), isTrue, reason: a.nome);
+      }
+      expect(animais.where((a) => a.ehAmeacada), hasLength(27));
     });
 
-    test('série que começa em zero não divide por zero', () {
+    test('fora da lista nacional é "Não ameaçada", com a cor da mata', () {
+      final capivara = animais.firstWhere((a) => a.nome == 'Capivara');
+      expect(capivara.status, naoAmeacada);
+      expect(capivara.iucn, 'Menos preocupante');
+      expect(capivara.corStatus, AppCores.mata);
+    });
+
+    test('foto de terceiros sempre tem autor, licença e link', () {
+      for (final a in animais) {
+        final doProjeto = a.imagem.contains('.supabase.co/');
+        expect(a.credito == null, doProjeto, reason: a.nome);
+        final c = a.credito;
+        if (c == null) continue;
+        expect(c.autor, isNotEmpty, reason: a.nome);
+        expect(c.licenca, isNotEmpty, reason: a.nome);
+        expect(
+          c.link,
+          startsWith('https://commons.wikimedia.org/wiki/File:'),
+          reason: a.nome,
+        );
+      }
+    });
+
+    test('saíram as espécies sem fonte ou com foto trocada', () {
+      final nomes = animais.map((a) => a.nome);
+      expect(nomes, isNot(contains('Tucano-de-bico-preto')));
+      expect(nomes, isNot(contains('Perereca-verde-da-mata')));
+      expect(nomes, isNot(contains('Arara-azul')));
+      expect(nomes, contains('Arara-azul-de-lear'));
+    });
+
+    test('população só aparece com fonte e link', () {
+      final comPopulacao = animais.where((a) => a.populacao != null);
+      expect(comPopulacao.map((a) => a.nome), [
+        'Onça-pintada',
+        'Arara-azul-de-lear',
+        'Mico-leão-dourado',
+      ]);
+      for (final a in comPopulacao) {
+        expect(a.populacao!.fonte, isNotEmpty, reason: a.nome);
+        expect(a.populacao!.link, startsWith('https://'), reason: a.nome);
+      }
+    });
+
+    test('IUCN não avaliada vira texto, não "null"', () {
       const a = Animal(
         nome: 'Teste',
+        cientifico: 'Testus testus',
         status: 'Em perigo',
+        iucn: null,
         bioma: 'Cerrado',
         regiao: 'Centro-Oeste',
-        populacao: 10,
-        tendencia: [0, 10],
-        anos: ['2000', '2024'],
         descricao: '',
         imagem: '',
         ameacas: [],
       );
-      expect(a.variacaoPercentual, 0);
+      expect(a.iucnOuNaoAvaliada, 'não avaliada');
+      expect(a.corStatus, AppCores.ocre);
     });
 
-    test('cor da tendência: alta, queda forte e queda moderada', () {
-      Animal chamado(String nome) => animais.firstWhere((a) => a.nome == nome);
-      expect(chamado('Mico-leão-dourado').corTendencia, AppCores.mata);
-      // Onça: -75%, mais da metade.
-      expect(chamado('Onça-pintada').corTendencia, AppCores.terra);
-      // Arara-azul: -35%.
-      expect(chamado('Arara-azul').corTendencia, AppCores.ocre);
-    });
-
-    test('população com separador de milhar', () {
-      expect(
-        animais.firstWhere((a) => a.nome == 'Lobo-guará').populacaoComMilhar,
-        '23.000',
-      );
-    });
-
-    test('população zero é rotulada como extinta na natureza', () {
-      final ararinha = animais.firstWhere((a) => a.nome == 'Ararinha-azul');
-      expect(ararinha.populacao, 0);
-      expect(ararinha.populacaoFormatada, 'Extinta na natureza');
-    });
-
-    test('todo animal tem série e rótulos do mesmo tamanho', () {
-      for (final a in animais) {
-        expect(
-          a.tendencia.length,
-          a.anos.length,
-          reason: '${a.nome} tem série e anos com tamanhos diferentes',
-        );
+    test('filtros só listam bioma e status que têm espécie', () {
+      expect(biomasFiltro, [
+        'Todos',
+        'Amazônia',
+        'Cerrado',
+        'Mata Atlântica',
+        'Caatinga',
+        'Pantanal',
+        'Pampa',
+      ]);
+      for (final b in biomasFiltro.skip(1)) {
+        expect(animais.any((a) => a.bioma == b), isTrue, reason: b);
       }
+      // Do mais grave ao menos grave.
+      expect(statusFiltro, [
+        'Todos',
+        soAmeacadas,
+        'Criticamente em perigo',
+        'Em perigo',
+        'Vulnerável',
+        'Não ameaçada',
+      ]);
+    });
+
+    test('"Só ameaçadas" junta as categorias da lista nacional', () {
+      final so = animais.where((a) => passaNoFiltroStatus(a, soAmeacadas));
+      expect(so.every((a) => a.ehAmeacada), isTrue);
+      expect(so, hasLength(27));
+      expect(animais.where((a) => passaNoFiltroStatus(a, 'Todos')), animais);
+      expect(
+        animais
+            .where((a) => passaNoFiltroStatus(a, 'Em perigo'))
+            .map((a) => a.status)
+            .toSet(),
+        {'Em perigo'},
+      );
     });
   });
 

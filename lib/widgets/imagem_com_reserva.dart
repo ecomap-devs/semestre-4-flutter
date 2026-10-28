@@ -12,11 +12,16 @@ class ImagemComReserva extends StatelessWidget {
     super.key,
     required this.url,
     this.alinhamento = Alignment.center,
+    this.ajuste = BoxFit.cover,
     this.escura = false,
   });
 
   final String url;
   final Alignment alinhamento;
+
+  /// `contain` mostra a foto inteira, e a sobra do quadro fica na cor de
+  /// fundo de quem a envolve.
+  final BoxFit ajuste;
 
   /// Reserva escura, para foto que fica sob texto claro: se o Supabase nao
   /// responder, o texto continua legivel.
@@ -34,7 +39,7 @@ class ImagemComReserva extends StatelessWidget {
     );
     return Image.network(
       url,
-      fit: BoxFit.cover,
+      fit: ajuste,
       alignment: alinhamento,
       width: double.infinity,
       height: double.infinity,

@@ -16,6 +16,11 @@ class ResumoAvaliacoes {
   final double? media;
 }
 
+/// Uma pagina da lista. `lidos` conta os documentos que vieram do Firestore,
+/// inclusive os que `Avaliacao.doFirestore` recusou: e ele, e nao o tamanho
+/// da lista, que diz se ainda ha mais para buscar.
+typedef PaginaAvaliacoes = ({List<Avaliacao> avaliacoes, int lidos});
+
 /// Avaliacoes em tempo real — porte do `onSnapshot` do Reviews.jsx.
 class ReviewsService {
   ReviewsService({FirebaseFirestore? db})
@@ -30,11 +35,16 @@ class ReviewsService {
   ///
   /// Até 01/10/2026 o app assinava a coleção inteira para mostrar seis, e a
   /// média era calculada somando a lista baixada.
-  Stream<List<Avaliacao>> observar({required int limite}) => _col
+  Stream<PaginaAvaliacoes> observar({required int limite}) => _col
       .orderBy('criadoEm', descending: true)
       .limit(limite)
       .snapshots()
-      .map((s) => s.docs.map(Avaliacao.doFirestore).nonNulls.toList());
+      .map(
+        (s) => (
+          avaliacoes: s.docs.map(Avaliacao.doFirestore).nonNulls.toList(),
+          lidos: s.size,
+        ),
+      );
 
   /// Total e média de todas, por agregação no servidor: não baixa os
   /// documentos. Agregação não é tempo real, então quem exibe chama de novo
