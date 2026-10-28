@@ -1,0 +1,3 @@
+# O deno fmt exige LF. Sem isto, o checkout no Windows (core.autocrlf=true)
+# troca para CRLF e o `deno fmt --check` reprova todo arquivo de supabase/.
+supabase/**/*.ts text eol=lf
