@@ -19,7 +19,7 @@ propósito.
 **Antes de dizer que terminou:**
 
 ```bash
-dart format .
+dart format lib test
 flutter analyze     # "No issues found!"
 flutter test        # tudo verde
 ```

@@ -83,10 +83,13 @@ vivem em servidor.
 Rode os três, nesta ordem. É o mesmo que a CI roda — falhar aqui é falhar lá.
 
 ```bash
-dart format .
+dart format lib test
 flutter analyze     # tem que dar "No issues found!"
 flutter test        # tem que passar inteiro
 ```
+
+`lib test`, e não `.`: é o que a CI confere, e depois de um build Android o `.` entra
+em `build/` e tropeça em caminho longo no Windows.
 
 `flutter analyze` limpo não é meta, é piso. Não abra PR com warning novo.
 

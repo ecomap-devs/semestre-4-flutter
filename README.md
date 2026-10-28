@@ -29,9 +29,10 @@ aparece no site, e vice-versa.
 
 | Tela | O que tem |
 |---|---|
-| 🏠 **Início** | Estatísticas do desmatamento, **mapa interativo dos biomas** e gráficos desenhados no canvas (barras e linha), linha do tempo de duas décadas, soluções práticas e as avaliações da comunidade |
-| 🗺️ **Mapa** | Imagens de satélite com os **6 biomas** e a camada de **alertas do DETER-B**. Tocar num bioma abre a ficha: área, percentual desmatado e descrição |
-| 🐆 **Animais** | Catálogo de **9 espécies** com busca, filtros por bioma e status de conservação, tendência populacional e as principais ameaças |
+| 🏠 **Início** | Abertura em tela cheia com fotos que se alternam, números do desmatamento, **mapa dos biomas** em que dá para tocar, espécies em destaque, gráfico de barras desenhado no canvas, linha do tempo de duas décadas, soluções práticas e as avaliações da comunidade |
+| 🗺️ **Mapa** | Os **6 biomas** pelo limite do IBGE e a camada de **alertas do DETER-B**, sobre mapa claro ou satélite. Painel com a lista de biomas e a linha do tempo (aba própria no celular), legenda dos alertas, e a ficha do bioma ao tocar: área, percentual desmatado e descrição |
+| 🐆 **Animais** | Catálogo de **9 espécies** com busca que ignora acento, filtros por bioma e status de conservação, a tendência da população em gráfico de linha e as principais ameaças |
+| 📷 **Fotos** | **Identificação de animal por foto**: tire uma foto ou escolha da galeria, e o Gemini diz qual é o animal, com o nome científico e o grau de confiança. Exige login |
 | 👤 **Conta** | Cadastro e login por e-mail e senha, foto de perfil e **avaliações em estrelas**, salvas e lidas em tempo real |
 
 O layout se adapta à largura: `NavigationBar` no celular, `NavigationRail` em tela
@@ -51,9 +52,11 @@ flowchart LR
         auth[🔐 Firebase Auth]
         fs[(🗄️ Firestore)]
         sb[(🖼️ Supabase Storage)]
+        fn["⚡ Edge Function<br/>identificar-animal"]
     end
-    web --> auth & fs & sb
-    app --> auth & fs & sb
+    web --> auth & fs & sb & fn
+    app --> auth & fs & sb & fn
+    fn --> gemini["✨ Gemini"]
     regras["📜 firestore.rules<br/>versionadas aqui"] -. protege .-> fs
 ```
 
@@ -69,17 +72,21 @@ Flutter fica com o que faz melhor: **o app Android**.
 > continua compilando (`flutter run -d chrome` serve para testar), só não é publicado.
 
 **As regras do Firestore moram aqui e valem para os dois.** O banco é um só, então as
-regras são uma só: duas cópias, uma em cada repositório, acabariam divergindo.
+regras são uma só: duas cópias, uma em cada repositório, acabariam divergindo. Pelo
+mesmo motivo a Edge Function da identificação por foto, que o site também chama, mora
+aqui, em [`supabase/functions/identificar-animal`](supabase/functions/identificar-animal).
 
 ## 🛠️ Stack
 
 | Camada | Escolha | Por quê |
 |---|---|---|
-| **App** | Flutter 3.47 · Dart 3.13 · Material 3 | Um código para Android, com o visual portado do React |
-| **Mapa** | `flutter_map` + `latlong2` | O irmão do Leaflet usado no React, com os mesmos tiles de satélite |
+| **App** | Flutter 3.47 · Dart 3.13 · Material 3 | Um código para Android, com o mesmo visual do site |
+| **Fontes** | Fraunces e Source Sans 3, em `assets/fonts/` | As do site; licença OFL, junto dos arquivos |
+| **Mapa** | `flutter_map` + `latlong2` | O irmão do Leaflet usado no site, com os mesmos tiles (claro e satélite) |
 | **Gráficos** | `CustomPainter` puro | Sem biblioteca de gráficos, como o SVG escrito à mão do original |
 | **Conta e dados** | `firebase_auth` · `cloud_firestore` | Login por e-mail e senha e avaliações em tempo real |
 | **Imagens** | `supabase_flutter` | Fotos das espécies e dos avatares |
+| **Identificação por foto** | `image_picker` + Edge Function do Supabase + Gemini | A chave do Gemini fica no servidor, nunca no APK |
 
 ## 🚀 Como rodar
 
@@ -106,7 +113,7 @@ flutter build apk --release --dart-define-from-file=env.json
 
 dart format lib test     # o mesmo que a CI confere
 flutter analyze          # tem que dar "No issues found!"
-flutter test             # 36 testes
+flutter test             # tem que passar inteiro
 ```
 
 Use `dart format lib test`, e não `dart format .`: depois de um build Android, o `.`
@@ -157,6 +164,11 @@ isso web e Android têm chaves diferentes.
 
 As `anon` keys do Supabase foram **desativadas** em 08/09/2026, e o projeto usa a
 `sb_publishable_...`.
+
+A chave do **Gemini** não está no `env.json` e nunca vai para o APK: é secret do
+Supabase (`GEMINI_API_KEY`), lida só pela Edge Function `identificar-animal`, que
+também confere o ID token do Firebase de quem chama. Os secrets que ela usa estão no
+cabeçalho de [`index.ts`](supabase/functions/identificar-animal/index.ts).
 
 </details>
 
@@ -209,20 +221,23 @@ lib/
 ├── config/env.dart            credenciais via --dart-define, com checagem
 ├── data/                      dados de referência portados do React
 │   ├── animais_data.dart        catálogo de espécies
-│   ├── biomas_data.dart         polígonos simplificados dos 6 biomas
+│   ├── biomas_data.dart         os 6 biomas: área, percentual e descrição
+│   ├── biomas_contornos.dart    limite do IBGE (gerado por tool/biomas/gerar.mjs)
 │   └── home_data.dart           estatísticas, soluções, linha do tempo
-├── models/                    Animal · Bioma · AlertaDesmatamento · Avaliacao
-├── services/                  Firebase · avaliações · leitura do GeoJSON
-├── screens/                   app_shell · home · mapa · animais
+├── models/                    Animal · Bioma · AlertaDesmatamento · Avaliacao · Identificacao
+├── services/                  Firebase · avaliações · leitura do GeoJSON · identificação por foto
+├── screens/                   app_shell · home · mapa · animais · fotos
 ├── theme/app_theme.dart       paleta, fontes e breakpoints, iguais aos do site
 └── widgets/
     ├── charts/                  barras · linha · mapa dos biomas
-    ├── superficie_vidro.dart    cartão de vidro, com desfoque limitado a ele
+    ├── abertura.dart            a abertura da Home, com as fotos que se alternam
     ├── animacao_na_tela.dart    revela ao entrar na tela, sem timer
+    ├── imagem_com_reserva.dart  foto de rede que cai num placeholder se falhar
     └── auth_modal.dart · reviews_section.dart · estrelas.dart · …
 
 assets/
 ├── data/alertas-desmatamento.json   GeoJSON do DETER-B/INPE
+├── fonts/                           Fraunces e Source Sans 3, com as licenças OFL
 └── img/logo.png
 ```
 
@@ -233,6 +248,10 @@ assets/
 A camada de alertas usa dados públicos de detecção do **DETER-B (INPE)**: bioma, estado,
 município, área em hectares e data de cada polígono. O arquivo tem 6,7 MB, mas ocupa
 1,48 MB dentro do APK, que é compactado.
+
+Os contornos dos biomas são o limite oficial do **IBGE** ("Biomas do Brasil",
+1:5.000.000), simplificados para o mapa por [`tool/biomas/gerar.mjs`](tool/biomas/gerar.mjs),
+que diz como refazê-los. O site usa a mesma receita.
 
 Os demais números (percentuais por bioma, séries populacionais das espécies e a linha do
 tempo) são **valores de referência** herdados da versão React. Trocá-los por fonte
