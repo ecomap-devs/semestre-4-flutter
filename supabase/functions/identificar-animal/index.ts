@@ -56,6 +56,8 @@ const CHAVES_FIREBASE = createRemoteJWKSet(
 // ~3 MB de imagem. O app ja reduz para 1024 px antes de mandar; isto e so o
 // teto para quem chamar a funcao por fora do app.
 const TAMANHO_MAXIMO_BASE64 = 4_000_000;
+// O corpo e `{"imagem":"..."}`: a imagem e quase tudo.
+const TAMANHO_MAXIMO_CORPO = TAMANHO_MAXIMO_BASE64 + 1_000;
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",
@@ -139,6 +141,13 @@ async function atender(req: Request): Promise<Response> {
     return responder(401, { erro: "nao-autenticado" });
   }
 
+  // Antes de ler o corpo: o teto da imagem so era conferido depois de o JSON
+  // inteiro estar na memoria.
+  const declarado = Number(req.headers.get("Content-Length"));
+  if (Number.isFinite(declarado) && declarado > TAMANHO_MAXIMO_CORPO) {
+    return responder(413, { erro: "imagem-grande" });
+  }
+
   let imagem: unknown;
   try {
     ({ imagem } = await req.json());
@@ -150,6 +159,7 @@ async function atender(req: Request): Promise<Response> {
     console.warn("Corpo sem imagem");
     return responder(400, { erro: "sem-imagem" });
   }
+  // Continua aqui para o corpo sem `Content-Length` (envio em partes).
   if (imagem.length > TAMANHO_MAXIMO_BASE64) {
     return responder(413, { erro: "imagem-grande" });
   }
