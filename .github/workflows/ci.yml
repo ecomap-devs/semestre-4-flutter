@@ -162,8 +162,9 @@ jobs:
       - name: Testar as regras no emulador
         run: npm test
 
-  # A Edge Function da identificacao por foto (revisao de 28/10/2026). Os
-  # testes usam `fetch` falso: nao falam com o Google.
+  # A Edge Function da identificacao por foto e o SQL do limite por pessoa
+  # (revisao de 28/10/2026). Os testes usam `fetch` falso e um Postgres em
+  # WebAssembly: nao falam com o Google nem com o banco de producao.
   funcao:
     name: Edge Function
     runs-on: ubuntu-latest
@@ -180,5 +181,5 @@ jobs:
       - name: Conferir tipos
         run: deno check supabase/functions/identificar-animal/index.ts
 
-      - name: Testar a função
+      - name: Testar a função e o SQL do limite
         run: deno test --allow-read --allow-env supabase

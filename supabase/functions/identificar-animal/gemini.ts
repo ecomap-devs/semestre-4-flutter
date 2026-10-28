@@ -14,7 +14,7 @@
 // antes disso (503, por exemplo), o reserva e chamado na hora.
 //
 // O custo: nos casos lentos, a mesma foto gasta duas consultas da cota; com a
-// rodada extra, ate quatro.
+// rodada extra, ate quatro. Por isso o index.ts limita os pedidos por pessoa.
 export const PARALELO_APOS_MS = 6_000;
 
 /** Status que valem nova rodada: sobrecarga e erro interno do Google. */

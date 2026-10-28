@@ -16,12 +16,21 @@
 // contra as chaves publicas do Google. Por isso o `verify_jwt` do gateway fica
 // desligado (supabase/config.toml) — ele so entende JWT do proprio Supabase.
 //
+// Login nao basta: o cadastro e aberto. Desde 28/10/2026 cada pessoa tem um
+// limite por minuto e por dia, contado no Postgres do Supabase
+// (supabase/limite-identificacao.sql, que precisa estar aplicado ANTES).
+//
 // Secrets (supabase secrets set ...):
 //   GEMINI_API_KEY       chave criada em aistudio.google.com
 //   FIREBASE_PROJECT_ID  o mesmo do env.json do app
 //   GEMINI_MODEL         opcional; troca o modelo sem republicar a funcao
 //   GEMINI_MODEL_RESERVA opcional; o modelo usado quando o principal esta
 //                        sobrecarregado
+//   LIMITE_POR_MINUTO    opcional; identificacoes por pessoa por minuto (5)
+//   LIMITE_POR_DIA       opcional; identificacoes por pessoa por dia (30)
+// A plataforma ja entrega SUPABASE_URL e SUPABASE_SECRET_KEYS; o limite usa a
+// chave secreta `default`. As chaves legadas (service_role) estao desativadas
+// neste projeto desde 08/09/2026.
 //
 // Os padroes sao apelidos ("-latest"), nao versoes fixas: em 01/10/2026 o
 // `gemini-2.5-flash` ja respondia 404, e versao fixa envelhece calada.
@@ -29,6 +38,7 @@
 import { createRemoteJWKSet, jwtVerify } from "npm:jose@5";
 
 import { chamarGemini, consultar, type Tentativa } from "./gemini.ts";
+import { inteiroPositivo, registrarUso } from "./limite.ts";
 
 const CHAVE_GEMINI = Deno.env.get("GEMINI_API_KEY") ?? "";
 const PROJETO_FIREBASE = Deno.env.get("FIREBASE_PROJECT_ID") ?? "";
@@ -40,6 +50,16 @@ const PROJETO_FIREBASE = Deno.env.get("FIREBASE_PROJECT_ID") ?? "";
 const MODELOS = {
   principal: Deno.env.get("GEMINI_MODEL") || "gemini-flash-lite-latest",
   reserva: Deno.env.get("GEMINI_MODEL_RESERVA") || "gemini-flash-latest",
+};
+
+const LIMITES = {
+  porMinuto: inteiroPositivo(Deno.env.get("LIMITE_POR_MINUTO"), 5),
+  porDia: inteiroPositivo(Deno.env.get("LIMITE_POR_DIA"), 30),
+};
+
+const SUPABASE = {
+  url: Deno.env.get("SUPABASE_URL") ?? "",
+  chaveSecreta: chaveSecretaPadrao(),
 };
 
 // Teto de tempo. No primeiro teste do site a chamada levou 106 s: sem limite,
@@ -96,6 +116,16 @@ const ESQUEMA = {
   ],
 };
 
+/** A chave secreta `default` de SUPABASE_SECRET_KEYS (um JSON por nome). */
+function chaveSecretaPadrao(): string {
+  try {
+    const chaves = JSON.parse(Deno.env.get("SUPABASE_SECRET_KEYS") ?? "{}");
+    return typeof chaves?.default === "string" ? chaves.default : "";
+  } catch {
+    return "";
+  }
+}
+
 function responder(status: number, corpo: unknown): Response {
   return new Response(JSON.stringify(corpo), {
     status,
@@ -103,17 +133,19 @@ function responder(status: number, corpo: unknown): Response {
   });
 }
 
-async function usuarioValido(req: Request): Promise<boolean> {
+/** O uid de quem chama, se o ID token do Firebase for valido; senao, `null`. */
+async function uidValido(req: Request): Promise<string | null> {
   const token = req.headers.get("Authorization")?.replace(/^Bearer\s+/i, "");
-  if (!token) return false;
+  if (!token) return null;
   try {
-    await jwtVerify(token, CHAVES_FIREBASE, {
+    const { payload } = await jwtVerify(token, CHAVES_FIREBASE, {
       issuer: `https://securetoken.google.com/${PROJETO_FIREBASE}`,
       audience: PROJETO_FIREBASE,
     });
-    return true;
+    // O limite e contado por uid: token sem `sub` nao tem a quem contar.
+    return typeof payload.sub === "string" && payload.sub ? payload.sub : null;
   } catch {
-    return false;
+    return null;
   }
 }
 
@@ -131,12 +163,18 @@ async function atender(req: Request): Promise<Response> {
     return responder(405, { erro: "metodo-invalido" });
   }
 
-  if (!CHAVE_GEMINI || !PROJETO_FIREBASE) {
-    console.error("Secrets GEMINI_API_KEY/FIREBASE_PROJECT_ID ausentes");
+  if (
+    !CHAVE_GEMINI || !PROJETO_FIREBASE || !SUPABASE.url ||
+    !SUPABASE.chaveSecreta
+  ) {
+    console.error(
+      "Configuracao incompleta: GEMINI_API_KEY, FIREBASE_PROJECT_ID, SUPABASE_URL ou a chave secreta `default`",
+    );
     return responder(500, { erro: "configuracao" });
   }
 
-  if (!(await usuarioValido(req))) {
+  const uid = await uidValido(req);
+  if (!uid) {
     console.warn("Chamada sem ID token valido do Firebase");
     return responder(401, { erro: "nao-autenticado" });
   }
@@ -162,6 +200,16 @@ async function atender(req: Request): Promise<Response> {
   // Continua aqui para o corpo sem `Content-Length` (envio em partes).
   if (imagem.length > TAMANHO_MAXIMO_BASE64) {
     return responder(413, { erro: "imagem-grande" });
+  }
+
+  // Conta so pedido valido: um corpo errado nao gasta o limite de ninguem.
+  const veredito = await registrarUso(uid, LIMITES, SUPABASE);
+  if (veredito === null) {
+    return responder(503, { erro: "limite-indisponivel" });
+  }
+  if (veredito !== "ok") {
+    console.warn("Limite atingido", veredito);
+    return responder(429, { erro: veredito });
   }
 
   const corpo = JSON.stringify({

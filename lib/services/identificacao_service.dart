@@ -65,12 +65,21 @@ class IdentificacaoService {
     if (erro is! FunctionException) {
       return 'Algo deu errado. Verifique sua internet e tente de novo.';
     }
-    return switch (erro.status) {
-      0 => 'Sem conexão. Verifique sua internet.',
-      401 => 'Sua sessão expirou. Saia e entre de novo.',
-      413 => 'A foto é grande demais. Tente outra.',
-      422 => 'O Google não conseguiu analisar esta foto. Tente outra.',
-      429 => 'Muitas consultas seguidas. Aguarde um momento.',
+    // O 429 tem tres causas, separadas pelo `erro` do corpo: o limite da
+    // pessoa por minuto, o limite dela no dia, e a cota do Gemini (`cota`).
+    final codigo = switch (erro.details) {
+      {'erro': final String c} => c,
+      _ => null,
+    };
+    return switch ((erro.status, codigo)) {
+      (429, 'limite-minuto') =>
+        'Você enviou muitas fotos seguidas. Aguarde um minuto e tente de novo.',
+      (429, 'limite-dia') => 'Você chegou ao limite de identificações de hoje. Tente de novo amanhã.',
+      (429, _) => 'Muitas consultas seguidas. Aguarde um momento.',
+      (0, _) => 'Sem conexão. Verifique sua internet.',
+      (401, _) => 'Sua sessão expirou. Saia e entre de novo.',
+      (413, _) => 'A foto é grande demais. Tente outra.',
+      (422, _) => 'O Google não conseguiu analisar esta foto. Tente outra.',
       _ => 'Não foi possível identificar agora. Tente de novo mais tarde.',
     };
   }
