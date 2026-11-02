@@ -5,9 +5,10 @@ import 'package:flutter/services.dart' show rootBundle;
 
 import '../models/bioma.dart';
 
-/// Carrega os alertas de desmatamento do DETER-B/INPE.
+/// Carrega os alertas de desmatamento do DETER/INPE dos ultimos 12 meses, o
+/// mesmo arquivo do site.
 ///
-/// O arquivo tem ~6,7 MB. Parsear isso na thread da UI trava a tela por
+/// O arquivo tem ~15 MB. Parsear isso na thread da UI trava a tela por
 /// segundos — no navegador e no celular. Por isso o decode e o mapeamento
 /// rodam num isolate (`compute`), que na web vira uma chamada assincrona
 /// comum, mas mantem o codigo igual nos dois alvos.

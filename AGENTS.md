@@ -126,7 +126,7 @@ provavelmente o papel está confuso — repense antes de criar pasta nova.
 **Modelo é imutável.** `@immutable`, campos `final`, construtor `const` quando dá.
 
 **Parser não estoura, devolve `null`.** Veja `AlertaDesmatamento.doGeoJson`: o
-GeoJSON tem 6,7 MB e milhares de features; uma malformada não pode derrubar o mapa
+GeoJSON tem 15 MB e 40 mil features; uma malformada não pode derrubar o mapa
 inteiro. Prefira pular o registro ruim a explodir a tela.
 
 **Imagem de rede sempre tem `errorBuilder`.** As fotos vêm do Supabase e do
@@ -254,8 +254,9 @@ Tudo acima vale. Além disso:
 
 - **Não invente dado ambiental.** Os números deste repo vêm do PRODES, do MMA e da
   IUCN, copiados do site (README, "Sobre os dados"). Se precisar de número novo, peça
-  a fonte — não preencha com estimativa plausível. `prodes_data.dart` e
-  `especies_data.dart` não se editam à mão: copie do site.
+  a fonte — não preencha com estimativa plausível. `prodes_data.dart`,
+  `especies_data.dart`, `denuncia_data.dart` e `assets/data/alertas-desmatamento.json`
+  não se editam à mão: copie do site.
 - **Não crie `firebase_options.dart` com chaves dentro**, nem sugira `flutterfire
   configure` sem avisar que o arquivo é ignorado de propósito.
 - **Não suba nada** (`git push`, `firebase deploy`) sem pedido explícito.
@@ -283,11 +284,15 @@ Tudo acima vale. Além disso:
   coleção**; `ReviewsService.publicar` copia `displayName` e `photoURL` do Auth. **Falta
   limpar os documentos antigos**, que ainda têm o e-mail gravado; parar de escrever não
   apaga o que já está lá.
-- 🟡 **GeoJSON de 6,7 MB embarcado** nos assets. Funciona, mas engorda o APK
-  (1,48 MB comprimido). Alternativas: servir remoto ou simplificar polígonos.
-- 🟡 **Dados copiados do site** (28/10/2026). Desmatamento (PRODES) e status das
-  espécies (MMA, IUCN) agora têm fonte, mas `prodes_data.dart` e `especies_data.dart`
-  são cópia do que o site gera e não se atualizam sozinhos. Falta um jeito de copiar
+- 🟡 **GeoJSON do DETER de 15 MB embarcado** nos assets (02/11/2026): cerca de 2 MB
+  compactado no APK e 40 mil alertas no mapa, o dobro do arquivo antigo. **Não foi
+  testado num celular de verdade.** Se pesar, as saídas são ler o arquivo do próprio site
+  (sempre atual, sem copiar) ou simplificar mais os polígonos.
+- 🟡 **Dados copiados do site** (28/10/2026; alertas e denúncia em 02/11/2026).
+  Desmatamento (PRODES), status das espécies (MMA, IUCN), alertas (DETER) e canais de
+  denúncia têm fonte, mas `prodes_data.dart`, `especies_data.dart`, `denuncia_data.dart`
+  e o arquivo dos alertas são cópia do que o site gera e não se atualizam sozinhos. O
+  PR do site de 29/10 (DETER, denúncia) ficou sem gêmeo aqui até 02/11. Falta um jeito de copiar
   automaticamente, ou de o app ler o mesmo arquivo do site.
 - 🟡 **Identificação por foto** (aba Fotos, 01/10/2026). O app chama a Edge Function
   `supabase/functions/identificar-animal`, que confere o ID token do Firebase e consulta

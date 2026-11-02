@@ -24,21 +24,28 @@ const _centroBrasil = LatLng(-14, -52);
 
 /// Os alertas ja preparados para desenhar, e o resumo para a legenda.
 ///
-/// Montado uma vez quando o GeoJSON termina de carregar: sao 18 mil alertas,
+/// Montado uma vez quando o GeoJSON termina de carregar: sao 40 mil alertas,
 /// e refazer as listas a cada movimento do mapa custaria quadros.
 class _DadosMapa {
   _DadosMapa(List<AlertaDesmatamento> alertas)
     : total = alertas.length,
       areaHa = alertas.fold(0, (s, a) => s + a.areaHa),
-      // Ano 0 e alerta sem data no arquivo: fica fora do periodo.
-      anoMin = alertas
-          .map((a) => a.ano)
-          .where((a) => a > 0)
-          .fold<int?>(null, (m, a) => m == null || a < m ? a : m),
-      anoMax = alertas
-          .map((a) => a.ano)
-          .where((a) => a > 0)
-          .fold<int?>(null, (m, a) => m == null || a > m ? a : m),
+      // Data vazia e alerta sem data no arquivo: fica fora do periodo. As
+      // datas sao "aaaa-mm-dd", entao a ordem do texto e a do calendario.
+      inicio = alertas
+          .map((a) => a.data)
+          .where((d) => d.isNotEmpty)
+          .fold<String?>(
+            null,
+            (m, d) => m == null || d.compareTo(m) < 0 ? d : m,
+          ),
+      fim = alertas
+          .map((a) => a.data)
+          .where((d) => d.isNotEmpty)
+          .fold<String?>(
+            null,
+            (m, d) => m == null || d.compareTo(m) > 0 ? d : m,
+          ),
       poligonos = [
         for (final a in alertas)
           for (final parte in a.partes)
@@ -61,8 +68,10 @@ class _DadosMapa {
 
   final int total;
   final double areaHa;
-  final int? anoMin;
-  final int? anoMax;
+
+  /// O alerta mais antigo e o mais recente, "aaaa-mm-dd".
+  final String? inicio;
+  final String? fim;
   final List<Polygon> poligonos;
   final List<CircleMarker> pontos;
 }
@@ -424,6 +433,12 @@ class _MapaScreenState extends State<MapaScreen> {
   }
 }
 
+/// "2026-10-23" -> "23/10/2026".
+String _dataCurta(String iso) {
+  final partes = iso.split('-');
+  return partes.length == 3 ? '${partes[2]}/${partes[1]}/${partes[0]}' : iso;
+}
+
 /// "18262" vira "18.262": separador de milhar brasileiro.
 String _milhar(num n) => n.round().toString().replaceAllMapped(
   RegExp(r'(\d)(?=(\d{3})+$)'),
@@ -495,11 +510,9 @@ class _Legenda extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final d = dados;
-    final periodo = d == null || d.anoMin == null
+    final periodo = d == null || d.inicio == null || d.fim == null
         ? null
-        : d.anoMin == d.anoMax
-        ? '${d.anoMin}'
-        : '${d.anoMin}–${d.anoMax}';
+        : '${_dataCurta(d.inicio!)} a ${_dataCurta(d.fim!)}';
 
     return _CartaoFlutuante(
       child: Column(
@@ -521,15 +534,16 @@ class _Legenda extends StatelessWidget {
                       'Alertas de desmatamento',
                       style: TextStyle(fontSize: 15, color: AppCores.tinta),
                     ),
-                    Text(
-                      d == null
-                          ? 'DETER-B / INPE'
-                          : 'DETER-B / INPE'
-                                '${periodo == null ? '' : ' · $periodo'}'
-                                ' · ${_milhar(d.total)} alertas'
-                                ' · ${_hectares(d.areaHa)}',
+                    const Text(
+                      'DETER / INPE · Amazônia Legal e Cerrado',
                       style: _suave,
                     ),
+                    if (d != null)
+                      Text(
+                        '${periodo == null ? '' : '$periodo · '}'
+                        '${_milhar(d.total)} alertas · ${_hectares(d.areaHa)}',
+                        style: _suave,
+                      ),
                     Text(
                       detalhe
                           ? 'Cada mancha é a área desmatada detectada.'
@@ -540,6 +554,12 @@ class _Legenda extends StatelessWidget {
                 ),
               ),
             ],
+          ),
+          const SizedBox(height: 6),
+          const Text(
+            'Mata Atlântica, Caatinga, Pantanal e Pampa não têm alerta do '
+            'DETER.',
+            style: _suave,
           ),
           const SizedBox(height: 10),
           const Text('Biomas, pelo limite do IBGE', style: _suave),

@@ -1,3 +1,6 @@
+import 'dart:convert';
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:latlong2/latlong.dart';
@@ -310,23 +313,26 @@ void main() {
           ],
         ],
       },
+      // Os campos do arquivo que o scripts/deter/gerar.mjs do site gera.
       'properties': {
-        'BIOMA': 'Amazônia',
-        'ESTADO': 'PARÁ',
-        'MUNICIPIO': 'São Félix do Xingu',
-        'AREAHA': 71.63,
-        'ANODETEC': 2019,
-        'VPRESSAO': 'agriculture',
+        'classname': 'desmatamento',
+        'view_date': '2026-10-16',
+        'areaha': 71.6,
+        'municipality': 'São Félix do Xingu',
+        'uf': 'PA',
+        'bioma': 'Amazônia Legal',
       },
     };
 
     test('lê uma feature bem formada e inverte lng/lat para LatLng', () {
       final a = AlertaDesmatamento.doGeoJson(featureValida());
       expect(a, isNotNull);
-      expect(a!.bioma, 'Amazônia');
+      expect(a!.bioma, 'Amazônia Legal');
+      expect(a.estado, 'PA');
       expect(a.municipio, 'São Félix do Xingu');
-      expect(a.areaHa, 71.63);
-      expect(a.ano, 2019);
+      expect(a.areaHa, 71.6);
+      expect(a.data, '2026-10-16');
+      expect(a.classe, 'desmatamento');
       expect(a.partes, hasLength(1));
       // No GeoJSON a ordem é [lng, lat]; no LatLng é (lat, lng).
       expect(
@@ -369,7 +375,7 @@ void main() {
       expect(a!.partes, hasLength(2));
       expect(a.partes[1].contorno.first.longitude, closeTo(-53.0, 0.00001));
       // As propriedades continuam sendo as do alerta, não de cada pedaço.
-      expect(a.areaHa, 71.63);
+      expect(a.areaHa, 71.6);
     });
 
     test('parte degenerada não derruba as outras do mesmo alerta', () {
@@ -427,6 +433,7 @@ void main() {
       expect(a, isNotNull);
       expect(a!.bioma, 'Desconhecido');
       expect(a.areaHa, 0);
+      expect(a.data, '');
     });
 
     // Revisão de 01/10/2026: 92 features do arquivo têm buracos, e eles eram
@@ -462,11 +469,42 @@ void main() {
       expect(AlertaDesmatamento.doGeoJson(lista)?.bioma, 'Desconhecido');
 
       final texto = featureValida();
-      (texto['properties'] as Map)['AREAHA'] = '71.63';
-      (texto['properties'] as Map)['ANODETEC'] = 'dois mil';
+      (texto['properties'] as Map)['areaha'] = '71.6';
+      (texto['properties'] as Map)['view_date'] = '16/10/2026';
       final a = AlertaDesmatamento.doGeoJson(texto);
-      expect(a!.areaHa, closeTo(71.63, 1e-9));
-      expect(a.ano, 0);
+      expect(a!.areaHa, closeTo(71.6, 1e-9));
+      // Data fora do formato fica vazia: o alerta aparece, mas fora do período.
+      expect(a.data, '');
+    });
+
+    // O arquivo de verdade, o mesmo do site: até 02/11/2026 o app lia um
+    // arquivo fixo de 2019 a 2023, com campos que pareciam do MapBiomas Alerta.
+    test('o arquivo dos alertas é o do DETER dos últimos 12 meses', () {
+      final arquivo = jsonDecode(
+        File('assets/data/alertas-desmatamento.json').readAsStringSync(),
+      ) as Map<String, dynamic>;
+      expect(arquivo['fonte'], 'DETER/INPE, TerraBrasilis');
+      final features = (arquivo['features'] as List)
+          .cast<Map<String, dynamic>>();
+      final alertas = [
+        for (final f in features) ?AlertaDesmatamento.doGeoJson(f),
+      ];
+      // Nenhum alerta perdido na leitura, e todos com data dentro do período.
+      expect(alertas, hasLength(features.length));
+      expect(alertas.length, greaterThan(5000));
+      expect(alertas.map((a) => a.bioma).toSet(), {
+        'Amazônia Legal',
+        'Cerrado',
+      });
+      final inicio = arquivo['inicio'] as String,
+          fim = arquivo['fim'] as String;
+      for (final a in alertas) {
+        expect(
+          a.data.compareTo(inicio) >= 0 && a.data.compareTo(fim) <= 0,
+          isTrue,
+          reason: '${a.data} fora de $inicio a $fim',
+        );
+      }
     });
   });
 

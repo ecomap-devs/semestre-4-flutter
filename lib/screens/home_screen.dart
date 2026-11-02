@@ -4,6 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../data/denuncia_data.dart';
 import '../data/home_data.dart';
 import '../data/linha_do_tempo.dart';
 import '../models/animal.dart';
@@ -20,8 +21,8 @@ import '../widgets/rolagem_suave.dart';
 /// Home — a mesma pagina inicial do site (semestre-4-nextjs).
 ///
 /// Ritmo da pagina: foto em tela cheia, faixa escura com os numeros, mapa no
-/// papel, foto com uma frase, especies, dados, solucoes no escuro, avaliacoes
-/// e a chamada final sobre foto. Alternar claro e escuro e o que da impacto
+/// papel, foto com uma frase, especies, dados, solucoes no escuro, como
+/// denunciar no papel, avaliacoes e a chamada final sobre foto. Alternar claro e escuro e o que da impacto
 /// sem enfeite.
 class HomeScreen extends StatefulWidget {
   const HomeScreen({
@@ -55,6 +56,7 @@ class _HomeScreenState extends State<HomeScreen> {
   final _secaoAnimais = GlobalKey();
   final _secaoDados = GlobalKey();
   final _secaoSolucoes = GlobalKey();
+  final _secaoDenuncia = GlobalKey();
 
   void _irPara(GlobalKey secao) {
     final contexto = secao.currentContext;
@@ -99,6 +101,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
                 _Dados(key: _secaoDados),
                 _Solucoes(key: _secaoSolucoes),
+                _ComoDenunciar(key: _secaoDenuncia),
                 RevelarAoRolar(
                   child: ReviewsSection(
                     usuario: widget.usuario,
@@ -113,6 +116,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     ('Espécies ameaçadas', () => _irPara(_secaoAnimais)),
                     ('Dados', () => _irPara(_secaoDados)),
                     ('Como ajudar', () => _irPara(_secaoSolucoes)),
+                    ('Como denunciar', () => _irPara(_secaoDenuncia)),
                   ],
                 ),
               ],
@@ -333,7 +337,8 @@ class _SecaoMapa extends StatelessWidget {
             titulo: 'Seis biomas, seis histórias de perda',
             intro:
                 'O mapa interativo junta os alertas de desmatamento do '
-                'DETER-B ao limite oficial de cada bioma, do IBGE.',
+                'DETER (INPE) do último ano ao limite oficial de cada bioma, '
+                'do IBGE.',
             espacoDepois: 16,
           ),
           ConstrainedBox(
@@ -872,6 +877,161 @@ class _Solucoes extends StatelessWidget {
   );
 }
 
+/// Os canais oficiais de denuncia, como a secao "Como denunciar" do site. Ate
+/// 02/11/2026 o app so tinha a dica de um aplicativo que nao e canal oficial.
+class _ComoDenunciar extends StatelessWidget {
+  const _ComoDenunciar({super.key});
+
+  static const _texto = TextStyle(
+    fontSize: 17,
+    height: 1.5,
+    color: AppCores.tinta2,
+  );
+
+  @override
+  Widget build(BuildContext context) {
+    final mobile = Breakpoints.ehMobile(context);
+
+    final oQueContar = RevelarAoRolar(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Semantics(
+            header: true,
+            child: Text('O que contar na denúncia', style: estiloTitulo(24)),
+          ),
+          const SizedBox(height: 14),
+          for (final item in oQueInformar)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 6),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text('•  ', style: _texto),
+                  Expanded(child: Text(item, style: _texto)),
+                ],
+              ),
+            ),
+        ],
+      ),
+    );
+
+    final anonimato = RevelarAoRolar(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Semantics(
+            header: true,
+            child: Text('Sem se identificar', style: estiloTitulo(24)),
+          ),
+          const SizedBox(height: 14),
+          const Text(sobreAnonimato, style: _texto),
+          const SizedBox(height: 16),
+          // Sem `url_launcher` no app, a fonte vai por extenso, selecionavel.
+          SelectableText(
+            'Fonte: ${fonteDenuncia.rotulo} (${fonteDenuncia.link}), '
+            'conferido em ${fonteDenuncia.conferidoEm}.',
+            style: const TextStyle(fontSize: 14, color: AppCores.tinta3),
+          ),
+        ],
+      ),
+    );
+
+    return _Secao(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          const _TituloSecao(
+            titulo: 'Como denunciar',
+            intro:
+                'Viu desmatamento, caça, tráfico de animais ou queimada '
+                'ilegal? O Ibama recebe a denúncia pela internet ou por '
+                'telefone, e dá para não se identificar.',
+          ),
+          LayoutBuilder(
+            builder: (context, c) {
+              final colunas = (c.maxWidth / 300).floor().clamp(1, 3);
+              return _Grade(
+                colunas: colunas,
+                espacoH: 48,
+                espacoV: 40,
+                children: [
+                  for (final (i, canal) in canaisDenuncia.indexed)
+                    RevelarAoRolar(
+                      atraso: Duration(milliseconds: (i % colunas) * 120),
+                      child: Container(
+                        padding: const EdgeInsets.only(top: 18),
+                        decoration: const BoxDecoration(
+                          border: Border(
+                            top: BorderSide(color: AppCores.terra, width: 2),
+                          ),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              canal.titulo,
+                              style: const TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                                color: AppCores.tinta3,
+                              ),
+                            ),
+                            const SizedBox(height: 6),
+                            // Selecionavel: da para copiar o numero e discar.
+                            SelectableText(
+                              canal.contato,
+                              style: estiloTitulo(
+                                36,
+                                cor: AppCores.mata,
+                                altura: 1.1,
+                              ),
+                            ),
+                            if (canal.endereco case final endereco?)
+                              SelectableText(
+                                endereco,
+                                style: const TextStyle(
+                                  fontSize: 15,
+                                  color: AppCores.tinta3,
+                                ),
+                              ),
+                            const SizedBox(height: 10),
+                            Text(
+                              canal.texto,
+                              style: const TextStyle(
+                                fontSize: 16,
+                                height: 1.5,
+                                color: AppCores.tinta2,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                ],
+              );
+            },
+          ),
+          SizedBox(height: mobile ? 48 : 64),
+          if (mobile) ...[
+            oQueContar,
+            const SizedBox(height: 40),
+            anonimato,
+          ] else
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(flex: 6, child: oQueContar),
+                const SizedBox(width: 72),
+                Expanded(flex: 5, child: anonimato),
+              ],
+            ),
+        ],
+      ),
+    );
+  }
+}
+
 class _Chamada extends StatelessWidget {
   const _Chamada();
 
@@ -1056,8 +1216,7 @@ class _Rodape extends StatelessWidget {
                       style: TextStyle(fontSize: 13, color: Color(0xB3FFFDF8)),
                     ),
                     Text(
-                      'Dados de fontes públicas: INPE, IBGE e MapBiomas '
-                      'Alerta.',
+                      'Dados de fontes públicas: INPE, IBGE, MMA e IUCN.',
                       style: TextStyle(fontSize: 13, color: Color(0xB3FFFDF8)),
                     ),
                   ],

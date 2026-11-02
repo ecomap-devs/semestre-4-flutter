@@ -43,13 +43,15 @@ class DesmatamentoBioma {
   /// Area do bioma segundo o IBGE.
   final int areaKm2;
 
-  /// Tudo o que o PRODES ja mapeou como desmatado, do inicio da serie ate hoje.
+  /// Tudo o que o PRODES ja mapeou como desmatado, do inicio da serie ao
+  /// ultimo periodo consolidado (sem a estimativa preliminar).
   final double acumuladoKm2;
 
   /// Desmatamento a cada periodo, do mais antigo ao mais recente.
   final List<PeriodoProdes> anos;
 
-  /// Total ja desmatado ao fim de cada periodo (`fim`), desde o inicio da serie.
+  /// Total ja desmatado ao fim de cada periodo consolidado (`fim`), desde o
+  /// inicio da serie.
   final List<({int fim, double km2})> acumulado;
 
   /// O desmatamento no periodo que termina em `fim`, se ja consolidado.
@@ -78,7 +80,7 @@ const prodesAtualizadoEm = '2026-10-16';
 const prodes = <String, DesmatamentoBioma>{
   'Amazônia': DesmatamentoBioma(
     areaKm2: 4212742,
-    acumuladoKm2: 827184.1,
+    acumuladoKm2: 823821.2,
     anos: [
       PeriodoProdes(2013, 2014, 5513.2),
       PeriodoProdes(2018, 2019, 11380.2),
@@ -113,12 +115,11 @@ const prodes = <String, DesmatamentoBioma>{
       (fim: 2023, km2: 811631.5),
       (fim: 2024, km2: 818256.4),
       (fim: 2025, km2: 823821.2),
-      (fim: 2026, km2: 827184.1),
     ],
   ),
   'Cerrado': DesmatamentoBioma(
     areaKm2: 1983017,
-    acumuladoKm2: 1041097.3,
+    acumuladoKm2: 1035580.6,
     anos: [
       PeriodoProdes(2012, 2013, 13481.6),
       PeriodoProdes(2013, 2014, 10904.4),
@@ -156,7 +157,6 @@ const prodes = <String, DesmatamentoBioma>{
       (fim: 2023, km2: 1020171.2),
       (fim: 2024, km2: 1028345.4),
       (fim: 2025, km2: 1035580.6),
-      (fim: 2026, km2: 1041097.3),
     ],
   ),
   'Caatinga': DesmatamentoBioma(

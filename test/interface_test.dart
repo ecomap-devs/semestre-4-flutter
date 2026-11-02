@@ -210,7 +210,7 @@ void main() {
 
     await tester.tap(find.text('Cerrado'));
     await tester.pump();
-    expect(find.text('53%'), findsOneWidget);
+    expect(find.text('52%'), findsOneWidget);
     expect(find.textContaining('do Cerrado', findRichText: true), findsOne);
 
     await tester.tap(find.text('Amazônia'));

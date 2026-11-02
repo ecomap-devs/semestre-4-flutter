@@ -35,7 +35,7 @@ class AppCores {
   /// Escurecimento das fotos (rgb 16,24,18), em várias opacidades.
   static const sombraFoto = Color(0xFF101812);
 
-  /// Vermelho dos alertas do DETER-B, no mapa e na legenda. Mais fechado que
+  /// Vermelho dos alertas do DETER, no mapa e na legenda. Mais fechado que
   /// os tons dos biomas, para não se confundir com a Caatinga.
   static const alerta = Color(0xFFB4232A);
 

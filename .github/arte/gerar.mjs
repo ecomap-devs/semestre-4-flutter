@@ -2,8 +2,8 @@
 //
 //   node .github/arte/gerar.mjs
 //
-// - banner.svg  : os alertas do DETER-B (assets/data) desenhados como mapa de
-//                 densidade, no lugar onde cada um foi detectado
+// - banner.svg  : os alertas do DETER (assets/data, os últimos 12 meses) desenhados
+//                 como mapa de densidade, no lugar onde cada um foi detectado
 // - numeros.svg : o app em números, contados nos arquivos, não digitados
 //
 // Determinístico: com o repositório igual, os arquivos saem byte a byte iguais.
@@ -38,22 +38,27 @@ const r1 = (n) => Math.round(n * 10) / 10;
 const geojson = JSON.parse(ler('assets/data/alertas-desmatamento.json'));
 const alertas = geojson.features;
 
-// Os biomas: cada `Bioma(` da lista do Dart, pelo nome. Os contornos moram em
-// biomas_contornos.dart desde a troca para o limite do IBGE, e aqui só a
-// contagem interessa.
+// Os biomas: cada `_bioma('Nome', ...)` da lista do Dart (antes de 28/10/2026,
+// `Bioma(nome: 'Nome'`). Os contornos moram em biomas_contornos.dart, e aqui só a
+// contagem interessa. Até 02/11/2026 só o formato antigo era lido, e a arte dizia
+// "0 biomas".
 const biomas = [
-  ...ler('lib/data/biomas_data.dart').matchAll(/\bBioma\(\s*nome:\s*'([^']+)'/g),
+  ...ler('lib/data/biomas_data.dart').matchAll(/\b(?:_bioma|Bioma)\(\s*(?:nome:\s*)?'([^']+)'/g),
 ].map((m) => m[1]);
 
-const especies = (ler('lib/data/animais_data.dart').match(/\bnome:/g) ?? []).length;
+// Uma espécie por nome científico escrito no catálogo. Contar `nome:` pegava também o
+// `nome: nome` da função que monta cada `Animal` (a arte dizia 46; são 45).
+const especies = (ler('lib/data/animais_data.dart').match(/\bcientifico:\s*'/g) ?? []).length;
 const graficos = readdirSync(join(raiz, 'lib/widgets/charts')).filter((f) => f.endsWith('.dart')).length;
 const testes = readdirSync(join(raiz, 'test'))
   .filter((f) => f.endsWith('_test.dart'))
   .reduce((soma, f) => soma + (ler(`test/${f}`).match(/^\s*(test|testWidgets)\(/gm) ?? []).length, 0);
-const hectares = alertas.reduce((soma, f) => soma + (f.properties.AREAHA ?? 0), 0);
-const anos = alertas.map((f) => f.properties.ANODETEC).filter(Number.isFinite);
-const anoMin = Math.min(...anos);
-const anoMax = Math.max(...anos);
+// Os campos do arquivo que o scripts/deter/gerar.mjs do site gera. Até 02/11/2026 o
+// arquivo era fixo, de 2019 a 2023, com AREAHA e ANODETEC.
+const hectares = alertas.reduce((soma, f) => soma + (f.properties.areaha ?? 0), 0);
+const MESES = ["jan", "fev", "mar", "abr", "mai", "jun", "jul", "ago", "set", "out", "nov", "dez"];
+const mesAno = (iso) => `${MESES[Number(iso.slice(5, 7)) - 1]}/${iso.slice(0, 4)}`;
+const meses = Math.round((Date.parse(geojson.fim) - Date.parse(geojson.inicio)) / (30.44 * 864e5));
 
 // ─── Banner ─────────────────────────────────────────────────────────────────
 
@@ -83,7 +88,7 @@ function centro(geometria) {
   return [lng / n, lat / n];
 }
 
-// Os 18 mil alertas viram uma grade de densidade: cada célula soma a área dos
+// Os alertas viram uma grade de densidade: cada célula soma a área dos
 // alertas que caem nela, e o raio do ponto cresce com a raiz dessa soma.
 const CELULA = 2;
 const celulas = new Map();
@@ -94,7 +99,7 @@ for (const f of alertas) {
   c.x += x;
   c.y += y;
   c.n++;
-  c.area += f.properties.AREAHA ?? 0;
+  c.area += f.properties.areaha ?? 0;
   celulas.set(chave, c);
 }
 const pontos = [...celulas.entries()]
@@ -118,7 +123,7 @@ const grupos = [0, 1, 2, 3]
 
 const banner = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 300" width="1200" height="300" role="img" aria-labelledby="t d">
 <title id="t">EcoMapBrasil</title>
-<desc id="d">Banner do EcoMapBrasil: os ${fmt(alertas.length)} alertas de desmatamento do DETER-B desenhados como pontos laranja no lugar onde cada um foi detectado, ao lado do título.</desc>
+<desc id="d">Banner do EcoMapBrasil: os ${fmt(alertas.length)} alertas de desmatamento do DETER desenhados como pontos laranja no lugar onde cada um foi detectado, ao lado do título.</desc>
 <style>
 .a g{fill:${COR.laranja};opacity:.75;animation:pulso 6s ease-in-out infinite}
 @keyframes pulso{0%,100%{opacity:.75}50%{opacity:.3}}
@@ -147,7 +152,7 @@ ${grupos}
 const numeros = [
   [fmt(alertas.length), 'alertas no mapa'],
   [`${(hectares / 1e6).toFixed(1).replace('.', ',')} mi`, 'hectares em alerta'],
-  [String(anoMax - anoMin + 1), `anos (${anoMin}–${anoMax})`],
+  [String(meses), `meses (${mesAno(geojson.inicio)} a ${mesAno(geojson.fim)})`],
   [String(biomas.length), 'biomas'],
   [String(especies), 'espécies no catálogo'],
   [String(testes), 'testes'],
