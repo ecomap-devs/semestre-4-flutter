@@ -1,11 +1,14 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:ecomapbrasil/models/avaliacao.dart';
 import 'package:ecomapbrasil/screens/home_screen.dart';
+import 'package:ecomapbrasil/services/auth_service.dart';
 import 'package:ecomapbrasil/services/reviews_service.dart';
 import 'package:ecomapbrasil/theme/app_theme.dart';
+import 'package:ecomapbrasil/widgets/auth_modal.dart';
 import 'package:ecomapbrasil/widgets/reviews_section.dart';
 
 /// Avaliacoes sem Firestore. Por padrao, duas fixas e o resumo delas;
@@ -46,6 +49,18 @@ class _AvaliacoesFalsas implements ReviewsService {
     required int nota,
     required String comentario,
   }) async {}
+}
+
+/// O modal so fala com o Firebase ao enviar o formulario, o que estes testes
+/// nao fazem.
+class _FirebaseAuthFalso implements FirebaseAuth {
+  @override
+  dynamic noSuchMethod(Invocation chamada) => null;
+}
+
+class _FirestoreFalso implements FirebaseFirestore {
+  @override
+  dynamic noSuchMethod(Invocation chamada) => null;
 }
 
 void main() {
@@ -115,8 +130,51 @@ void main() {
         findsOneWidget,
       );
       expect(tester.takeException(), isNull);
+
+      // Os atalhos do rodape abrem a politica e os termos (02/11/2026).
+      await tester.tap(find.text('Política de privacidade'));
+      await tester.pumpAndSettle();
+      expect(find.text('Quem cuida dos seus dados'), findsWidgets);
+      await tester.pageBack();
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Termos de uso'));
+      await tester.pumpAndSettle();
+      expect(find.text('O que é o EcoMapBrasil'), findsWidgets);
+      expect(tester.takeException(), isNull);
     });
   }
+
+  testWidgets('o cadastro avisa dos termos e da política', (tester) async {
+    tester.view.physicalSize = const Size(390, 844) * 2;
+    tester.view.devicePixelRatio = 2;
+    addTearDown(tester.view.reset);
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: construirTema(),
+        home: Scaffold(
+          body: AuthModal(
+            auth: AuthService(
+              auth: _FirebaseAuthFalso(),
+              db: _FirestoreFalso(),
+            ),
+          ),
+        ),
+      ),
+    );
+    expect(
+      find.textContaining('você concorda', findRichText: true),
+      findsNothing,
+    );
+    await tester.tap(find.text('Não tem conta? Cadastre-se'));
+    await tester.pumpAndSettle();
+    expect(
+      find.textContaining('você concorda', findRichText: true),
+      findsOneWidget,
+    );
+    await tester.tapOnText(find.textRange.ofSubstring('termos de uso'));
+    await tester.pumpAndSettle();
+    expect(find.text('O que é o EcoMapBrasil'), findsWidgets);
+  });
 
   group('Mostrar mais', () {
     Future<void> montar(WidgetTester tester, _AvaliacoesFalsas falsas) async {

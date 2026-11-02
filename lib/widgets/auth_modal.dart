@@ -4,6 +4,8 @@ import 'package:firebase_auth/firebase_auth.dart' show User;
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
+import '../data/legal_data.dart';
+import '../screens/legal_screen.dart';
 import '../services/auth_service.dart';
 import '../services/reviews_service.dart' show maxNome;
 import '../theme/app_theme.dart';
@@ -40,7 +42,6 @@ class _AuthModalState extends State<AuthModal> {
   final _email = TextEditingController();
   final _senha = TextEditingController();
 
-  XFile? _foto;
   Uint8List? _bytesFoto;
 
   @override
@@ -60,10 +61,7 @@ class _AuthModalState extends State<AuthModal> {
     if (img == null) return;
     final bytes = await img.readAsBytes();
     if (!mounted) return;
-    setState(() {
-      _foto = img;
-      _bytesFoto = bytes;
-    });
+    setState(() => _bytesFoto = bytes);
   }
 
   Future<void> _enviar() async {
@@ -86,7 +84,6 @@ class _AuthModalState extends State<AuthModal> {
           pendente,
           nome: _nome.text,
           foto: _bytesFoto,
-          extensaoFoto: _foto?.name.split('.').last,
         );
       } else if (_cadastro) {
         await widget.auth.cadastrar(
@@ -94,7 +91,6 @@ class _AuthModalState extends State<AuthModal> {
           email: _email.text,
           senha: _senha.text,
           foto: _bytesFoto,
-          extensaoFoto: _foto?.name.split('.').last,
         );
       } else {
         await widget.auth.entrar(email: _email.text, senha: _senha.text);
@@ -256,6 +252,26 @@ class _AuthModalState extends State<AuthModal> {
                         : 'Entrar',
                   ),
                 ),
+                if (_cadastro) ...[
+                  const SizedBox(height: 12),
+                  // Os documentos abrem por cima do modal: o que foi digitado
+                  // continua aqui na volta.
+                  TextoMarcado(
+                    'Ao criar a conta, você concorda com os '
+                    '[termos de uso](/termos) e a '
+                    '[política de privacidade](/privacidade). Seu nome e sua '
+                    'foto aparecem junto das suas avaliações.',
+                    aoSeguir: (destino) => abrirDocumentoLegal(
+                      context,
+                      destino == '/termos' ? termos : privacidade,
+                    ),
+                    estilo: const TextStyle(
+                      fontSize: 14,
+                      height: 1.45,
+                      color: AppCores.tinta3,
+                    ),
+                  ),
+                ],
                 const SizedBox(height: 8),
                 TextButton(
                   onPressed: _carregando || _pendente != null
