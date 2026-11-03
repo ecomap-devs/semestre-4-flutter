@@ -101,6 +101,19 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.text('Gostei muito do mapa.'), findsOneWidget);
       expect(find.text('4,5'), findsOneWidget);
+      // Os canais oficiais, como no site. Ate 02/11/2026 a Home mandava usar
+      // o aplicativo "Denúncia Ambiente", que nao e canal oficial.
+      expect(find.text('Como denunciar'), findsWidgets);
+      expect(find.text('0800 061 8080'), findsOneWidget);
+      expect(find.text('Fala.BR'), findsOneWidget);
+      expect(
+        find.textContaining('Denúncia Ambiente', findRichText: true),
+        findsNothing,
+      );
+      expect(
+        find.text('Dados de fontes públicas: INPE, IBGE, MMA e IUCN.'),
+        findsOneWidget,
+      );
       expect(tester.takeException(), isNull);
     });
   }

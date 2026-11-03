@@ -51,7 +51,8 @@ void main() {
     // A Amazonia aparecia 78% ate 28/10/2026.
     expect(pct, {
       'Amazônia': 20,
-      'Cerrado': 53,
+      // 53% ate 02/11/2026, quando o acumulado somava a estimativa preliminar.
+      'Cerrado': 52,
       'Caatinga': 44,
       'Mata Atlântica': 72,
       'Pantanal': 21,
@@ -73,7 +74,7 @@ void main() {
 
     test('área desmatada por bioma vem da maior para a menor', () {
       expect(areaPorBioma.first.nome, 'Cerrado');
-      expect(areaPorBioma.first.valor, 1041);
+      expect(areaPorBioma.first.valor, 1036);
       for (var i = 1; i < areaPorBioma.length; i++) {
         expect(
           areaPorBioma[i].valor,

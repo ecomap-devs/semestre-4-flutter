@@ -86,10 +86,13 @@ const solucoes = <Solucao>[
     'Divulgue informações sobre a importância da preservação e os impactos '
         'do desmatamento em sua comunidade.',
   ),
+  // Ate 02/11/2026 mandava usar o aplicativo "Denúncia Ambiente", que nao
+  // aparece em canal oficial nenhum. Os canais estao em `denuncia_data.dart`.
   Solucao(
     'Denuncie',
-    'Use aplicativos como "Denúncia Ambiente" para reportar atividades '
-        'ilegais de desmatamento que você identificar.',
+    'Viu desmatamento, caça ou queimada ilegal? O Ibama recebe a denúncia '
+        'pela internet ou por telefone, e dá para não se identificar. Os '
+        'canais estão logo abaixo.',
   ),
 ];
 

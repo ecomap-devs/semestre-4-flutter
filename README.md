@@ -1,5 +1,5 @@
 <p align="center">
-  <img src=".github/arte/banner.svg" alt="EcoMapBrasil — os alertas de desmatamento do DETER-B desenhados como mapa, ao lado do título" width="100%">
+  <img src=".github/arte/banner.svg" alt="EcoMapBrasil — os alertas de desmatamento do DETER desenhados como mapa, ao lado do título" width="100%">
 </p>
 
 <p align="center">
@@ -29,8 +29,8 @@ aparece no site, e vice-versa.
 
 | Tela | O que tem |
 |---|---|
-| 🏠 **Início** | Abertura em tela cheia com fotos que se alternam, números do desmatamento, **mapa dos biomas** em que dá para tocar, espécies em destaque, gráfico de barras desenhado no canvas, linha do tempo de duas décadas, soluções práticas e as avaliações da comunidade |
-| 🗺️ **Mapa** | Os **6 biomas** pelo limite do IBGE e a camada de **alertas do DETER-B**, sobre mapa claro ou satélite. Painel com a lista de biomas e a linha do tempo (aba própria no celular), legenda dos alertas, e a ficha do bioma ao tocar: área, percentual desmatado e descrição |
+| 🏠 **Início** | Abertura em tela cheia com fotos que se alternam, números do desmatamento, **mapa dos biomas** em que dá para tocar, espécies em destaque, gráfico de barras desenhado no canvas, linha do tempo de duas décadas, soluções práticas, **como denunciar** (os canais oficiais do Ibama) e as avaliações da comunidade |
+| 🗺️ **Mapa** | Os **6 biomas** pelo limite do IBGE e a camada de **alertas do DETER (INPE)** dos últimos 12 meses (só Amazônia Legal e Cerrado, que é o que o DETER cobre), sobre mapa claro ou satélite. Painel com a lista de biomas e a linha do tempo (aba própria no celular), legenda dos alertas, e a ficha do bioma ao tocar: área, percentual desmatado e descrição |
 | 🐆 **Animais** | Catálogo de **45 espécies** dos seis biomas, 27 delas na lista nacional de fauna ameaçada, com busca que ignora acento, filtros por bioma e status (inclusive "Só ameaçadas"), o status no Brasil (MMA) e no mundo (IUCN), a população onde há estimativa publicada (com a fonte) e as principais ameaças |
 | 📷 **Fotos** | **Identificação de animal por foto**: tire uma foto ou escolha da galeria, e o Gemini diz qual é o animal, com o nome científico e o grau de confiança. Exige login |
 | 👤 **Conta** | Cadastro e login por e-mail e senha, foto de perfil e **avaliações em estrelas**, salvas e lidas em tempo real |
@@ -239,7 +239,7 @@ lib/
     └── auth_modal.dart · reviews_section.dart · estrelas.dart · …
 
 assets/
-├── data/alertas-desmatamento.json   GeoJSON do DETER-B/INPE
+├── data/alertas-desmatamento.json   alertas do DETER/INPE dos últimos 12 meses (cópia do site)
 ├── fonts/                           Fraunces e Source Sans 3, com as licenças OFL
 └── img/logo.png
 ```
@@ -248,9 +248,13 @@ assets/
 
 ## 📊 Sobre os dados
 
-A camada de alertas usa dados públicos de detecção do **DETER-B (INPE)**: bioma, estado,
-município, área em hectares e data de cada polígono. O arquivo tem 6,7 MB, mas ocupa
-1,48 MB dentro do APK, que é compactado.
+A camada de alertas é o **DETER (INPE)** dos últimos 12 meses: os alertas de
+desmatamento e de mineração, só na Amazônia Legal e no Cerrado (o DETER não cobre os
+outros biomas), com a área, o município, a UF e a data de cada um. É o mesmo arquivo do
+site, gerado lá por `scripts/deter/gerar.mjs` a partir do GeoServer do TerraBrasilis. Tem
+15 MB e cerca de 2 MB compactado. Até 02/11/2026 o app usava um arquivo fixo, de 2019 a
+2023, que pelos campos (`ANODETEC`, `VPRESSAO`) parecia ser do MapBiomas Alerta e
+aparecia como "DETER-B".
 
 Os contornos dos biomas são o limite oficial do **IBGE** ("Biomas do Brasil",
 1:5.000.000), simplificados para o mapa por [`tool/biomas/gerar.mjs`](tool/biomas/gerar.mjs),
@@ -260,17 +264,20 @@ Desde 28/10/2026 os demais números são os mesmos do site, com a mesma fonte:
 
 | No app | De onde vem |
 |---|---|
-| Percentual desmatado e área de cada bioma | **PRODES (INPE)**: tudo o que já foi mapeado como desmatado ÷ área do bioma no IBGE (2019) |
+| Percentual desmatado e área de cada bioma | **PRODES (INPE)**: tudo o que já foi mapeado como desmatado, só períodos consolidados, ÷ área do bioma no IBGE (2019) |
 | Números da Home, "Área desmatada por bioma" e "Desmatado no último ano medido" | PRODES, por bioma, no período mais recente que os seis já têm consolidado |
 | Linha do tempo (Home e mapa) | Calculada em `lib/data/linha_do_tempo.dart` da taxa oficial da Amazônia Legal e do acumulado por bioma. Só PPCDAm, Moratória da Soja e Código Florestal são escritos à mão, sem número |
 | Status das espécies e "1.259 espécies ameaçadas" | Lista nacional do **MMA** (avaliação de 2021); fora dela, "Não ameaçada". No mundo, a Lista Vermelha da **IUCN**, pelo GBIF |
 | População de uma espécie | Só onde há estimativa publicada, com a fonte na ficha |
+| Como denunciar | `lib/data/denuncia_data.dart`, cópia do `denuncia.ts` do site: Fala.BR, a Central de Atendimento do Ibama e o 190, conferidos na página [Apresentar denúncia ambiental](https://www.gov.br/pt-br/servicos/apresentar-denuncia-ambiental) do gov.br, com a data da conferência |
 | Fotos das espécies | As sete primeiras, no bucket `animals` do Supabase. As outras, do **Wikimedia Commons**, com autor, licença e link na ficha (`credito` em `animais_data.dart`), como as licenças Creative Commons exigem |
 
-`prodes_data.dart` e `especies_data.dart` são **cópia** do `prodes.ts` e do `especies.ts`
-que o site gera (os workflows de lá abrem PR todo mês quando o INPE ou o MMA publicam dado
-novo). Quando o site atualizar, copie de novo e rode os testes: `test/dados_test.dart`
-fixa os números que o site mostra, então a diferença aparece lá. Até 28/10/2026 eram
+`prodes_data.dart`, `especies_data.dart`, `denuncia_data.dart` e o arquivo dos alertas
+são **cópia** do que o site tem (`prodes.ts`, `especies.ts`, `denuncia.ts` e
+`public/alertas-desmatamento.json`). Os workflows de lá rodam todo dia 1º e abrem uma
+issue quando o INPE ou o MMA publicam dado novo. Quando o site atualizar, copie de novo e
+rode os testes: `test/dados_test.dart` fixa os números que o site mostra, e
+`test/widget_test.dart` lê o arquivo dos alertas inteiro, então a diferença aparece lá. Até 28/10/2026 eram
 valores de referência herdados do React, e alguns muito longe do real: a Amazônia
 aparecia 78% desmatada (o PRODES mede 20%) e cada espécie tinha uma série de população
 inventada.
@@ -292,7 +299,7 @@ O banner e os números são gerados do próprio repositório, sem dependência n
 node .github/arte/gerar.mjs
 ```
 
-O banner desenha os 18 mil alertas do GeoJSON no lugar onde cada um foi detectado, e o
+O banner desenha os 40 mil alertas do DETER no lugar onde cada um foi detectado, e o
 cartão conta espécies, biomas e testes **nos arquivos**, sem número digitado à mão. O
 gerador é determinístico: com o repositório igual, as artes saem byte a byte iguais, e
 as animações respeitam `prefers-reduced-motion`.

@@ -166,7 +166,13 @@ class ParteAlerta {
   final List<List<LatLng>> buracos;
 }
 
-/// Poligono de alerta de desmatamento vindo do GeoJSON do DETER-B/INPE.
+/// Poligono de alerta de desmatamento do DETER (INPE), no arquivo que o
+/// `scripts/deter/gerar.mjs` do site gera: os ultimos 12 meses, so Amazonia
+/// Legal e Cerrado.
+///
+/// Ate 02/11/2026 o app lia um arquivo fixo de 2019 a 2023, com campos
+/// (`ANODETEC`, `VPRESSAO`) que pareciam ser do MapBiomas Alerta, e o mostrava
+/// como "DETER-B". O site trocou em 29/10/2026.
 @immutable
 class AlertaDesmatamento {
   const AlertaDesmatamento({
@@ -174,24 +180,32 @@ class AlertaDesmatamento {
     required this.estado,
     required this.municipio,
     required this.areaHa,
-    required this.ano,
-    required this.pressao,
+    required this.data,
+    required this.classe,
     required this.partes,
   });
 
+  /// A camada do INPE: "Amazônia Legal" ou "Cerrado".
   final String bioma;
+
+  /// Sigla da UF.
   final String estado;
   final String municipio;
   final double areaHa;
-  final int ano;
-  final String pressao;
+
+  /// Data da imagem do satelite (`view_date`), "aaaa-mm-dd"; vazia se o
+  /// arquivo nao tiver uma data valida.
+  final String data;
+
+  /// "desmatamento" ou "mineração".
+  final String classe;
 
   /// Os pedacos do alerta, cada um com o anel externo e os buracos.
   ///
   /// E lista de listas porque um alerta pode vir partido: uma area derrubada
   /// que o satelite enxerga como duas manchas separadas chega como
-  /// `MultiPolygon`. Sao 1.756 dos 18.262 alertas do arquivo — e justamente os
-  /// grandes, porque area grande e a que tem chance de se partir.
+  /// `MultiPolygon`. No arquivo antigo eram 1.756 dos 18.262 alertas — e
+  /// justamente os grandes, porque area grande e a que tem chance de se partir.
   final List<ParteAlerta> partes;
 
   /// Media dos vertices do primeiro contorno.
@@ -211,7 +225,7 @@ class AlertaDesmatamento {
   /// Le uma `Feature` do GeoJSON. Aceita `Polygon` e `MultiPolygon`.
   ///
   /// Devolve `null` para geometria invalida em vez de estourar: o arquivo tem
-  /// 6,7 MB e uma feature malformada nao pode derrubar o mapa inteiro.
+  /// 15 MB e uma feature malformada nao pode derrubar o mapa inteiro.
   ///
   /// Ate 09/09/2026 esta funcao devolvia `null` para tudo que nao fosse
   /// `Polygon`, e `MultiPolygon` caiu nessa peneira. O mapa desenhava 16.506
@@ -219,8 +233,10 @@ class AlertaDesmatamento {
   /// na tela**, e o contador do botao mostrava 16.506 como se fosse o total,
   /// entao a perda nao tinha como ser notada olhando.
   ///
-  /// Uma propriedade com tipo inesperado (`AREAHA: "71.63"`, `properties: []`)
-  /// tambem nao derruba nada: vira o valor padrao daquele campo.
+  /// Uma propriedade com tipo inesperado (`areaha: "71.63"`, `properties: []`)
+  /// tambem nao derruba nada: vira o valor padrao daquele campo. Os nomes dos
+  /// campos sao os do INPE (`view_date`, `uf`, `municipality`), mais `bioma` e
+  /// `areaha`, que o gerador do site acrescenta.
   static AlertaDesmatamento? doGeoJson(Map<String, dynamic> feature) {
     final geometria = feature['geometry'];
     if (geometria is! Map) return null;
@@ -253,12 +269,12 @@ class AlertaDesmatamento {
     final bruto = feature['properties'];
     final p = bruto is Map ? bruto : const {};
     return AlertaDesmatamento(
-      bioma: _texto(p['BIOMA'], 'Desconhecido'),
-      estado: _texto(p['ESTADO'], ''),
-      municipio: _texto(p['MUNICIPIO'], ''),
-      areaHa: _numero(p['AREAHA'])?.toDouble() ?? 0,
-      ano: _numero(p['ANODETEC'])?.toInt() ?? 0,
-      pressao: _texto(p['VPRESSAO'], ''),
+      bioma: _texto(p['bioma'], 'Desconhecido'),
+      estado: _texto(p['uf'], ''),
+      municipio: _texto(p['municipality'], ''),
+      areaHa: _numero(p['areaha'])?.toDouble() ?? 0,
+      data: _data(p['view_date']),
+      classe: _texto(p['classname'], ''),
       partes: partes,
     );
   }
@@ -282,6 +298,12 @@ class AlertaDesmatamento {
     String t => num.tryParse(t),
     _ => null,
   };
+
+  /// "aaaa-mm-dd", ou vazio: data em outro formato nao entra no periodo.
+  static String _data(Object? valor) =>
+      valor is String && RegExp(r'^\d{4}-\d{2}-\d{2}$').hasMatch(valor)
+      ? valor
+      : '';
 
   static String _texto(Object? valor, String padrao) =>
       valor == null ? padrao : valor.toString();
