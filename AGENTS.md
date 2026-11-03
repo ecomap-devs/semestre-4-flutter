@@ -137,6 +137,11 @@ do Flutter.
 SVG escrito à mão da versão React. Se precisar de um gráfico novo, pinte no canvas
 como os que já existem em `lib/widgets/charts/` (barras e o mapa dos biomas).
 
+**Foto que sai do aparelho passa por `semMetadados`.** O `image_picker` copia o EXIF,
+GPS incluído, para a foto reduzida. Avatar, identificação e qualquer upload novo de foto
+chamam `semMetadados` (`lib/services/sem_metadados.dart`) antes de enviar; a política
+de privacidade promete isso.
+
 **Trabalho pesado sai da thread da UI.** O GeoJSON é parseado em `compute()`. Se
 adicionar processamento caro, siga o mesmo caminho.
 
@@ -256,7 +261,9 @@ Tudo acima vale. Além disso:
   IUCN, copiados do site (README, "Sobre os dados"). Se precisar de número novo, peça
   a fonte — não preencha com estimativa plausível. `prodes_data.dart`,
   `especies_data.dart`, `denuncia_data.dart` e `assets/data/alertas-desmatamento.json`
-  não se editam à mão: copie do site.
+  não se editam à mão: copie do site. `legal_data.dart` (privacidade e termos) sai de
+  `node tool/legal/copiar.mjs <pasta do semestre-4-nextjs>`. Mudou o que o app guarda ou
+  envia? O texto muda no `src/dados/legal.ts` do site, no mesmo par de PRs.
 - **Não crie `firebase_options.dart` com chaves dentro**, nem sugira `flutterfire
   configure` sem avisar que o arquivo é ignorado de propósito.
 - **Não suba nada** (`git push`, `firebase deploy`) sem pedido explícito.
@@ -293,7 +300,16 @@ Tudo acima vale. Além disso:
   denúncia têm fonte, mas `prodes_data.dart`, `especies_data.dart`, `denuncia_data.dart`
   e o arquivo dos alertas são cópia do que o site gera e não se atualizam sozinhos. O
   PR do site de 29/10 (DETER, denúncia) ficou sem gêmeo aqui até 02/11. Falta um jeito de copiar
-  automaticamente, ou de o app ler o mesmo arquivo do site.
+  automaticamente, ou de o app ler o mesmo arquivo do site. A política e os termos já são
+  gerados por script (`tool/legal/copiar.mjs`).
+- 🟡 **As sete fotos do bucket `animals` não têm origem registrada** (02/11/2026). Pelos
+  nomes dos arquivos, várias são cópia das imagens de terceiros que o React usava
+  (Biologia Net, Toda Matéria, Brasil Escola, Agência Brasil). Os termos de uso dizem que
+  a origem está em revisão e oferecem crédito ou remoção; o certo é trocá-las por fotos com
+  licença, como as do Wikimedia, com `credito`.
+- 🟡 **Identificação por foto e idade.** Os termos do Gemini proíbem a API em serviço
+  provável de ser acessado por menores de 18. A tela Fotos e os termos avisam; não há
+  trava.
 - 🟡 **Identificação por foto** (aba Fotos, 01/10/2026). O app chama a Edge Function
   `supabase/functions/identificar-animal`, que confere o ID token do Firebase e consulta
   o **Gemini** pelo nível gratuito do Google AI Studio. A chave é **secret do Supabase**

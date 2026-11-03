@@ -8,6 +8,7 @@ import 'package:supabase_flutter/supabase_flutter.dart'
 
 import '../models/avaliacao.dart' show fotoConfiavel;
 import 'reviews_service.dart' show maxNome;
+import 'sem_metadados.dart';
 
 /// O mesmo limite do bucket `avatars` no Supabase.
 const maxAvatarBytes = 1024 * 1024;
@@ -47,19 +48,13 @@ class AuthService {
     required String email,
     required String senha,
     Uint8List? foto,
-    String? extensaoFoto,
   }) async {
     final cred = await _auth.createUserWithEmailAndPassword(
       email: email.trim(),
       password: senha,
     );
     try {
-      await concluirPerfil(
-        cred.user!,
-        nome: nome,
-        foto: foto,
-        extensaoFoto: extensaoFoto,
-      );
+      await concluirPerfil(cred.user!, nome: nome, foto: foto);
     } catch (erro) {
       // A conta JA existe neste ponto. Antes, a falha aqui aparecia como falha
       // do cadastro inteiro, e tentar de novo dava "email já está em uso".
@@ -74,11 +69,10 @@ class AuthService {
     User user, {
     required String nome,
     Uint8List? foto,
-    String? extensaoFoto,
   }) async {
     var fotoUrl = fotoConfiavel(user.photoURL);
     if (foto != null && fotoUrl.isEmpty) {
-      fotoUrl = await _enviarAvatar(user.uid, foto, extensaoFoto);
+      fotoUrl = await _enviarAvatar(user.uid, foto);
     }
 
     final nomeLimpo = nome.trim();
@@ -115,18 +109,19 @@ class AuthService {
   ///
   /// O nome do arquivo e `<uid>/<aleatorio>.<ext>`: imprevisivel, e o bucket
   /// so aceita criar arquivo novo (sem sobrescrever) de imagem de ate 1 MB.
-  Future<String> _enviarAvatar(
-    String uid,
-    Uint8List foto,
-    String? extensao,
-  ) async {
-    if (foto.lengthInBytes > maxAvatarBytes) return '';
-    final ext = switch ((extensao ?? '').toLowerCase()) {
-      'png' => 'png',
-      'webp' => 'webp',
-      _ => 'jpg',
-    };
-    final tipo = ext == 'jpg' ? 'image/jpeg' : 'image/$ext';
+  ///
+  /// O bucket e publico: a foto sobe sem metadados (`semMetadados`). Ate
+  /// 02/11/2026 subia com o EXIF que o image_picker copia, GPS incluido.
+  Future<String> _enviarAvatar(String uid, Uint8List foto) async {
+    final ({Uint8List bytes, String extensao}) limpa;
+    try {
+      limpa = await semMetadados(foto, ladoMaximo: 512);
+    } catch (_) {
+      return '';
+    }
+    if (limpa.bytes.lengthInBytes > maxAvatarBytes) return '';
+    final ext = limpa.extensao;
+    final tipo = ext == 'jpg' ? 'image/jpeg' : 'image/png';
     final aleatorio = Random.secure();
     final nome = List.generate(
       16,
@@ -137,7 +132,7 @@ class AuthService {
       final bucket = Supabase.instance.client.storage.from('avatars');
       await bucket.uploadBinary(
         caminho,
-        foto,
+        limpa.bytes,
         fileOptions: FileOptions(contentType: tipo),
       );
       return fotoConfiavel(bucket.getPublicUrl(caminho));

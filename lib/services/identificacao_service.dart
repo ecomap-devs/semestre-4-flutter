@@ -6,6 +6,7 @@ import 'package:supabase_flutter/supabase_flutter.dart'
     show FunctionException, Supabase, SupabaseClient;
 
 import '../models/identificacao.dart';
+import 'sem_metadados.dart';
 
 /// Falha com mensagem ja pronta para a tela.
 class IdentificacaoException implements Exception {
@@ -44,9 +45,21 @@ class IdentificacaoService {
     }
     final token = await usuario.getIdToken();
 
+    // A foto sai do aparelho sem metadados, como no site: o EXIF que o
+    // image_picker copia leva a localizacao de onde ela foi tirada, e o Gemini
+    // nao precisa disso. Ate 02/11/2026 ia junto.
+    final Uint8List limpa;
+    try {
+      limpa = (await semMetadados(foto, ladoMaximo: 1024)).bytes;
+    } catch (_) {
+      throw const IdentificacaoException(
+        'Não foi possível preparar a foto. Tente outra, em JPG ou PNG.',
+      );
+    }
+
     final resposta = await _supabase.functions.invoke(
       'identificar-animal',
-      body: {'imagem': base64Encode(foto)},
+      body: {'imagem': base64Encode(limpa)},
       headers: {'Authorization': 'Bearer $token'},
     );
 

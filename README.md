@@ -226,10 +226,12 @@ lib/
 │   ├── biomas_data.dart         os 6 biomas: área e percentual do PRODES
 │   ├── biomas_contornos.dart    limite do IBGE (gerado por tool/biomas/gerar.mjs)
 │   ├── linha_do_tempo.dart      marcos calculados do PRODES
+│   ├── denuncia_data.dart       canais oficiais de denúncia (cópia do site)
+│   ├── legal_data.dart          política de privacidade e termos (gerado por tool/legal/copiar.mjs)
 │   └── home_data.dart           os números, os destaques e as soluções
 ├── models/                    Animal · Bioma · AlertaDesmatamento · Avaliacao · Identificacao
-├── services/                  Firebase · avaliações · leitura do GeoJSON · identificação por foto
-├── screens/                   app_shell · home · mapa · animais · fotos
+├── services/                  Firebase · avaliações · leitura do GeoJSON · identificação por foto · sem_metadados
+├── screens/                   app_shell · home · mapa · animais · fotos · legal (privacidade e termos)
 ├── theme/app_theme.dart       paleta, fontes e breakpoints, iguais aos do site
 └── widgets/
     ├── charts/                  barras · mapa dos biomas
@@ -281,6 +283,26 @@ rode os testes: `test/dados_test.dart` fixa os números que o site mostra, e
 valores de referência herdados do React, e alguns muito longe do real: a Amazônia
 aparecia 78% desmatada (o PRODES mede 20%) e cada espécie tinha uma série de população
 inventada.
+
+## 🔏 Privacidade e termos
+
+A **política de privacidade** e os **termos de uso** são os mesmos do site
+([/privacidade](https://ecomapbrasil-17756.web.app/privacidade) e
+[/termos](https://ecomapbrasil-17756.web.app/termos)) e valem para os dois. No app, abrem
+por cima da tela atual pelos atalhos do rodapé do Início e da tela Animais, pelo aviso do
+cadastro e pelo "Como tratamos a foto" da tela Fotos.
+
+O texto é **gerado**, não digitado: `node tool/legal/copiar.mjs <pasta do semestre-4-nextjs>`
+lê o `src/dados/legal.ts` do site e escreve `lib/data/legal_data.dart` com as mesmas
+strings. Sem `url_launcher`, link para fora copia o endereço; link para outra seção rola
+até ela. `test/legal_test.dart` confere que toda âncora aponta para uma seção que existe.
+
+**Fotos sem metadados (02/11/2026).** O `image_picker` do Android, ao reduzir a foto,
+copia o EXIF da original, inclusive o GPS. O avatar ia assim para o bucket público e a
+foto de identificação assim para o Gemini; o site já tirava. Agora as duas passam por
+`lib/services/sem_metadados.dart`: no JPEG saem EXIF, XMP, IPTC e comentários, e fica
+só a orientação; outro formato é redesenhado em PNG. Testado com uma foto de GPS e
+orientação 6 (`test/fixtures/gps_orientacao6.jpg`): o GPS some e a foto continua de pé.
 
 ## 🤝 Contribuindo
 

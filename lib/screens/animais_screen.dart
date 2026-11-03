@@ -8,6 +8,7 @@ import '../theme/app_theme.dart';
 import '../widgets/animacao_na_tela.dart';
 import '../widgets/imagem_com_reserva.dart';
 import '../widgets/rolagem_suave.dart';
+import 'legal_screen.dart';
 
 /// Busca sem acento e sem caixa: "onca" acha "Onça-pintada".
 String normalizarBusca(String texto) {
@@ -151,13 +152,22 @@ class _AnimaisScreenState extends State<AnimaisScreen> {
                 border: Border(top: BorderSide(color: AppCores.linha)),
               ),
               padding: EdgeInsets.symmetric(horizontal: margem, vertical: 20),
-              child: Text(
-                '© 2025 EcoMapBrasil · Status no Brasil: lista nacional de '
-                'fauna ameaçada do MMA (avaliação de ${listaNacional.ano}). '
-                'No mundo: Lista Vermelha da IUCN, pelo GBIF. População: a '
-                'fonte de cada estimativa está na ficha. Fotos do Wikimedia '
-                'Commons: autor e licença na ficha.',
-                style: const TextStyle(fontSize: 14, color: AppCores.tinta3),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    '© 2025 EcoMapBrasil · Status no Brasil: lista nacional de '
+                    'fauna ameaçada do MMA (avaliação de ${listaNacional.ano}). '
+                    'No mundo: Lista Vermelha da IUCN, pelo GBIF. População: a '
+                    'fonte de cada estimativa está na ficha. Fotos do Wikimedia '
+                    'Commons: autor e licença na ficha.',
+                    style: const TextStyle(
+                      fontSize: 14,
+                      color: AppCores.tinta3,
+                    ),
+                  ),
+                  const LinksLegais(cor: AppCores.mata, tamanho: 14),
+                ],
               ),
             ),
           ),

@@ -4,10 +4,12 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
+import '../data/legal_data.dart';
 import '../models/identificacao.dart';
 import '../services/identificacao_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/aviso_de_formulario.dart';
+import 'legal_screen.dart';
 
 /// Tire uma foto de um animal e veja que animal o Gemini acha que e.
 ///
@@ -136,11 +138,25 @@ class _FotosScreenState extends State<FotosScreen> {
 
     return [
       // O nivel gratuito do Gemini permite ao Google usar o que e enviado;
-      // quem manda a foto precisa saber disso antes.
+      // quem manda a foto precisa saber disso antes. E os termos do Gemini
+      // exigem 18 anos (vistos em 02/11/2026).
       const Text(
-        'A foto é enviada ao Gemini, do Google, que pode usá-la para melhorar '
-        'os serviços dele. Não envie fotos de pessoas.',
+        'Só para maiores de 18 anos. A foto é enviada ao Gemini, do Google, '
+        'que pode usá-la para melhorar os serviços dele. Não envie fotos de '
+        'pessoas.',
         style: TextStyle(fontSize: 15, height: 1.5, color: AppCores.tinta3),
+      ),
+      Align(
+        alignment: Alignment.centerLeft,
+        child: TextButton(
+          onPressed: () => abrirDocumentoLegal(
+            context,
+            privacidade,
+            secao: 'compartilhamento',
+          ),
+          style: TextButton.styleFrom(padding: EdgeInsets.zero),
+          child: const Text('Como tratamos a foto'),
+        ),
       ),
       const SizedBox(height: 20),
       if (mobile) ...[

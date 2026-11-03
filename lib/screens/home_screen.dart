@@ -17,6 +17,7 @@ import '../widgets/charts/mapa_biomas.dart';
 import '../widgets/imagem_com_reserva.dart';
 import '../widgets/reviews_section.dart';
 import '../widgets/rolagem_suave.dart';
+import 'legal_screen.dart';
 
 /// Home — a mesma pagina inicial do site (semestre-4-nextjs).
 ///
@@ -1208,6 +1209,7 @@ class _Rodape extends StatelessWidget {
                 const SizedBox(height: 24),
                 const Wrap(
                   alignment: WrapAlignment.spaceBetween,
+                  crossAxisAlignment: WrapCrossAlignment.center,
                   spacing: 24,
                   runSpacing: 8,
                   children: [
@@ -1215,6 +1217,7 @@ class _Rodape extends StatelessWidget {
                       '© 2025 EcoMapBrasil',
                       style: TextStyle(fontSize: 13, color: Color(0xB3FFFDF8)),
                     ),
+                    LinksLegais(cor: Color(0xD9FFFDF8)),
                     Text(
                       'Dados de fontes públicas: INPE, IBGE, MMA e IUCN.',
                       style: TextStyle(fontSize: 13, color: Color(0xB3FFFDF8)),
