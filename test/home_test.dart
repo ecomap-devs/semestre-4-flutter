@@ -129,6 +129,11 @@ void main() {
         find.text('Dados de fontes públicas: INPE, IBGE, MMA e IUCN.'),
         findsOneWidget,
       );
+      // A foto da secao final e CC BY: o credito aparece nela (04/11/2026).
+      expect(
+        find.textContaining('Foto: Bruno Kelly/Amazônia Real · CC BY 2.0'),
+        findsOneWidget,
+      );
       expect(tester.takeException(), isNull);
 
       // Os atalhos do rodape abrem a politica e os termos (02/11/2026).

@@ -5,6 +5,7 @@
 /// lista nacional do MMA (`especies_data.dart`).
 library;
 
+import '../models/animal.dart';
 import 'animais_data.dart';
 import 'biomas_data.dart';
 import 'especies_data.dart';
@@ -39,6 +40,17 @@ const slides = <Slide>[
   Slide('$_supabaseAnimais/lobo-guara.png', 'Lobo-guará'),
   Slide('$_supabaseAnimais/micoleao-cke.png', 'Mico-leão-dourado'),
 ];
+
+/// A foto da secao final da Home ("Passe adiante"), a mesma do site: queimada
+/// perto da Flona do Jacunda (RO), em 07/08/2020. A licenca CC BY pede credito,
+/// que aparece na propria secao.
+const fotoDaChamadaFinal =
+    'https://thumb.wikimedia.org/wikipedia/commons/thumb/d/da/SOBREVVO_EM_RONDONIA_DIA_07-08-2020_%28FOTO_BRUNO_KELLY%29_%2835%29_%2850224380121%29.jpg/1920px-SOBREVVO_EM_RONDONIA_DIA_07-08-2020_%28FOTO_BRUNO_KELLY%29_%2835%29_%2850224380121%29.jpg';
+const creditoDaChamadaFinal = Credito(
+  autor: 'Bruno Kelly/Amazônia Real',
+  licenca: 'CC BY 2.0',
+  link: 'https://commons.wikimedia.org/wiki/File:SOBREVVO_EM_RONDONIA_DIA_07-08-2020_(FOTO_BRUNO_KELLY)_(35)_(50224380121).jpg',
+);
 
 /// Os quatro numeros da faixa escura. O valor e texto: o `Contador` conta so
 /// a parte numerica e mantem o resto ("−20%", "6 biomas").

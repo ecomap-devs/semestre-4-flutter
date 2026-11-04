@@ -6,7 +6,7 @@
 import '../models/documento_legal.dart';
 
 /// A data da versao em vigor dos dois documentos.
-const atualizadoEm = '2 de novembro de 2026';
+const atualizadoEm = '4 de novembro de 2026';
 
 /// Onde fazer pedidos sobre dados: issue publica, com o modelo que avisa para
 /// nao escrever dado pessoal.
@@ -147,7 +147,7 @@ const privacidade = DocumentoLegal(
             ],
             [
               '[Wikimedia Commons](https://foundation.wikimedia.org/wiki/Policy:Privacy_policy)',
-              'Parte das fotos das espécies',
+              'Parte das fotos das espécies e a foto da seção final da página inicial',
               'Seu endereço IP, como em qualquer imagem da web',
             ],
             [
@@ -328,6 +328,11 @@ const termos = DocumentoLegal(
               'Fotos das espécies com crédito na ficha',
               'Autores do [Wikimedia Commons](https://commons.wikimedia.org)',
               'A de cada foto, indicada na ficha',
+            ],
+            [
+              'Foto da seção final da página inicial',
+              '[Bruno Kelly/Amazônia Real, pelo Wikimedia Commons](https://commons.wikimedia.org/wiki/File:SOBREVVO_EM_RONDONIA_DIA_07-08-2020_%28FOTO_BRUNO_KELLY%29_%2835%29_%2850224380121%29.jpg)',
+              '[CC BY 2.0](https://creativecommons.org/licenses/by/2.0/deed.pt-br)',
             ],
             [
               'Fundos do mapa',

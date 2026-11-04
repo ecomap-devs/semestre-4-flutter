@@ -275,6 +275,7 @@ Desde 28/10/2026 os demais números são os mesmos do site, com a mesma fonte:
 | População de uma espécie | Só onde há estimativa publicada, com a fonte na ficha |
 | Como denunciar | `lib/data/denuncia_data.dart`, cópia do `denuncia.ts` do site: Fala.BR, a Central de Atendimento do Ibama e o 190, conferidos na página [Apresentar denúncia ambiental](https://www.gov.br/pt-br/servicos/apresentar-denuncia-ambiental) do gov.br, com a data da conferência |
 | Fotos das espécies | As sete primeiras, no bucket `animals` do Supabase. As outras, do **Wikimedia Commons**, com autor, licença e link na ficha (`credito` em `animais_data.dart`), como as licenças Creative Commons exigem |
+| Foto da seção "Passe adiante" | Bruno Kelly/Amazônia Real, do **Wikimedia Commons** (CC BY 2.0), com o crédito na própria seção (`home_data.dart`) |
 
 `prodes_data.dart`, `especies_data.dart`, `denuncia_data.dart` e o arquivo dos alertas
 são **cópia** do que o site tem (`prodes.ts`, `especies.ts`, `denuncia.ts` e
