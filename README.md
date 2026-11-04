@@ -252,9 +252,11 @@ assets/
 
 A camada de alertas é o **DETER (INPE)** dos últimos 12 meses: os alertas de
 desmatamento e de mineração, só na Amazônia Legal e no Cerrado (o DETER não cobre os
-outros biomas), com a área, o município, a UF e a data de cada um. É o mesmo arquivo do
-site, gerado lá por `scripts/deter/gerar.mjs` a partir do GeoServer do TerraBrasilis. Tem
-15 MB e cerca de 2 MB compactado. Até 02/11/2026 o app usava um arquivo fixo, de 2019 a
+outros biomas), com a área, o município, a UF e a data de cada um. O arquivo é cópia do
+site, gerado lá por `scripts/deter/gerar.py` a partir do GeoServer do TerraBrasilis. Tem
+15 MB e cerca de 2 MB compactado. A cópia atual é de 02/11/2026, da versão anterior do
+gerador: os alertas são os mesmos do site, e só as geometrias mudaram lá, com a topologia
+corrigida em 03/11/2026. Até 02/11/2026 o app usava um arquivo fixo, de 2019 a
 2023, que pelos campos (`ANODETEC`, `VPRESSAO`) parecia ser do MapBiomas Alerta e
 aparecia como "DETER-B".
 
