@@ -108,7 +108,7 @@ void main() {
 
       // Rola ate o rodape, secao por secao.
       await tester.scrollUntilVisible(
-        find.text('© 2025 EcoMapBrasil'),
+        find.text('© 2025–2026 EcoMapBrasil'),
         500,
         scrollable: find.byType(Scrollable).first,
         maxScrolls: 200,

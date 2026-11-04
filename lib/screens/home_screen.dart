@@ -1226,7 +1226,7 @@ class _Rodape extends StatelessWidget {
                   runSpacing: 8,
                   children: [
                     Text(
-                      '© 2025 EcoMapBrasil',
+                      '© 2025–2026 EcoMapBrasil',
                       style: TextStyle(fontSize: 13, color: Color(0xB3FFFDF8)),
                     ),
                     LinksLegais(cor: Color(0xD9FFFDF8)),
