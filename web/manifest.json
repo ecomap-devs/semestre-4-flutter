@@ -1,6 +1,6 @@
 {
-    "name": "ecomapbrasil",
-    "short_name": "ecomapbrasil",
+    "name": "EcoMapBrasil",
+    "short_name": "EcoMapBrasil",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",

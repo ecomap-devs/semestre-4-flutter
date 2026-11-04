@@ -331,6 +331,8 @@ cartão conta espécies, biomas e testes **nos arquivos**, sem número digitado 
 gerador é determinístico: com o repositório igual, as artes saem byte a byte iguais, e
 as animações respeitam `prefers-reduced-motion`.
 
+O ícone do app é o pino da logo, gerado por `tool/icone/gerar.py`, que diz como refazer.
+
 ## 👥 Equipe
 
 **Vinicius** · **Bruno** · **Cesar** · **João Flávio** · **João Gabriel**
