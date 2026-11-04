@@ -40,6 +40,11 @@ const slides = <Slide>[
   Slide('$_supabaseAnimais/micoleao-cke.png', 'Mico-leão-dourado'),
 ];
 
+/// A foto da secao final da Home ("Passe adiante"), servida pelo site da Bosch,
+/// a mesma do site. A Bosch aparece na politica de privacidade e nos creditos.
+const fotoDaChamadaFinal =
+    'https://www.bosch.com.br/media/stories/sustentabilidade/queimadas/queimadas-bosch-banner-16x9.jpg';
+
 /// Os quatro numeros da faixa escura. O valor e texto: o `Contador` conta so
 /// a parte numerica e mantem o resto ("−20%", "6 biomas").
 class Numero {

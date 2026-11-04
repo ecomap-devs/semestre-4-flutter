@@ -6,7 +6,7 @@
 import '../models/documento_legal.dart';
 
 /// A data da versao em vigor dos dois documentos.
-const atualizadoEm = '2 de novembro de 2026';
+const atualizadoEm = '4 de novembro de 2026';
 
 /// Onde fazer pedidos sobre dados: issue publica, com o modelo que avisa para
 /// nao escrever dado pessoal.
@@ -148,6 +148,11 @@ const privacidade = DocumentoLegal(
             [
               '[Wikimedia Commons](https://foundation.wikimedia.org/wiki/Policy:Privacy_policy)',
               'Parte das fotos das espécies',
+              'Seu endereço IP, como em qualquer imagem da web',
+            ],
+            [
+              '[Bosch](https://www.bosch.com.br/politica-de-privacidade/)',
+              'A foto da seção final da página inicial',
               'Seu endereço IP, como em qualquer imagem da web',
             ],
             [
@@ -328,6 +333,11 @@ const termos = DocumentoLegal(
               'Fotos das espécies com crédito na ficha',
               'Autores do [Wikimedia Commons](https://commons.wikimedia.org)',
               'A de cada foto, indicada na ficha',
+            ],
+            [
+              'Foto da seção final da página inicial',
+              '[Bosch](https://www.bosch.com.br/noticias-e-historias/sustentabilidade/queimadas/)',
+              'Direitos reservados, conforme os [avisos legais da Bosch](https://www.bosch.com.br/avisos-legais/)',
             ],
             [
               'Fundos do mapa',

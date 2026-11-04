@@ -74,7 +74,6 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     final mico = slides.firstWhere((s) => s.rotulo == 'Mico-leão-dourado');
-    final lobo = slides.firstWhere((s) => s.rotulo == 'Lobo-guará');
 
     return RolagemSuave(
       builder: (context, controlador) => Stack(
@@ -110,7 +109,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     service: widget.avaliacoes,
                   ),
                 ),
-                _FaixaDeFoto(foto: lobo.url, child: const _Chamada()),
+                _FaixaDeFoto(foto: fotoDaChamadaFinal, child: const _Chamada()),
                 _Rodape(
                   links: [
                     ('Mapa', () => _irPara(_secaoMapa)),
