@@ -167,7 +167,7 @@ class ParteAlerta {
 }
 
 /// Poligono de alerta de desmatamento do DETER (INPE), no arquivo que o
-/// `scripts/deter/gerar.mjs` do site gera: os ultimos 12 meses, so Amazonia
+/// `scripts/deter/gerar.py` do site gera: os ultimos 12 meses, so Amazonia
 /// Legal e Cerrado.
 ///
 /// Ate 02/11/2026 o app lia um arquivo fixo de 2019 a 2023, com campos

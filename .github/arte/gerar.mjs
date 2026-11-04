@@ -53,7 +53,7 @@ const graficos = readdirSync(join(raiz, 'lib/widgets/charts')).filter((f) => f.e
 const testes = readdirSync(join(raiz, 'test'))
   .filter((f) => f.endsWith('_test.dart'))
   .reduce((soma, f) => soma + (ler(`test/${f}`).match(/^\s*(test|testWidgets)\(/gm) ?? []).length, 0);
-// Os campos do arquivo que o scripts/deter/gerar.mjs do site gera. Até 02/11/2026 o
+// Os campos do arquivo que o scripts/deter/gerar.py do site gera. Até 02/11/2026 o
 // arquivo era fixo, de 2019 a 2023, com AREAHA e ANODETEC.
 const hectares = alertas.reduce((soma, f) => soma + (f.properties.areaha ?? 0), 0);
 const MESES = ["jan", "fev", "mar", "abr", "mai", "jun", "jul", "ago", "set", "out", "nov", "dez"];
@@ -93,6 +93,8 @@ function centro(geometria) {
 const CELULA = 2;
 const celulas = new Map();
 for (const f of alertas) {
+  // Alerta sem polígono conta no total, mas não tem lugar no desenho.
+  if (!f.geometry) continue;
   const [x, y] = px(centro(f.geometry));
   const chave = `${Math.floor(x / CELULA)},${Math.floor(y / CELULA)}`;
   const c = celulas.get(chave) ?? { x: 0, y: 0, n: 0, area: 0 };

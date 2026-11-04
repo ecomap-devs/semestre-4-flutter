@@ -279,7 +279,9 @@ são **cópia** do que o site tem (`prodes.ts`, `especies.ts`, `denuncia.ts` e
 `public/alertas-desmatamento.json`). Os workflows de lá rodam todo dia 1º e abrem uma
 issue quando o INPE ou o MMA publicam dado novo. Quando o site atualizar, copie de novo e
 rode os testes: `test/dados_test.dart` fixa os números que o site mostra, e
-`test/widget_test.dart` lê o arquivo dos alertas inteiro, então a diferença aparece lá. Até 28/10/2026 eram
+`test/widget_test.dart` lê o arquivo dos alertas inteiro, então a diferença aparece lá. Alerta
+com `geometry: null`, que o site grava desde 03/11/2026 quando o polígono do INPE não fecha, não
+é desenhado, mas conta na legenda, como no site. Até 28/10/2026 eram
 valores de referência herdados do React, e alguns muito longe do real: a Amazônia
 aparecia 78% desmatada (o PRODES mede 20%) e cada espécie tinha uma série de população
 inventada.

@@ -27,19 +27,19 @@ const _centroBrasil = LatLng(-14, -52);
 /// Montado uma vez quando o GeoJSON termina de carregar: sao 40 mil alertas,
 /// e refazer as listas a cada movimento do mapa custaria quadros.
 class _DadosMapa {
-  _DadosMapa(List<AlertaDesmatamento> alertas)
-    : total = alertas.length,
-      areaHa = alertas.fold(0, (s, a) => s + a.areaHa),
+  _DadosMapa(AlertasDoArquivo arquivo)
+    : total = arquivo.alertas.length + arquivo.semGeometria,
+      areaHa = arquivo.alertas.fold(0, (s, a) => s + a.areaHa),
       // Data vazia e alerta sem data no arquivo: fica fora do periodo. As
       // datas sao "aaaa-mm-dd", entao a ordem do texto e a do calendario.
-      inicio = alertas
+      inicio = arquivo.alertas
           .map((a) => a.data)
           .where((d) => d.isNotEmpty)
           .fold<String?>(
             null,
             (m, d) => m == null || d.compareTo(m) < 0 ? d : m,
           ),
-      fim = alertas
+      fim = arquivo.alertas
           .map((a) => a.data)
           .where((d) => d.isNotEmpty)
           .fold<String?>(
@@ -47,7 +47,7 @@ class _DadosMapa {
             (m, d) => m == null || d.compareTo(m) > 0 ? d : m,
           ),
       poligonos = [
-        for (final a in alertas)
+        for (final a in arquivo.alertas)
           for (final parte in a.partes)
             Polygon(
               points: parte.contorno,
@@ -58,7 +58,7 @@ class _DadosMapa {
             ),
       ],
       pontos = [
-        for (final a in alertas)
+        for (final a in arquivo.alertas)
           CircleMarker(
             point: a.centro,
             radius: 2.2,
