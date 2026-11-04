@@ -13,6 +13,7 @@ import 'package:ecomapbrasil/main.dart';
 import 'package:ecomapbrasil/models/animal.dart';
 import 'package:ecomapbrasil/models/avaliacao.dart';
 import 'package:ecomapbrasil/models/bioma.dart';
+import 'package:ecomapbrasil/services/geojson_service.dart';
 import 'package:ecomapbrasil/theme/app_theme.dart';
 import 'package:ecomapbrasil/widgets/estrelas.dart';
 
@@ -313,7 +314,7 @@ void main() {
           ],
         ],
       },
-      // Os campos do arquivo que o scripts/deter/gerar.mjs do site gera.
+      // Os campos do arquivo que o scripts/deter/gerar.py do site gera.
       'properties': {
         'classname': 'desmatamento',
         'view_date': '2026-10-16',
@@ -477,7 +478,37 @@ void main() {
       expect(a.data, '');
     });
 
-    // O arquivo de verdade, o mesmo do site: até 02/11/2026 o app lia um
+    // Desde 03/11/2026 o site grava com `geometry: null` o alerta que não vira
+    // polígono: o parser pula, e a legenda conta, como a do site.
+    test('GeoJsonService conta à parte o alerta sem geometria', () {
+      final arquivo = GeoJsonService.parsear(
+        jsonEncode({
+          'features': [
+            featureValida(),
+            {...featureValida(), 'geometry': null},
+            {
+              ...featureValida(),
+              'geometry': {
+                'type': 'Point',
+                'coordinates': [1, 2],
+              },
+            },
+            'não é uma feature',
+          ],
+        }),
+      );
+      expect(arquivo.alertas, hasLength(1));
+      // A geometria malformada é pulada, sem contar como alerta sem geometria.
+      expect(arquivo.semGeometria, 1);
+    });
+
+    test('GeoJsonService não estoura com arquivo fora do formato', () {
+      final arquivo = GeoJsonService.parsear(jsonEncode({'type': 'nada'}));
+      expect(arquivo.alertas, isEmpty);
+      expect(arquivo.semGeometria, 0);
+    });
+
+    // O arquivo de verdade, cópia do site: até 02/11/2026 o app lia um
     // arquivo fixo de 2019 a 2023, com campos que pareciam do MapBiomas Alerta.
     test('o arquivo dos alertas é o do DETER dos últimos 12 meses', () {
       final arquivo = jsonDecode(
@@ -489,8 +520,15 @@ void main() {
       final alertas = [
         for (final f in features) ?AlertaDesmatamento.doGeoJson(f),
       ];
-      // Nenhum alerta perdido na leitura, e todos com data dentro do período.
-      expect(alertas, hasLength(features.length));
+      // Nenhum alerta perdido na leitura, e todos com data dentro do período. O
+      // que vem sem geometria é exceção: tem que ser pouco, e sem área, senão a
+      // legenda somaria menos hectares que a do site.
+      final semGeometria = features.where((f) => f['geometry'] == null);
+      expect(alertas, hasLength(features.length - semGeometria.length));
+      expect(semGeometria.length, lessThan(features.length / 100));
+      for (final f in semGeometria) {
+        expect((f['properties'] as Map)['areaha'] as num, 0);
+      }
       expect(alertas.length, greaterThan(5000));
       expect(alertas.map((a) => a.bioma).toSet(), {
         'Amazônia Legal',

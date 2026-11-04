@@ -5,8 +5,15 @@ import 'package:flutter/services.dart' show rootBundle;
 
 import '../models/bioma.dart';
 
-/// Carrega os alertas de desmatamento do DETER/INPE dos ultimos 12 meses, o
-/// mesmo arquivo do site.
+/// O que o arquivo dos alertas traz: os que dao para desenhar, e quantos vieram
+/// sem geometria.
+typedef AlertasDoArquivo = ({
+  List<AlertaDesmatamento> alertas,
+  int semGeometria,
+});
+
+/// Carrega os alertas de desmatamento do DETER/INPE dos ultimos 12 meses, uma
+/// copia do arquivo do site.
 ///
 /// O arquivo tem ~15 MB. Parsear isso na thread da UI trava a tela por
 /// segundos — no navegador e no celular. Por isso o decode e o mapeamento
@@ -15,30 +22,39 @@ import '../models/bioma.dart';
 class GeoJsonService {
   static const _caminho = 'assets/data/alertas-desmatamento.json';
 
-  List<AlertaDesmatamento>? _cache;
+  AlertasDoArquivo? _cache;
 
   /// Le, parseia e devolve os alertas. Resultado fica em cache: trocar de aba
   /// e voltar nao paga o custo de novo.
-  Future<List<AlertaDesmatamento>> carregar() async {
+  Future<AlertasDoArquivo> carregar() async {
     final emCache = _cache;
     if (emCache != null) return emCache;
 
     final bruto = await rootBundle.loadString(_caminho);
-    final alertas = await compute(_parsear, bruto);
-    _cache = alertas;
-    return alertas;
+    final arquivo = await compute(parsear, bruto);
+    _cache = arquivo;
+    return arquivo;
   }
 
   /// Roda fora da thread da UI.
-  static List<AlertaDesmatamento> _parsear(String bruto) {
+  @visibleForTesting
+  static AlertasDoArquivo parsear(String bruto) {
     final mapa = jsonDecode(bruto);
     if (mapa is! Map || mapa['features'] is! List) {
-      return const <AlertaDesmatamento>[];
+      return (alertas: const <AlertaDesmatamento>[], semGeometria: 0);
     }
 
     final out = <AlertaDesmatamento>[];
+    var semGeometria = 0;
     for (final f in (mapa['features'] as List)) {
       if (f is! Map) continue;
+      // O INPE publica alguns alertas sem poligono de verdade, e o site os grava
+      // com `geometry: null`. Nao ha o que desenhar, mas contam na legenda, como
+      // no site. Geometria malformada e outra coisa: e so pulada.
+      if (f.containsKey('geometry') && f['geometry'] == null) {
+        semGeometria++;
+        continue;
+      }
       // Uma feature que estoure de um jeito que o parser nao previu perde so
       // ela, nao o mapa inteiro.
       try {
@@ -50,6 +66,6 @@ class GeoJsonService {
         continue;
       }
     }
-    return out;
+    return (alertas: out, semGeometria: semGeometria);
   }
 }
