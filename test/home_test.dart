@@ -108,7 +108,7 @@ void main() {
 
       // Rola ate o rodape, secao por secao.
       await tester.scrollUntilVisible(
-        find.text('© 2025 EcoMapBrasil'),
+        find.text('© 2025–2026 EcoMapBrasil'),
         500,
         scrollable: find.byType(Scrollable).first,
         maxScrolls: 200,
@@ -127,6 +127,11 @@ void main() {
       );
       expect(
         find.text('Dados de fontes públicas: INPE, IBGE, MMA e IUCN.'),
+        findsOneWidget,
+      );
+      // A foto da secao final e CC BY: o credito aparece nela (04/11/2026).
+      expect(
+        find.textContaining('Foto: Bruno Kelly/Amazônia Real · CC BY 2.0'),
         findsOneWidget,
       );
       expect(tester.takeException(), isNull);

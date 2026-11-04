@@ -156,7 +156,7 @@ class _AnimaisScreenState extends State<AnimaisScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    '© 2025 EcoMapBrasil · Status no Brasil: lista nacional de '
+                    '© 2025–2026 EcoMapBrasil · Status no Brasil: lista nacional de '
                     'fauna ameaçada do MMA (avaliação de ${listaNacional.ano}). '
                     'No mundo: Lista Vermelha da IUCN, pelo GBIF. População: a '
                     'fonte de cada estimativa está na ficha. Fotos do Wikimedia '

@@ -74,7 +74,6 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     final mico = slides.firstWhere((s) => s.rotulo == 'Mico-leão-dourado');
-    final lobo = slides.firstWhere((s) => s.rotulo == 'Lobo-guará');
 
     return RolagemSuave(
       builder: (context, controlador) => Stack(
@@ -110,7 +109,13 @@ class _HomeScreenState extends State<HomeScreen> {
                     service: widget.avaliacoes,
                   ),
                 ),
-                _FaixaDeFoto(foto: lobo.url, child: const _Chamada()),
+                // A linha de fogo fica a direita da foto: no celular, o corte
+                // central so mostraria fumaca. Mesmo enquadramento do site.
+                _FaixaDeFoto(
+                  foto: fotoDaChamadaFinal,
+                  alinhamento: const Alignment(.64, 0),
+                  child: const _Chamada(),
+                ),
                 _Rodape(
                   links: [
                     ('Mapa', () => _irPara(_secaoMapa)),
@@ -1064,6 +1069,13 @@ class _Chamada extends StatelessWidget {
         ),
         const SizedBox(height: 36),
         const _BotaoCompartilhar(),
+        const SizedBox(height: 24),
+        Text(
+          'Foto: ${creditoDaChamadaFinal.autor} · '
+          '${creditoDaChamadaFinal.licenca} · Wikimedia Commons: '
+          '${creditoDaChamadaFinal.link}',
+          style: const TextStyle(fontSize: 13, color: Color(0xBFFFFDF8)),
+        ),
       ],
     );
   }
@@ -1214,7 +1226,7 @@ class _Rodape extends StatelessWidget {
                   runSpacing: 8,
                   children: [
                     Text(
-                      '© 2025 EcoMapBrasil',
+                      '© 2025–2026 EcoMapBrasil',
                       style: TextStyle(fontSize: 13, color: Color(0xB3FFFDF8)),
                     ),
                     LinksLegais(cor: Color(0xD9FFFDF8)),
