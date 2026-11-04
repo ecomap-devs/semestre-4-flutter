@@ -292,8 +292,8 @@ Tudo acima vale. Além disso:
   limpar os documentos antigos**, que ainda têm o e-mail gravado; parar de escrever não
   apaga o que já está lá.
 - 🟡 **GeoJSON do DETER de 15 MB embarcado** nos assets (02/11/2026): cerca de 2 MB
-  compactado no APK e 40 mil alertas no mapa, o dobro do arquivo antigo. **Não foi
-  testado num celular de verdade.** Se pesar, as saídas são ler o arquivo do próprio site
+  compactado no APK e 40 mil alertas no mapa, o dobro do arquivo antigo. O mapa funcionou
+  num celular de verdade em 04/11/2026. Se pesar, as saídas são ler o arquivo do próprio site
   (sempre atual, sem copiar) ou simplificar mais os polígonos.
 - 🟡 **Dados copiados do site** (28/10/2026; alertas e denúncia em 02/11/2026).
   Desmatamento (PRODES), status das espécies (MMA, IUCN), alertas (DETER) e canais de
@@ -334,4 +334,4 @@ Tudo acima vale. Além disso:
   **o SQL entra antes da função nova**. Limite que fica: muitas contas novas ainda
   somam, porque o cadastro continua aberto.
 - 🟢 **O app já foi executado** (09/09/2026), no navegador e no emulador Android, sem
-  exceção nas telas. Falta confirmar o toque no mapa num aparelho Android de verdade.
+  exceção nas telas. Em 04/11/2026, o login e o mapa funcionaram num celular de verdade.
