@@ -28,4 +28,5 @@ flutter test        # tudo verde
 `undefined` e compila liso. Para provar, tire o `env.json`, rebuilde e confirme que
 o valor sumiu do bundle.
 
-**Não suba nada sem pedido explícito** — nem `git push`, nem `firebase deploy`.
+**Não suba nada sem pedido explícito** — nem `git push`, nem `firebase deploy`, nem
+tag: uma tag `v*.*.*` publica uma versão do app ([RELEASES.md](RELEASES.md)).

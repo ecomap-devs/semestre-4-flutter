@@ -157,7 +157,8 @@ isso web e Android têm chaves diferentes.
   que os cinco assinem com o mesmo certificado e o SHA-1 cadastrado sirva para todos.
 - **Keystore de release** fora do repositório. Perdê-lo significa nunca mais atualizar um
   app já instalado; e se ele for regerado, **o SHA-1 novo precisa entrar na chave
-  Android**, ou o login para de funcionar no APK assinado.
+  Android**, ou o login para de funcionar no APK assinado. A CI usa uma cópia guardada no
+  GitHub ([A chave de assinatura](RELEASES.md#a-chave-de-assinatura)).
 - **Release sem `android/key.properties` falha de propósito.** Até 01/10/2026 ele caía
   no keystore de debug, que é público: qualquer pessoa conseguiria assinar um APK com a
   mesma identidade. Para testar sem a chave, use o build de debug.
@@ -211,6 +212,29 @@ entram no repositório.
 
 A `main` é protegida: PR obrigatório, **1 aprovação** e os checks `Análise e testes` e
 `Build APK` passando.
+
+## 🏷️ Versões e releases
+
+**Para instalar o app,** baixe o APK da [última release](https://github.com/ecomap-devs/semestre-4-flutter/releases/latest),
+num celular Android 7 ou mais novo. O app não está na Play Store, então o Android pode pedir
+permissão para instalar.
+
+**Para lançar uma versão,** siga o guia **[RELEASES.md](RELEASES.md)**. Qualquer pessoa com
+escrita no repositório consegue, sem ter a chave de assinatura na máquina:
+
+1. Num PR, suba `version` no `pubspec.yaml`, por exemplo para `1.1.0+2`. O número depois do `+`
+   tem que crescer em toda versão.
+2. Depois do merge, crie a tag na `main`, pelo `git`:
+
+   ```bash
+   git switch main
+   git pull
+   git tag v1.1.0
+   git push origin v1.1.0
+   ```
+
+O GitHub roda os testes, compila, confere a assinatura e publica o APK. Um merge sozinho não
+chega a quem já instalou, porque o app não se atualiza sozinho.
 
 ## 📁 Estrutura
 

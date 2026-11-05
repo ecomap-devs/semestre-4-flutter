@@ -1,8 +1,10 @@
 name: Release
 
-# Publica uma versão do app quando alguém cria uma tag na main:
+# Publica uma versão do app quando alguém cria uma tag na main. O passo a passo e o que
+# fazer em cada erro estão no RELEASES.md.
 #
-#   git tag v1.1.0 && git push origin v1.1.0
+#   git tag v1.1.0
+#   git push origin v1.1.0
 #
 # Antes, a versão de pubspec.yaml precisa ser a da tag, com o número de build maior que o
 # da release anterior (version: 1.1.0+2): o Android recusa atualização com número menor.
