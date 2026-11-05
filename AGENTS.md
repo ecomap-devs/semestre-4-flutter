@@ -244,11 +244,12 @@ Tudo automático, em `.github/workflows/`:
 | Push ou PR | `dart format`, `flutter analyze`, `flutter test`, build do APK e testes das regras do Firestore |
 | Tag `v*.*.*` | `flutter test`, APK de release assinado e release com o APK e as notas dos PRs |
 
-**Para lançar uma versão:** num PR, suba `version` no `pubspec.yaml` (`1.1.0+2`: o número
-depois do `+` tem que crescer, senão o Android recusa a atualização). Depois do merge,
-`git tag v1.1.0 && git push origin v1.1.0` na `main`. A chave de assinatura fica no ambiente
-`release` do GitHub, que só aceita tags `v*`. Tag com hífen (`v1.1.0-rc.1`) é ensaio: vira
-rascunho, sem publicar nada.
+**Para lançar uma versão, siga o [RELEASES.md](RELEASES.md).** Em resumo: num PR, suba
+`version` no `pubspec.yaml` (`1.1.0+2`: o número depois do `+` tem que crescer, senão o Android
+recusa a atualização); depois do merge, crie a tag `v1.1.0` na `main` pelo `git`, não pelo botão
+do GitHub. Tag com hífen (`v1.1.0-rc.1`) é ensaio e vira rascunho. O app não se atualiza sozinho,
+e os dados copiados do site vão dentro do APK: para chegarem a quem usa, precisam de uma release.
+A chave de assinatura fica no ambiente `release` do GitHub, e ninguém precisa dela para lançar.
 
 O APK debug fica anexado à execução da CI por 14 dias — dá para baixar e instalar
 no celular sem ter Flutter montado.
@@ -273,7 +274,8 @@ Tudo acima vale. Além disso:
   envia? O texto muda no `src/dados/legal.ts` do site, no mesmo par de PRs.
 - **Não crie `firebase_options.dart` com chaves dentro**, nem sugira `flutterfire
   configure` sem avisar que o arquivo é ignorado de propósito.
-- **Não suba nada** (`git push`, `firebase deploy`) sem pedido explícito.
+- **Não suba nada** (`git push`, `firebase deploy`) sem pedido explícito. Isso inclui tag: uma
+  tag `v*.*.*` na `main` publica uma versão do app.
 - **Rode `flutter analyze` e `flutter test`** antes de dizer que terminou, e relate
   o resultado real — inclusive quando falha.
 - **Build passar não prova que credencial chegou.** Variável ausente vira `undefined`
