@@ -203,6 +203,7 @@ Tudo automático, em [`.github/workflows/`](.github/workflows/):
 | Quando | O que roda |
 |---|---|
 | **Push ou PR** | `dart format` · `flutter analyze` · `flutter test` · build APK · testes das regras do Firestore no emulador |
+| **Tag `v*.*.*`** | `flutter test` · APK de release assinado · release com o APK e as notas dos PRs |
 
 O **APK debug** fica anexado à execução da CI por 14 dias: dá para baixar e instalar no
 celular sem ter Flutter montado. Os secrets viram `env.json` dentro da CI e **nunca**

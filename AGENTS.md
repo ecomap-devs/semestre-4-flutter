@@ -242,6 +242,13 @@ Tudo automático, em `.github/workflows/`:
 | Quando | O que acontece |
 |---|---|
 | Push ou PR | `dart format`, `flutter analyze`, `flutter test`, build do APK e testes das regras do Firestore |
+| Tag `v*.*.*` | `flutter test`, APK de release assinado e release com o APK e as notas dos PRs |
+
+**Para lançar uma versão:** num PR, suba `version` no `pubspec.yaml` (`1.1.0+2`: o número
+depois do `+` tem que crescer, senão o Android recusa a atualização). Depois do merge,
+`git tag v1.1.0 && git push origin v1.1.0` na `main`. A chave de assinatura fica no ambiente
+`release` do GitHub, que só aceita tags `v*`. Tag com hífen (`v1.1.0-rc.1`) é ensaio: vira
+rascunho, sem publicar nada.
 
 O APK debug fica anexado à execução da CI por 14 dias — dá para baixar e instalar
 no celular sem ter Flutter montado.
