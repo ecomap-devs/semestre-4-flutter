@@ -151,9 +151,13 @@ jobs:
         run: |
           apksigner=$(ls "$ANDROID_HOME"/build-tools/*/apksigner | sort -V | tail -n 1)
           origem=build/app/outputs/flutter-apk/app-release.apk
-          certificado=$("$apksigner" verify --print-certs "$origem" | sed -n 's/^Signer #1 certificate SHA-256 digest: //p')
+          saida=$("$apksigner" verify --print-certs "$origem")
+          # O rótulo do assinante muda entre versões do apksigner ("Signer #1", "Signer
+          # (minSdkVersion=...)"), e um APK pode ter mais de um: todos têm que ser o esperado.
+          certificado=$(printf '%s\n' "$saida" | grep 'certificate SHA-256 digest: ' | sed 's/.*digest: //' | sort -u)
           if [ "$certificado" != "$CERTIFICADO_ESPERADO" ]; then
-            echo "::error::O APK saiu assinado com outro certificado: $certificado"
+            printf '%s\n' "$saida"
+            echo "::error::O APK não saiu assinado só com o certificado esperado: $certificado"
             exit 1
           fi
           nome="EcoMapBrasil-${GITHUB_REF_NAME#v}.apk"
