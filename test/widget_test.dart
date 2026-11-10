@@ -49,11 +49,19 @@ void main() {
       expect(capivara.corStatus, AppCores.mata);
     });
 
-    test('foto de terceiros sempre tem autor, licença e link', () {
+    // Ate 10/11/2026 as sete primeiras fotos eram do bucket `animals`, sem
+    // origem registrada (copia de sites de terceiros). Agora toda foto e do
+    // Wikimedia Commons, com autor, licenca e link.
+    test('toda foto é do Wikimedia Commons, com autor, licença e link', () {
       for (final a in animais) {
-        final doProjeto = a.imagem.contains('.supabase.co/');
-        expect(a.credito == null, doProjeto, reason: a.nome);
+        expect(a.imagem, isNot(contains('.supabase.co/')), reason: a.nome);
+        expect(
+          Uri.parse(a.imagem).host,
+          anyOf('thumb.wikimedia.org', 'upload.wikimedia.org'),
+          reason: a.nome,
+        );
         final c = a.credito;
+        expect(c, isNotNull, reason: a.nome);
         if (c == null) continue;
         expect(c.autor, isNotEmpty, reason: a.nome);
         expect(c.licenca, isNotEmpty, reason: a.nome);

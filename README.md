@@ -315,7 +315,7 @@ Desde 28/10/2026 os demais números são os mesmos do site, com a mesma fonte:
 | Status das espécies e "1.259 espécies ameaçadas" | Lista nacional do **MMA** (avaliação de 2021); fora dela, "Não ameaçada". No mundo, a Lista Vermelha da **IUCN**, pelo GBIF |
 | População de uma espécie | Só onde há estimativa publicada, com a fonte na ficha |
 | Como denunciar | `lib/data/denuncia_data.dart`, cópia do `denuncia.ts` do site: Fala.BR, a Central de Atendimento do Ibama e o 190, conferidos na página [Apresentar denúncia ambiental](https://www.gov.br/pt-br/servicos/apresentar-denuncia-ambiental) do gov.br, com a data da conferência |
-| Fotos das espécies | As sete primeiras, no bucket `animals` do Supabase. As outras, do **Wikimedia Commons**, com autor, licença e link na ficha (`credito` em `animais_data.dart`), como as licenças Creative Commons exigem |
+| Fotos das espécies | Todas do **Wikimedia Commons**, com autor, licença e link na ficha e sobre a foto na abertura da Home (`credito` em `animais_data.dart`), como as licenças Creative Commons exigem. Até 10/11/2026 as sete primeiras eram do bucket `animals` do Supabase, sem origem registrada |
 | Foto da seção "Passe adiante" | Bruno Kelly/Amazônia Real, do **Wikimedia Commons** (CC BY 2.0), com o crédito na própria seção (`home_data.dart`) |
 
 `prodes_data.dart`, `especies_data.dart`, `denuncia_data.dart` e o arquivo dos alertas

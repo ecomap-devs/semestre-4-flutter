@@ -311,11 +311,12 @@ Tudo acima vale. Além disso:
   PR do site de 29/10 (DETER, denúncia) ficou sem gêmeo aqui até 02/11. Falta um jeito de copiar
   automaticamente, ou de o app ler o mesmo arquivo do site. A política e os termos já são
   gerados por script (`tool/legal/copiar.mjs`).
-- 🟡 **As sete fotos do bucket `animals` não têm origem registrada** (02/11/2026). Pelos
-  nomes dos arquivos, várias são cópia das imagens de terceiros que o React usava
-  (Biologia Net, Toda Matéria, Brasil Escola, Agência Brasil). Os termos de uso dizem que
-  a origem está em revisão e oferecem crédito ou remoção; o certo é trocá-las por fotos com
-  licença, como as do Wikimedia, com `credito`.
+- 🟢 **Todas as fotos das espécies são do Wikimedia Commons, com `credito`** (10/11/2026).
+  Até aqui, sete vinham do bucket `animals` sem origem registrada; pelo nome dos arquivos,
+  eram cópia das imagens de terceiros que o React usava (Biologia Net, Toda Matéria, Brasil
+  Escola, Agência Brasil). A abertura da Home e a faixa do mico saem do catálogo e mostram o
+  crédito sobre a foto (`CreditoDaFoto`). Os arquivos antigos saem do bucket depois que uma
+  versão nova do app estiver publicada: as versões anteriores ainda os pedem.
 - 🟡 **Identificação por foto e idade.** Os termos do Gemini proíbem a API em serviço
   provável de ser acessado por menores de 18. A tela Fotos e os termos avisam; não há
   trava.
@@ -342,16 +343,13 @@ Tudo acima vale. Além disso:
   diferentes da cota do Gemini (`cota`). Sem a tabela, a função recusa tudo com 503:
   **o SQL entra antes da função nova**. Limite que fica: muitas contas novas ainda
   somam, porque o cadastro continua aberto.
-- 🟡 **Foto de perfil pela Edge Function `enviar-avatar`** (10/11/2026). O bucket `avatars`
-  aceitava envio direto de qualquer pessoa, até sem login, sem limite de quantidade. Agora
-  a foto passa pela função, que confere o ID token do Firebase, o tipo pelos bytes, 1 MB e
-  5 fotos por pessoa por dia (`LIMITE_AVATAR_POR_DIA` muda sem republicar), contadas em
-  `supabase/limite-avatar.sql`. **A ordem importa:**
-  1. o SQL do limite;
-  2. publicar a função (`supabase functions deploy enviar-avatar --no-verify-jwt`);
-  3. o site e uma versão nova do app;
-  4. por último, `supabase/avatars-so-pela-funcao.sql`, que fecha o envio direto.
-
-  Fechar antes deixa o APK antigo sem foto no cadastro; o cadastro em si continua.
+- 🟢 **Foto de perfil pela Edge Function `enviar-avatar`** (10/11/2026, publicada e
+  fechada no mesmo dia). O bucket `avatars` aceitava envio direto de qualquer pessoa, até
+  sem login, sem limite de quantidade. Agora a foto passa pela função, que confere o ID token
+  do Firebase, o tipo pelos bytes, 1 MB e 5 fotos por pessoa por dia
+  (`LIMITE_AVATAR_POR_DIA` muda sem republicar), contadas em `supabase/limite-avatar.sql`.
+  `supabase/avatars-so-pela-funcao.sql` já foi aplicado: o bucket não tem política de envio,
+  e o APK 1.0.0 cadastra sem foto. Mudou `supabase/functions/enviar-avatar/`? Publique de
+  novo à mão: `supabase functions deploy enviar-avatar --no-verify-jwt`.
 - 🟢 **O app já foi executado** (09/09/2026), no navegador e no emulador Android, sem
   exceção nas telas. Em 04/11/2026, o login e o mapa funcionaram num celular de verdade.

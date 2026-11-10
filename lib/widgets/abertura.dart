@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../data/home_data.dart';
 import '../theme/app_theme.dart';
+import 'credito_da_foto.dart';
 import 'imagem_com_reserva.dart';
 
 /// Abertura da Home: fotos das especies ocupando a tela, trocando sozinhas,
@@ -344,18 +345,27 @@ class _Indicadores extends StatelessWidget {
           ),
         ),
       const SizedBox(width: 16),
+      // O nome do animal da vez e o credito da foto, que a licenca CC pede a
+      // vista (desde 10/11/2026 todas sao do Wikimedia Commons).
       Expanded(
-        child: ExcludeSemantics(
-          child: Text(
-            slides[atual].rotulo,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: const TextStyle(
-              fontSize: 15,
-              fontStyle: FontStyle.italic,
-              color: Color(0xD9FFFDF8),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ExcludeSemantics(
+              child: Text(
+                slides[atual].rotulo,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  fontSize: 15,
+                  fontStyle: FontStyle.italic,
+                  color: Color(0xD9FFFDF8),
+                ),
+              ),
             ),
-          ),
+            CreditoDaFoto(credito: slides[atual].credito),
+          ],
         ),
       ),
     ],

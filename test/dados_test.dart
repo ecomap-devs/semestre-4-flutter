@@ -61,6 +61,26 @@ void main() {
   });
 
   group('Home', () {
+    // Desde 10/11/2026 as fotos da abertura sao as do catalogo, com o credito
+    // que a licenca pede; antes eram arquivos do bucket `animals`, sem origem.
+    test('as fotos da abertura saem do catálogo, com crédito', () {
+      expect(slides.map((s) => s.rotulo), [
+        'Onça-pintada',
+        'Arara-azul-de-lear',
+        'Lobo-guará',
+        'Mico-leão-dourado',
+      ]);
+      for (final s in slides) {
+        expect(s.url, contains('wikimedia.org/'), reason: s.rotulo);
+        expect(s.credito.autor, isNotEmpty, reason: s.rotulo);
+        expect(
+          s.credito.link,
+          startsWith('https://commons.wikimedia.org/wiki/File:'),
+          reason: s.rotulo,
+        );
+      }
+    });
+
     test('os quatro números saem do PRODES e da lista do MMA', () {
       expect(numeros.map((n) => n.valor), [
         '16.089',

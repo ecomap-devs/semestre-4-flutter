@@ -135,6 +135,15 @@ void main() {
         find.textContaining('Foto: Bruno Kelly/Amazônia Real · CC BY 2.0'),
         findsOneWidget,
       );
+      // Desde 10/11/2026 a abertura e a faixa do mico tambem dao o credito.
+      expect(
+        find.textContaining('Foto: Thiagomarcelcampi · CC BY-SA 4.0'),
+        findsOneWidget,
+      );
+      expect(
+        find.textContaining('Foto: Rodrigo.Argenton · CC BY-SA 4.0'),
+        findsOneWidget,
+      );
       expect(tester.takeException(), isNull);
 
       // Os atalhos do rodape abrem a politica e os termos (02/11/2026).
