@@ -12,9 +12,6 @@ import 'especies_data.dart';
 import 'linha_do_tempo.dart';
 import 'prodes_data.dart';
 
-const _supabaseAnimais =
-    'https://wqvxjttidoxcblkfjoaf.supabase.co/storage/v1/object/public/animals';
-
 /// Endereco do site, para o "Compartilhar" do fim da Home.
 const enderecoDoSite = 'https://ecomapbrasil-17756.web.app';
 
@@ -27,19 +24,31 @@ const equipe = <String>[
   'João Gabriel',
 ];
 
-/// Fotos da abertura, que trocam sozinhas.
+/// Uma foto da abertura, que troca sozinha, com o credito que a licenca pede.
 class Slide {
-  const Slide(this.url, this.rotulo);
+  const Slide(this.url, this.rotulo, this.credito);
   final String url;
   final String rotulo;
+  final Credito credito;
 }
 
-const slides = <Slide>[
-  Slide('$_supabaseAnimais/onca-pintada.png', 'Onça-pintada'),
-  Slide('$_supabaseAnimais/arara-azul-de-lear_01_0.png', 'Arara-azul-de-lear'),
-  Slide('$_supabaseAnimais/lobo-guara.png', 'Lobo-guará'),
-  Slide('$_supabaseAnimais/micoleao-cke.png', 'Mico-leão-dourado'),
+/// As fotos da abertura sao as do catalogo, com o mesmo credito. Ate
+/// 10/11/2026 eram quatro arquivos do bucket `animals`, sem origem registrada;
+/// desde entao vem do Wikimedia Commons, como no site.
+final slides = <Slide>[
+  for (final nome in const [
+    'Onça-pintada',
+    'Arara-azul-de-lear',
+    'Lobo-guará',
+    'Mico-leão-dourado',
+  ])
+    _slideDoCatalogo(nome),
 ];
+
+Slide _slideDoCatalogo(String nome) {
+  final animal = animais.firstWhere((a) => a.nome == nome);
+  return Slide(animal.imagem, animal.nome, animal.credito!);
+}
 
 /// A foto da secao final da Home ("Passe adiante"), a mesma do site: queimada
 /// perto da Flona do Jacunda (RO), em 07/08/2020. A licenca CC BY pede credito,

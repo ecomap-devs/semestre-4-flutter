@@ -2,9 +2,6 @@ import '../models/animal.dart';
 import '../theme/app_theme.dart';
 import 'especies_data.dart';
 
-const _supabaseAnimais =
-    'https://wqvxjttidoxcblkfjoaf.supabase.co/storage/v1/object/public/animals';
-
 /// Monta a especie com o status gerado. Especie sem status e erro: o status
 /// nao pode virar um valor escrito a mao. O teste de integridade pega isso.
 /// Fora da lista nacional nao e erro: a especie aparece como "Não ameaçada".
@@ -46,9 +43,12 @@ Animal _especie({
 /// Ate 28/10/2026 tinha uma "perereca-verde-da-mata" que nao corresponde a
 /// especie conhecida, e a "arara-azul" com foto da arara-azul-de-lear. Desde
 /// entao tem tambem especies fora da lista nacional, para mostrar a fauna de
-/// cada bioma e nao so a que esta sumindo. As sete primeiras fotos sao do
-/// bucket `animals` do Supabase; as outras, do Wikimedia Commons, com autor e
-/// licenca em `credito`.
+/// cada bioma e nao so a que esta sumindo.
+///
+/// Todas as fotos vem do Wikimedia Commons, com autor e licenca em `credito`.
+/// Ate 10/11/2026 as sete primeiras eram do bucket `animals` do Supabase, sem
+/// credito: vieram dos semestres anteriores e, pelo nome dos arquivos, eram
+/// copia das imagens de sites de terceiros que o React usava.
 final animais = <Animal>[
   _especie(
     nome: 'Onça-pintada',
@@ -64,7 +64,12 @@ final animais = <Animal>[
       'Fragmentação florestal',
       'Morte causada por pessoas',
     ],
-    imagem: '$_supabaseAnimais/onca-pintada.png',
+    imagem: 'https://thumb.wikimedia.org/wikipedia/commons/thumb/b/b2/On%C3%A7a-pintada-PE_Encontro_das_%C3%81guas-Thiagomarcelcampi%28001%29.jpg/960px-On%C3%A7a-pintada-PE_Encontro_das_%C3%81guas-Thiagomarcelcampi%28001%29.jpg',
+    credito: const Credito(
+      autor: 'Thiagomarcelcampi',
+      licenca: 'CC BY-SA 4.0',
+      link: 'https://commons.wikimedia.org/wiki/File:On%C3%A7a-pintada-PE_Encontro_das_%C3%81guas-Thiagomarcelcampi(001).jpg',
+    ),
     populacao: const Populacao(
       texto: 'menos de 300 na Mata Atlântica',
       fonte: 'Paviolo et al., Scientific Reports (2016)',
@@ -82,7 +87,12 @@ final animais = <Animal>[
         'com a proteção dos dormitórios e do licurizal, mas o tráfico '
         'continua.',
     ameacas: ['Tráfico de animais', 'Perda do licuri', 'Perda de habitat'],
-    imagem: '$_supabaseAnimais/arara-azul-de-lear_01_0.png',
+    imagem: 'https://thumb.wikimedia.org/wikipedia/commons/thumb/c/c7/Anodorhynchus_leari_-Rio_de_Janeiro_Zoo%2C_Brazil-8a.jpg/960px-Anodorhynchus_leari_-Rio_de_Janeiro_Zoo%2C_Brazil-8a.jpg',
+    credito: const Credito(
+      autor: 'Marcos Pereira',
+      licenca: 'CC BY 2.0',
+      link: 'https://commons.wikimedia.org/wiki/File:Anodorhynchus_leari_-Rio_de_Janeiro_Zoo,_Brazil-8a.jpg',
+    ),
     populacao: const Populacao(
       texto: '2.548 aves (censo de 2024)',
       fonte: 'Censo do CEMAVE/ICMBio, via Fundação Biodiversitas',
@@ -104,7 +114,12 @@ final animais = <Animal>[
       'Febre amarela',
       'Baixa diversidade genética',
     ],
-    imagem: '$_supabaseAnimais/micoleao-cke.png',
+    imagem: 'https://thumb.wikimedia.org/wikipedia/commons/thumb/1/12/Mico-le%C3%A3o-dourado_RPPN_do_Mico.jpg/960px-Mico-le%C3%A3o-dourado_RPPN_do_Mico.jpg',
+    credito: const Credito(
+      autor: 'Rodrigo.Argenton',
+      licenca: 'CC BY-SA 4.0',
+      link: 'https://commons.wikimedia.org/wiki/File:Mico-le%C3%A3o-dourado_RPPN_do_Mico.jpg',
+    ),
     populacao: const Populacao(
       texto: 'cerca de 4.800 (censo de 2023)',
       fonte: 'Associação Mico-Leão-Dourado',
@@ -122,7 +137,12 @@ final animais = <Animal>[
         'atropelamentos estão entre as principais causas de morte da '
         'espécie.',
     ameacas: ['Expansão agrícola', 'Atropelamentos', 'Perda de habitat'],
-    imagem: '$_supabaseAnimais/lobo-guara.png',
+    imagem: 'https://thumb.wikimedia.org/wikipedia/commons/thumb/0/0a/Chrysocyon_brachyurus_no_Parque_Nacional_da_Serra_da_Canastra_por_Celso_Ferrarezi_Jr_%2807%29.jpg/960px-Chrysocyon_brachyurus_no_Parque_Nacional_da_Serra_da_Canastra_por_Celso_Ferrarezi_Jr_%2807%29.jpg',
+    credito: const Credito(
+      autor: 'Ferrarezi Jr.',
+      licenca: 'CC BY-SA 4.0',
+      link: 'https://commons.wikimedia.org/wiki/File:Chrysocyon_brachyurus_no_Parque_Nacional_da_Serra_da_Canastra_por_Celso_Ferrarezi_Jr_(07).jpg',
+    ),
   ),
   _especie(
     nome: 'Tamanduá-bandeira',
@@ -135,7 +155,12 @@ final animais = <Animal>[
         'recuperar. Queimadas, atropelamentos e a perda de habitat no '
         'Cerrado são as maiores ameaças.',
     ameacas: ['Queimadas', 'Atropelamentos', 'Perda de habitat'],
-    imagem: '$_supabaseAnimais/tamandua-bandeira-2.png',
+    imagem: 'https://thumb.wikimedia.org/wikipedia/commons/thumb/0/07/185_Giant_anteater_in_Encontro_das_%C3%81guas_State_Park_Photo_by_Giles_Laurent.jpg/960px-185_Giant_anteater_in_Encontro_das_%C3%81guas_State_Park_Photo_by_Giles_Laurent.jpg',
+    credito: const Credito(
+      autor: 'Giles Laurent',
+      licenca: 'CC BY-SA 4.0',
+      link: 'https://commons.wikimedia.org/wiki/File:185_Giant_anteater_in_Encontro_das_%C3%81guas_State_Park_Photo_by_Giles_Laurent.jpg',
+    ),
   ),
   _especie(
     nome: 'Boto-cor-de-rosa',
@@ -148,7 +173,12 @@ final animais = <Animal>[
         'redes de pesca e perde rios livres para as hidrelétricas, que '
         'isolam as populações.',
     ameacas: ['Captura para isca de pesca', 'Pesca acidental', 'Hidrelétricas'],
-    imagem: '$_supabaseAnimais/banner_blog_novo_24.png',
+    imagem: 'https://thumb.wikimedia.org/wikipedia/commons/thumb/9/92/Inia_geoffrensis_179341177.jpg/960px-Inia_geoffrensis_179341177.jpg',
+    credito: const Credito(
+      autor: 'Diogo Luiz',
+      licenca: 'CC BY-SA 4.0',
+      link: 'https://commons.wikimedia.org/wiki/File:Inia_geoffrensis_179341177.jpg',
+    ),
   ),
   _especie(
     nome: 'Ararinha-azul',
@@ -165,7 +195,12 @@ final animais = <Animal>[
       'Perda das matas de caraibeira',
       'População muito pequena',
     ],
-    imagem: '$_supabaseAnimais/ARARINHA_AZUL-795.jpg',
+    imagem: 'https://thumb.wikimedia.org/wikipedia/commons/thumb/a/ac/Cyanopsitta_spixii_-Vogelpark_Walsrode%2C_Walsrode%2C_Germany-1980.jpg/960px-Cyanopsitta_spixii_-Vogelpark_Walsrode%2C_Walsrode%2C_Germany-1980.jpg',
+    credito: const Credito(
+      autor: 'Rüdiger Stehn',
+      licenca: 'CC BY-SA 2.0',
+      link: 'https://commons.wikimedia.org/wiki/File:Cyanopsitta_spixii_-Vogelpark_Walsrode,_Walsrode,_Germany-1980.jpg',
+    ),
   ),
   _especie(
     nome: 'Sauim-de-coleira',

@@ -15,6 +15,7 @@ import '../widgets/abertura.dart';
 import '../widgets/animacao_na_tela.dart';
 import '../widgets/charts/barras_chart.dart';
 import '../widgets/charts/mapa_biomas.dart';
+import '../widgets/credito_da_foto.dart';
 import '../widgets/imagem_com_reserva.dart';
 import '../widgets/reviews_section.dart';
 import '../widgets/rolagem_suave.dart';
@@ -94,7 +95,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 _FaixaDeFoto(
                   foto: mico.url,
                   alinhamento: const Alignment(0, -.4),
-                  child: const _FraseDoMico(),
+                  child: _FraseDoMico(credito: mico.credito),
                 ),
                 _Especies(
                   key: _secaoAnimais,
@@ -476,7 +477,10 @@ class _FaixaDeFoto extends StatelessWidget {
 }
 
 class _FraseDoMico extends StatelessWidget {
-  const _FraseDoMico();
+  const _FraseDoMico({required this.credito});
+
+  /// O credito da foto do mico, que fica atras da frase.
+  final Credito credito;
 
   @override
   Widget build(BuildContext context) {
@@ -511,6 +515,8 @@ class _FraseDoMico extends StatelessWidget {
           'Mico-Leão-Dourado',
           style: TextStyle(fontSize: 18, color: AppCores.claroSuave),
         ),
+        const SizedBox(height: 4),
+        CreditoDaFoto(credito: credito),
       ],
     );
   }

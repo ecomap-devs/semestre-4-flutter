@@ -331,9 +331,9 @@ const termos = DocumentoLegal(
               '[CC BY 4.0](https://creativecommons.org/licenses/by/4.0/deed.pt-br)',
             ],
             [
-              'Fotos das espécies com crédito na ficha',
+              'Fotos das espécies',
               'Autores do [Wikimedia Commons](https://commons.wikimedia.org)',
-              'A de cada foto, indicada na ficha',
+              'A de cada foto, indicada na ficha e, nas fotos da abertura da página inicial, sobre a própria foto',
             ],
             [
               'Foto da seção final da página inicial',
@@ -353,7 +353,7 @@ const termos = DocumentoLegal(
           ],
         ),
         ParagrafoLegal(
-          'As fotos das espécies sem crédito na ficha vieram das versões dos semestres anteriores, e a origem de cada uma está sendo revista. Se alguma for sua e você quiser crédito ou remoção, [abra uma issue](https://github.com/ecomap-devs/semestre-4-nextjs/issues/new?template=pedido-de-dados.md).',
+          'Todas as fotos das espécies vêm do Wikimedia Commons, com autor e licença. Até 10 de novembro de 2026, sete delas vinham das versões dos semestres anteriores, sem origem registrada, e foram trocadas. Se alguma foto for sua e o crédito estiver errado, [abra uma issue](https://github.com/ecomap-devs/semestre-4-nextjs/issues/new?template=pedido-de-dados.md).',
         ),
       ],
     ),
