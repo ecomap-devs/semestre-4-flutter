@@ -92,6 +92,9 @@ Deno.test("limite por dia: recusa ate o dia seguinte", async () => {
   await db.close();
 });
 
+// Cada camada pela propria mensagem: sem o `revoke execute`, o anon ainda
+// esbarraria na tabela, e procurar so "permission denied" passaria do mesmo
+// jeito (contraprova de 10/11/2026, em limite_avatar_test.ts).
 Deno.test("anon e authenticated nao chamam a funcao nem tocam na tabela", async () => {
   const db = await bancoNovo();
   const tentar = async (sql: string) => {
@@ -99,24 +102,25 @@ Deno.test("anon e authenticated nao chamam a funcao nem tocam na tabela", async 
       await db.query(sql);
       return "permitido";
     } catch (e) {
-      return /permission denied/.test(String(e)) ? "negado" : String(e);
+      const negado = String(e).match(/permission denied for (function|table)/);
+      return negado ? `negado: ${negado[1]}` : String(e);
     }
   };
   for (const papel of ["anon", "authenticated"]) {
     await db.exec(`reset role; set role ${papel}`);
     equal(
       await tentar("select public.registrar_identificacao('x', 999, 999)"),
-      "negado",
+      "negado: function",
       `${papel} executou a funcao`,
     );
     equal(
       await tentar("select * from public.uso_identificacao"),
-      "negado",
+      "negado: table",
       `${papel} leu a tabela`,
     );
     equal(
       await tentar("update public.uso_identificacao set no_dia = 0"),
-      "negado",
+      "negado: table",
       `${papel} zerou o uso`,
     );
   }
