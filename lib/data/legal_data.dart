@@ -6,7 +6,7 @@
 import '../models/documento_legal.dart';
 
 /// A data da versao em vigor dos dois documentos.
-const atualizadoEm = '4 de novembro de 2026';
+const atualizadoEm = '10 de novembro de 2026';
 
 /// Onde fazer pedidos sobre dados: issue publica, com o modelo que avisa para
 /// nao escrever dado pessoal.
@@ -64,7 +64,7 @@ const privacidade = DocumentoLegal(
             ],
             [
               'Arquivo da foto de perfil',
-              'Bucket `avatars` do Supabase Storage, redesenhado em até 512 px e sem metadados, inclusive a localização',
+              'Bucket `avatars` do Supabase Storage, gravado pela função `enviar-avatar`: uma foto por conta, redesenhada em até 512 px e sem metadados, inclusive a localização',
               'Qualquer pessoa que tenha o endereço do arquivo',
               'Até você pedir para apagar',
             ],
@@ -79,6 +79,12 @@ const privacidade = DocumentoLegal(
               'Tabela `uso_identificacao` do Supabase',
               'Só a equipe',
               'Uma linha por conta, sobrescrita a cada uso e apagada com a conta',
+            ],
+            [
+              'Uso do envio da foto de perfil: o identificador da conta e quantas fotos de perfil você mandou no dia',
+              'Tabela `uso_avatar` do Supabase',
+              'Só a equipe',
+              'Uma linha por conta, sobrescrita a cada envio e apagada com a conta',
             ],
             [
               'Foto enviada para identificação',
@@ -109,7 +115,7 @@ const privacidade = DocumentoLegal(
         ListaLegal([
           '**Conta e avaliações**: para criar a sua conta, mostrar quem avaliou e deixar só você mexer na sua avaliação. É o serviço que você pediu ao se cadastrar (LGPD, art. 7º, V).',
           '**Identificação por foto**: para dizer qual animal está na foto, que é o que você pediu ao enviá-la (art. 7º, V).',
-          '**Contador de uso**: para limitar cada conta a 5 fotos por minuto e 30 por dia, e a cota gratuita do Gemini não acabar para todos. É o legítimo interesse do projeto em manter o recurso funcionando (art. 7º, IX).',
+          '**Contadores de uso**: para limitar cada conta a 5 fotos por minuto e 30 por dia na identificação, para a cota gratuita do Gemini não acabar para todos, e a 5 fotos de perfil por dia, para o espaço de armazenamento do projeto não ser tomado por envios em massa. É o legítimo interesse do projeto em manter os recursos funcionando (art. 7º, IX).',
           '**Registros técnicos**: segurança e correção de erros (art. 7º, IX).',
           'Nunca para publicidade, perfil de comportamento ou venda de dados.',
         ]),
@@ -208,7 +214,7 @@ const privacidade = DocumentoLegal(
         ListaLegal([
           'Tudo trafega por HTTPS.',
           'As regras do banco deixam só você criar, editar ou apagar a sua avaliação e ler o seu perfil, e conferem o formato de cada campo.',
-          'A foto de perfil só pode ir para o bucket do próprio projeto, e um arquivo enviado não pode ser sobrescrito.',
+          'A foto de perfil só sobe com a conta conectada, por uma função no servidor que confere se o arquivo é mesmo uma imagem e limita os envios por dia. Ela fica no bucket do próprio projeto, e um arquivo enviado não pode ser sobrescrito.',
           'A função de identificação só aceita pedido de quem está logado, e a chave do Gemini fica no servidor, nunca no site ou no app.',
           'Se acontecer um incidente com os seus dados, avisamos nesta página e à ANPD, como a LGPD manda.',
         ]),

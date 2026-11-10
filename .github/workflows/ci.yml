@@ -162,8 +162,8 @@ jobs:
       - name: Testar as regras no emulador
         run: npm test
 
-  # A Edge Function da identificacao por foto e o SQL do limite por pessoa
-  # (revisao de 28/10/2026). Os testes usam `fetch` falso e um Postgres em
+  # As Edge Functions (identificacao por foto e foto de perfil) e o SQL dos limites
+  # (revisoes de 28/10 e 10/11/2026). Os testes usam `fetch` falso e um Postgres em
   # WebAssembly: nao falam com o Google nem com o banco de producao.
   funcao:
     name: Edge Function
@@ -179,7 +179,7 @@ jobs:
         run: deno fmt --check supabase
 
       - name: Conferir tipos
-        run: deno check supabase/functions/identificar-animal/index.ts
+        run: deno check supabase/functions/identificar-animal/index.ts supabase/functions/enviar-avatar/index.ts
 
-      - name: Testar a função e o SQL do limite
+      - name: Testar as funções e o SQL dos limites
         run: deno test --allow-read --allow-env supabase

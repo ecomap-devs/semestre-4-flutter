@@ -5,3 +5,9 @@
 # (ver supabase/functions/identificar-animal/index.ts).
 [functions.identificar-animal]
 verify_jwt = false
+
+# A foto de perfil (revisao de seguranca de 10/11/2026). Mesmo motivo: quem
+# chama esta logado no Firebase, e a funcao confere o ID token por conta propria
+# (supabase/functions/_compartilhado/firebase.ts).
+[functions.enviar-avatar]
+verify_jwt = false

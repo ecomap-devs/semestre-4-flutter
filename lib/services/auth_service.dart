@@ -1,10 +1,9 @@
-import 'dart:math';
+import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:supabase_flutter/supabase_flutter.dart'
-    show Supabase, FileOptions;
+import 'package:supabase_flutter/supabase_flutter.dart' show Supabase;
 
 import '../models/avaliacao.dart' show fotoConfiavel;
 import 'reviews_service.dart' show maxNome;
@@ -12,6 +11,23 @@ import 'sem_metadados.dart';
 
 /// O mesmo limite do bucket `avatars` no Supabase.
 const maxAvatarBytes = 1024 * 1024;
+
+/// O formato que a funcao `enviar-avatar` grava: `<uid>/<uuid>.<ext>`.
+final _formatoDoCaminho = RegExp(
+  r'^[A-Za-z0-9]{1,128}/[0-9a-f-]{32,36}\.(jpg|png|webp)$',
+);
+
+/// O caminho que a funcao `enviar-avatar` devolveu, se tiver o formato dela e
+/// for da pasta de [uid]; senao, `null`. A URL publica sai daqui, entao uma
+/// resposta estranha nao vira foto de perfil.
+String? caminhoDoAvatar(Object? resposta, String uid) {
+  final caminho = switch (resposta) {
+    {'caminho': final String c} => c,
+    _ => null,
+  };
+  if (caminho == null || !caminho.startsWith('$uid/')) return null;
+  return _formatoDoCaminho.hasMatch(caminho) ? caminho : null;
+}
 
 /// A conta foi criada, mas o perfil (foto, nome) não terminou de salvar.
 class CadastroIncompleto implements Exception {
@@ -23,8 +39,9 @@ class CadastroIncompleto implements Exception {
 
 /// Cadastro e login por e-mail/senha, com avatar no Supabase Storage.
 ///
-/// Mesmo fluxo do AuthModal.jsx: cria no Firebase Auth, sobe a foto no bucket
-/// `avatars` do Supabase, grava o perfil em `usuarios/{uid}`.
+/// Mesmo fluxo do site: cria no Firebase Auth, sobe a foto pela funcao
+/// `enviar-avatar` (que grava no bucket `avatars`), grava o perfil em
+/// `usuarios/{uid}`.
 class AuthService {
   AuthService({FirebaseAuth? auth, FirebaseFirestore? db})
     : _auth = auth ?? FirebaseAuth.instance,
@@ -72,7 +89,7 @@ class AuthService {
   }) async {
     var fotoUrl = fotoConfiavel(user.photoURL);
     if (foto != null && fotoUrl.isEmpty) {
-      fotoUrl = await _enviarAvatar(user.uid, foto);
+      fotoUrl = await _enviarAvatar(user, foto);
     }
 
     final nomeLimpo = nome.trim();
@@ -107,12 +124,15 @@ class AuthService {
   /// causa da foto seria pior que ficar sem foto. Mesmo criterio do
   /// `if (!error)` da versao React.
   ///
-  /// O nome do arquivo e `<uid>/<aleatorio>.<ext>`: imprevisivel, e o bucket
-  /// so aceita criar arquivo novo (sem sobrescrever) de imagem de ate 1 MB.
+  /// A foto vai para a funcao `enviar-avatar`, com o ID token do Firebase, e
+  /// ela grava em `<uid>/<uuid>.<ext>`. Ate 10/11/2026 o app gravava direto no
+  /// bucket, que aceitava arquivo de qualquer pessoa, ate sem login, e sem
+  /// limite de quantidade (revisao de seguranca de 10/11/2026). A funcao confere
+  /// o login, o tipo pelos bytes e o limite de fotos por dia.
   ///
   /// O bucket e publico: a foto sobe sem metadados (`semMetadados`). Ate
   /// 02/11/2026 subia com o EXIF que o image_picker copia, GPS incluido.
-  Future<String> _enviarAvatar(String uid, Uint8List foto) async {
+  Future<String> _enviarAvatar(User user, Uint8List foto) async {
     final ({Uint8List bytes, String extensao}) limpa;
     try {
       limpa = await semMetadados(foto, ladoMaximo: 512);
@@ -120,22 +140,19 @@ class AuthService {
       return '';
     }
     if (limpa.bytes.lengthInBytes > maxAvatarBytes) return '';
-    final ext = limpa.extensao;
-    final tipo = ext == 'jpg' ? 'image/jpeg' : 'image/png';
-    final aleatorio = Random.secure();
-    final nome = List.generate(
-      16,
-      (_) => aleatorio.nextInt(256).toRadixString(16).padLeft(2, '0'),
-    ).join();
-    final caminho = '$uid/$nome.$ext';
     try {
-      final bucket = Supabase.instance.client.storage.from('avatars');
-      await bucket.uploadBinary(
-        caminho,
-        limpa.bytes,
-        fileOptions: FileOptions(contentType: tipo),
+      final token = await user.getIdToken();
+      final supabase = Supabase.instance.client;
+      final resposta = await supabase.functions.invoke(
+        'enviar-avatar',
+        body: {'imagem': base64Encode(limpa.bytes)},
+        headers: {'Authorization': 'Bearer $token'},
       );
-      return fotoConfiavel(bucket.getPublicUrl(caminho));
+      final caminho = caminhoDoAvatar(resposta.data, user.uid);
+      if (caminho == null) return '';
+      return fotoConfiavel(
+        supabase.storage.from('avatars').getPublicUrl(caminho),
+      );
     } catch (_) {
       return '';
     }

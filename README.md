@@ -52,7 +52,7 @@ flowchart LR
         auth[🔐 Firebase Auth]
         fs[(🗄️ Firestore)]
         sb[(🖼️ Supabase Storage)]
-        fn["⚡ Edge Function<br/>identificar-animal"]
+        fn["⚡ Edge Functions<br/>identificar-animal · enviar-avatar"]
     end
     web --> auth & fs & sb & fn
     app --> auth & fs & sb & fn
@@ -73,8 +73,9 @@ Flutter fica com o que faz melhor: **o app Android**.
 
 **As regras do Firestore moram aqui e valem para os dois.** O banco é um só, então as
 regras são uma só: duas cópias, uma em cada repositório, acabariam divergindo. Pelo
-mesmo motivo a Edge Function da identificação por foto, que o site também chama, mora
-aqui, em [`supabase/functions/identificar-animal`](supabase/functions/identificar-animal).
+mesmo motivo as Edge Functions, que o site também chama, moram aqui: a da identificação
+por foto, em [`supabase/functions/identificar-animal`](supabase/functions/identificar-animal),
+e a da foto de perfil, em [`supabase/functions/enviar-avatar`](supabase/functions/enviar-avatar).
 
 ## 🛠️ Stack
 
@@ -194,6 +195,20 @@ cd firestore-testes && npm install && npm test   # precisa de Java 21+
 ```
 
 As políticas do bucket `avatars` do Supabase estão em [`supabase/avatars.sql`](supabase/avatars.sql).
+
+**A foto de perfil sobe pela função `enviar-avatar` (10/11/2026).** Até aqui o bucket
+aceitava arquivo novo de qualquer pessoa, até sem login, porque o Supabase não sabe quem
+está logado no Firebase, e não havia limite de quantidade. A função confere:
+- o ID token do Firebase;
+- o tipo pelos bytes (JPEG, PNG ou WebP), e não pelo que o cliente declara;
+- o tamanho, de até 1 MB;
+- o limite de 5 fotos por pessoa por dia (`supabase/limite-avatar.sql`).
+
+Ela grava com a chave secreta e apaga as fotos anteriores da mesma pessoa, que só existem
+quando um cadastro falhou no meio. Para publicar, a ordem está no cabeçalho de
+[`index.ts`](supabase/functions/enviar-avatar/index.ts). O envio direto ao bucket só fecha
+por último, com [`supabase/avatars-so-pela-funcao.sql`](supabase/avatars-so-pela-funcao.sql),
+depois que o site e uma versão nova do app usarem a função.
 
 </details>
 
