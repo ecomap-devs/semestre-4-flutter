@@ -8,6 +8,7 @@ import '../data/denuncia_data.dart';
 import '../data/home_data.dart';
 import '../data/linha_do_tempo.dart';
 import '../models/animal.dart';
+import '../services/abrir_link.dart';
 import '../services/reviews_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/abertura.dart';
@@ -17,6 +18,7 @@ import '../widgets/charts/mapa_biomas.dart';
 import '../widgets/imagem_com_reserva.dart';
 import '../widgets/reviews_section.dart';
 import '../widgets/rolagem_suave.dart';
+import '../widgets/texto_com_links.dart';
 import 'legal_screen.dart';
 
 /// Home — a mesma pagina inicial do site (semestre-4-nextjs).
@@ -933,12 +935,13 @@ class _ComoDenunciar extends StatelessWidget {
           const SizedBox(height: 14),
           const Text(sobreAnonimato, style: _texto),
           const SizedBox(height: 16),
-          // Sem `url_launcher` no app, a fonte vai por extenso, selecionavel.
-          SelectableText(
-            'Fonte: ${fonteDenuncia.rotulo} (${fonteDenuncia.link}), '
-            'conferido em ${fonteDenuncia.conferidoEm}.',
-            style: const TextStyle(fontSize: 14, color: AppCores.tinta3),
-          ),
+          // Como no site: o nome da pagina e o link, sem o endereco por extenso
+          // (ate 10/11/2026 o app nao abria links e mostrava o endereco).
+          TextoComLinks([
+            const Trecho('Fonte: '),
+            Trecho(fonteDenuncia.rotulo, link: fonteDenuncia.link),
+            Trecho(', conferido em ${fonteDenuncia.conferidoEm}.'),
+          ], estilo: const TextStyle(fontSize: 14, color: AppCores.tinta3)),
         ],
       ),
     );
@@ -984,23 +987,7 @@ class _ComoDenunciar extends StatelessWidget {
                               ),
                             ),
                             const SizedBox(height: 6),
-                            // Selecionavel: da para copiar o numero e discar.
-                            SelectableText(
-                              canal.contato,
-                              style: estiloTitulo(
-                                36,
-                                cor: AppCores.mata,
-                                altura: 1.1,
-                              ),
-                            ),
-                            if (canal.endereco case final endereco?)
-                              SelectableText(
-                                endereco,
-                                style: const TextStyle(
-                                  fontSize: 15,
-                                  color: AppCores.tinta3,
-                                ),
-                              ),
+                            _ContatoDoCanal(canal: canal),
                             const SizedBox(height: 10),
                             Text(
                               canal.texto,
@@ -1070,13 +1057,50 @@ class _Chamada extends StatelessWidget {
         const SizedBox(height: 36),
         const _BotaoCompartilhar(),
         const SizedBox(height: 24),
-        Text(
-          'Foto: ${creditoDaChamadaFinal.autor} · '
-          '${creditoDaChamadaFinal.licenca} · Wikimedia Commons: '
-          '${creditoDaChamadaFinal.link}',
-          style: const TextStyle(fontSize: 13, color: Color(0xBFFFFDF8)),
+        // Como no site: o autor leva a pagina da foto no Wikimedia Commons.
+        TextoComLinks(
+          [
+            const Trecho('Foto: '),
+            Trecho(
+              creditoDaChamadaFinal.autor,
+              link: creditoDaChamadaFinal.link,
+            ),
+            Trecho(' · ${creditoDaChamadaFinal.licenca} · Wikimedia Commons'),
+          ],
+          estilo: const TextStyle(fontSize: 13, color: Color(0xBFFFFDF8)),
+          corDoLink: const Color(0xE6FFFDF8),
         ),
       ],
+    );
+  }
+}
+
+/// O numero ou o site de um canal de denuncia, em destaque e tocavel: o
+/// telefone abre o discador e o site abre no navegador. O toque longo copia,
+/// como dava quando era texto selecionavel.
+class _ContatoDoCanal extends StatelessWidget {
+  const _ContatoDoCanal({required this.canal});
+
+  final CanalDenuncia canal;
+
+  @override
+  Widget build(BuildContext context) {
+    final telefone = canal.link.startsWith('tel:');
+    return Semantics(
+      link: true,
+      hint: telefone ? 'Abre o discador' : 'Abre no navegador',
+      child: InkWell(
+        onTap: () => abrirLink(context, canal.link),
+        onLongPress: () =>
+            copiarComAviso(context, telefone ? canal.contato : canal.link),
+        child: Text(
+          canal.contato,
+          style: estiloTitulo(36, cor: AppCores.mata, altura: 1.1).copyWith(
+            decoration: TextDecoration.underline,
+            decorationColor: AppCores.mata.withValues(alpha: 0.35),
+          ),
+        ),
+      ),
     );
   }
 }
@@ -1174,13 +1198,23 @@ class _Rodape extends StatelessWidget {
           ),
       ],
     );
-    const contato = Column(
+    final contato = Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Contato', style: _tituloColuna),
-        SizedBox(height: 8),
-        Text('Matão, São Paulo', style: _texto),
-        SelectableText('github.com/ecomap-devs', style: _texto),
+        const Text('Contato', style: _tituloColuna),
+        const SizedBox(height: 8),
+        const Text('Matão, São Paulo', style: _texto),
+        // Tocavel como os atalhos de "No app", com a mesma altura de toque.
+        Semantics(
+          link: true,
+          child: InkWell(
+            onTap: () => abrirLink(context, 'https://github.com/ecomap-devs'),
+            child: const Padding(
+              padding: EdgeInsets.symmetric(vertical: 6),
+              child: Text('github.com/ecomap-devs', style: _texto),
+            ),
+          ),
+        ),
       ],
     );
 
@@ -1213,7 +1247,7 @@ class _Rodape extends StatelessWidget {
                       const SizedBox(width: 40),
                       Expanded(child: noApp),
                       const SizedBox(width: 40),
-                      const Expanded(child: contato),
+                      Expanded(child: contato),
                     ],
                   ),
                 const SizedBox(height: 40),

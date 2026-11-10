@@ -87,6 +87,7 @@ aqui, em [`supabase/functions/identificar-animal`](supabase/functions/identifica
 | **Conta e dados** | `firebase_auth` · `cloud_firestore` | Login por e-mail e senha e avaliações em tempo real |
 | **Imagens** | `supabase_flutter` | Fotos das espécies e dos avatares |
 | **Identificação por foto** | `image_picker` + Edge Function do Supabase + Gemini | A chave do Gemini fica no servidor, nunca no APK |
+| **Links e telefones** | `url_launcher` | Fonte, crédito de foto e site abrem no navegador; o 0800 do Ibama e o 190 abrem o discador. Já vinha no APK pelo `supabase_flutter` |
 
 ## 🚀 Como rodar
 
@@ -324,8 +325,16 @@ cadastro e pelo "Como tratamos a foto" da tela Fotos.
 
 O texto é **gerado**, não digitado: `node tool/legal/copiar.mjs <pasta do semestre-4-nextjs>`
 lê o `src/dados/legal.ts` do site e escreve `lib/data/legal_data.dart` com as mesmas
-strings. Sem `url_launcher`, link para fora copia o endereço; link para outra seção rola
-até ela. `test/legal_test.dart` confere que toda âncora aponta para uma seção que existe.
+strings. Link para fora abre no navegador (até 10/11/2026, copiava o endereço); link para
+outra seção rola até ela. `test/legal_test.dart` confere que toda âncora aponta para uma
+seção que existe.
+
+**Links e telefones (10/11/2026).** Tudo o que sai do app passa por `abrirLink`
+(`lib/services/abrir_link.dart`): `https:` abre no navegador do celular e `tel:` abre o
+discador com o número, sem ligar. Outro esquema (`javascript:`, `intent:`) não chega ao
+sistema. Se o aparelho não tiver quem abra, o endereço ou o número vai para a área de
+transferência, com um aviso. Os créditos e as fontes seguem o site: o link fica no nome do
+autor e da fonte (`TextoComLinks`). Nos canais de denúncia, o toque longo copia o número.
 
 **Fotos sem metadados (02/11/2026).** O `image_picker` do Android, ao reduzir a foto,
 copia o EXIF da original, inclusive o GPS. O avatar ia assim para o bucket público e a

@@ -8,6 +8,7 @@ import '../theme/app_theme.dart';
 import '../widgets/animacao_na_tela.dart';
 import '../widgets/imagem_com_reserva.dart';
 import '../widgets/rolagem_suave.dart';
+import '../widgets/texto_com_links.dart';
 import 'legal_screen.dart';
 
 /// Busca sem acento e sem caixa: "onca" acha "Onça-pintada".
@@ -700,16 +701,17 @@ class _FichaAnimal extends StatelessWidget {
           ),
         ),
         // As licencas Creative Commons exigem autor e licenca junto da foto.
+        // Como no site, o autor leva a pagina da foto no Wikimedia Commons.
         if (credito != null)
           Padding(
             padding: mobile
                 ? const EdgeInsets.fromLTRB(18, 6, 18, 0)
                 : const EdgeInsets.fromLTRB(32, 6, 32, 0),
-            child: SelectableText(
-              'Foto: ${credito.autor} · ${credito.licenca} · Wikimedia '
-              'Commons: ${credito.link}',
-              style: const TextStyle(fontSize: 13, color: AppCores.tinta3),
-            ),
+            child: TextoComLinks([
+              const Trecho('Foto: '),
+              Trecho(credito.autor, link: credito.link),
+              Trecho(' · ${credito.licenca} · Wikimedia Commons'),
+            ], estilo: const TextStyle(fontSize: 13, color: AppCores.tinta3)),
           ),
         Padding(
           padding: mobile
@@ -776,22 +778,14 @@ class _FichaAnimal extends StatelessWidget {
               if (populacao != null) ...[
                 Text('População estimada', style: estiloTitulo(18)),
                 const SizedBox(height: 6),
-                // Sem `url_launcher` no app, a fonte vai por extenso, com o
-                // endereco selecionavel para copiar.
-                SelectableText.rich(
-                  TextSpan(
-                    children: [
-                      TextSpan(text: '${populacao.texto}. '),
-                      TextSpan(
-                        text: '${populacao.fonte}: ${populacao.link}',
-                        style: const TextStyle(
-                          fontSize: 14,
-                          color: AppCores.tinta3,
-                        ),
-                      ),
-                    ],
-                  ),
-                  style: const TextStyle(
+                // Como no site: a fonte e o link, sem o endereco por extenso
+                // (ate 10/11/2026 o app nao abria links e mostrava o endereco).
+                TextoComLinks(
+                  [
+                    Trecho('${populacao.texto}. '),
+                    Trecho(populacao.fonte, link: populacao.link),
+                  ],
+                  estilo: const TextStyle(
                     fontSize: 16,
                     height: 1.5,
                     color: AppCores.tinta2,
