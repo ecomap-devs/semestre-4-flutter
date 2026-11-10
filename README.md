@@ -196,6 +196,9 @@ cd firestore-testes && npm install && npm test   # precisa de Java 21+
 ```
 
 As políticas do bucket `avatars` do Supabase estão em [`supabase/avatars.sql`](supabase/avatars.sql).
+O que mais foi aplicado à mão no banco está ao lado, em `supabase/`, um arquivo por mudança. Um
+exemplo é [`rls-auto-enable.sql`](supabase/rls-auto-enable.sql), que atendeu ao Advisor de
+segurança em 10/11/2026: o comando `npx supabase db advisors` lista os avisos.
 
 **A foto de perfil sobe pela função `enviar-avatar` (10/11/2026).** Até aqui o bucket
 aceitava arquivo novo de qualquer pessoa, até sem login, porque o Supabase não sabe quem
