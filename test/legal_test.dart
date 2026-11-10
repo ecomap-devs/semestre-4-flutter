@@ -5,7 +5,11 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:ecomapbrasil/data/legal_data.dart';
 import 'package:ecomapbrasil/models/documento_legal.dart';
 import 'package:ecomapbrasil/screens/legal_screen.dart';
+import 'package:ecomapbrasil/services/abrir_link.dart';
 import 'package:ecomapbrasil/theme/app_theme.dart';
+
+/// O `abrirNoSistema` de verdade, para devolver depois de cada teste.
+final _abridorDeVerdade = abrirNoSistema;
 
 /// Todos os textos de um documento, inclusive as celulas das tabelas.
 Iterable<String> _textos(DocumentoLegal d) sync* {
@@ -157,7 +161,31 @@ void main() {
       expect(find.text('O que é o EcoMapBrasil'), findsWidgets);
     });
 
-    testWidgets('link para fora copia o endereço', (tester) async {
+    testWidgets('link para fora abre no navegador', (tester) async {
+      final abertos = <Uri>[];
+      abrirNoSistema = (uri) async {
+        abertos.add(uri);
+        return true;
+      };
+      addTearDown(() => abrirNoSistema = _abridorDeVerdade);
+
+      await _montar(tester, const LegalScreen(documento: termos));
+      await tester.ensureVisible(
+        find.textContaining('abra uma issue', findRichText: true).first,
+      );
+      await tester.pumpAndSettle();
+      await tester.tapOnText(
+        find.textRange.ofSubstring('abra uma issue').first,
+      );
+      await tester.pump();
+      expect(abertos, hasLength(1));
+      expect(abertos.single.toString(), startsWith('https://github.com/'));
+      expect(find.byType(SnackBar), findsNothing);
+    });
+
+    testWidgets('link que não abre vai para a área de transferência', (
+      tester,
+    ) async {
       String? copiado;
       tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
         SystemChannels.platform,
@@ -174,6 +202,9 @@ void main() {
           null,
         ),
       );
+      // Aparelho sem navegador, ou o sistema recusou.
+      abrirNoSistema = (_) async => false;
+      addTearDown(() => abrirNoSistema = _abridorDeVerdade);
       String? seguido;
       await _montar(
         tester,
@@ -193,7 +224,8 @@ void main() {
       await tester.tapOnText(find.textRange.ofSubstring('site'));
       expect(seguido, 'https://ecomapbrasil-17756.web.app');
 
-      // Na tela de verdade, o link externo vai para a area de transferencia.
+      // Na tela de verdade, o link que nao abriu vai para a area de
+      // transferencia, com o aviso.
       await _montar(tester, const LegalScreen(documento: termos));
       await tester.ensureVisible(
         find.textContaining('abra uma issue', findRichText: true).first,

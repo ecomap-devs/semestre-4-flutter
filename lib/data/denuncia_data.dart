@@ -15,14 +15,15 @@ const fonteDenuncia = (
   conferidoEm: '29 de outubro de 2026',
 );
 
-/// Um canal de denuncia. Sem `url_launcher` no app, o contato aparece por
-/// extenso e selecionavel, para copiar ou discar.
+/// Um canal de denuncia. O contato e tocavel: o numero abre o discador, e o
+/// site abre no navegador. Ate 10/11/2026 o app nao abria links, e o canal
+/// guardava o endereco por extenso (`endereco`) em vez do `link` do site.
 class CanalDenuncia {
   const CanalDenuncia({
     required this.titulo,
     required this.contato,
+    required this.link,
     required this.texto,
-    this.endereco,
   });
 
   final String titulo;
@@ -30,8 +31,8 @@ class CanalDenuncia {
   /// O que mostrar em destaque: o numero ou o nome do site.
   final String contato;
 
-  /// Endereco do site, quando o canal e pela internet.
-  final String? endereco;
+  /// `tel:` ou `https:`.
+  final String link;
   final String texto;
 }
 
@@ -39,7 +40,7 @@ const canaisDenuncia = <CanalDenuncia>[
   CanalDenuncia(
     titulo: 'Pela internet',
     contato: 'Fala.BR',
-    endereco: 'falabr.cgu.gov.br',
+    link: 'https://falabr.cgu.gov.br/v2/',
     texto:
         'A plataforma de ouvidoria do governo federal, que encaminha ao Ibama. '
         'Pede login gov.br, e a denúncia identificada pode ser acompanhada até '
@@ -48,6 +49,7 @@ const canaisDenuncia = <CanalDenuncia>[
   CanalDenuncia(
     titulo: 'Por telefone',
     contato: '0800 061 8080',
+    link: 'tel:08000618080',
     texto:
         'Central de Atendimento do Ibama, ligação gratuita. De segunda a sexta, '
         'exceto feriados, das 7h às 19h.',
@@ -55,6 +57,7 @@ const canaisDenuncia = <CanalDenuncia>[
   CanalDenuncia(
     titulo: 'Está acontecendo agora',
     contato: '190',
+    link: 'tel:190',
     texto:
         'Desmatamento, caça ou queimada em andamento é caso de polícia: a '
         'Polícia Militar aciona o policiamento ambiental do estado. Para fogo, '

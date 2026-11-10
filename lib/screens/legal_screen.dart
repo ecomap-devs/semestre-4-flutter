@@ -1,10 +1,10 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 
 import '../data/home_data.dart' show enderecoDoSite;
 import '../data/legal_data.dart';
 import '../models/documento_legal.dart';
+import '../services/abrir_link.dart';
 import '../theme/app_theme.dart';
 
 /// Abre a politica de privacidade ou os termos de uso por cima da tela atual,
@@ -22,8 +22,9 @@ Future<void> abrirDocumentoLegal(
 /// A politica de privacidade e os termos de uso — as paginas `/privacidade` e
 /// `/termos` do site, com o mesmo texto (`legal_data.dart`, copiado do site).
 ///
-/// Sem `url_launcher` no app, link para fora copia o endereco; link para outra
-/// secao rola ate ela, e para o outro documento abre o outro documento.
+/// Link para fora abre no navegador (ate 10/11/2026, copiava o endereco); link
+/// para outra secao rola ate ela, e para o outro documento abre o outro
+/// documento.
 class LegalScreen extends StatefulWidget {
   const LegalScreen({super.key, required this.documento, this.secao});
 
@@ -82,14 +83,12 @@ class _LegalScreenState extends State<LegalScreen> {
     } else if (outro != null) {
       abrirDocumentoLegal(context, outro, secao: ancora);
     } else {
-      // Fora daqui: o endereco vai para a area de transferencia.
-      final url = destino.startsWith('/') ? '$enderecoDoSite$destino' : destino;
-      Clipboard.setData(ClipboardData(text: url));
-      ScaffoldMessenger.of(context)
-        ..hideCurrentSnackBar()
-        ..showSnackBar(
-          SnackBar(content: Text('Link copiado. Cole no navegador: $url')),
-        );
+      // Fora daqui: abre no navegador. Caminho do site (`/sobre`) vira o
+      // endereco completo; se nao abrir, `abrirLink` copia e avisa.
+      abrirLink(
+        context,
+        destino.startsWith('/') ? '$enderecoDoSite$destino' : destino,
+      );
     }
   }
 

@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:ecomapbrasil/models/avaliacao.dart';
 import 'package:ecomapbrasil/screens/home_screen.dart';
+import 'package:ecomapbrasil/services/abrir_link.dart';
 import 'package:ecomapbrasil/services/auth_service.dart';
 import 'package:ecomapbrasil/services/reviews_service.dart';
 import 'package:ecomapbrasil/theme/app_theme.dart';
@@ -148,6 +149,96 @@ void main() {
       expect(tester.takeException(), isNull);
     });
   }
+
+  // Ate 10/11/2026 o app nao abria links: o numero e o site eram texto para
+  // copiar. Agora o toque abre o discador ou o navegador.
+  testWidgets('os canais de denúncia abrem o discador e o navegador', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(390, 844) * 2;
+    tester.view.devicePixelRatio = 2;
+    addTearDown(tester.view.reset);
+    final abertos = <String>[];
+    final deVerdade = abrirNoSistema;
+    abrirNoSistema = (uri) async {
+      abertos.add('$uri');
+      return true;
+    };
+    addTearDown(() => abrirNoSistema = deVerdade);
+
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: construirTema(),
+        home: Builder(
+          builder: (context) => MediaQuery(
+            data: MediaQuery.of(context).copyWith(disableAnimations: true),
+            child: Scaffold(
+              body: HomeScreen(
+                usuario: null,
+                aoPedirLogin: () {},
+                aoAbrirMapa: () {},
+                aoAbrirAnimais: () {},
+                aoAbrirFotos: () {},
+                avaliacoes: _AvaliacoesFalsas(),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    Future<void> tocar(Finder alvo) async {
+      await tester.scrollUntilVisible(
+        alvo,
+        300,
+        scrollable: find.byType(Scrollable).first,
+        maxScrolls: 200,
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(alvo);
+      await tester.pumpAndSettle();
+    }
+
+    await tocar(find.text('Fala.BR'));
+    await tocar(find.text('0800 061 8080'));
+    await tocar(find.text('190'));
+    expect(abertos, [
+      'https://falabr.cgu.gov.br/v2/',
+      'tel:08000618080',
+      'tel:190',
+    ]);
+
+    // A fonte e o credito da foto final: o link e o nome, como no site.
+    await tester.scrollUntilVisible(
+      find.textContaining('conferido em', findRichText: true),
+      300,
+      scrollable: find.byType(Scrollable).first,
+      maxScrolls: 200,
+    );
+    await tester.pumpAndSettle();
+    await tester.tapOnText(
+      find.textRange.ofSubstring('gov.br, Apresentar denúncia ambiental'),
+    );
+    await tester.pumpAndSettle();
+    expect(
+      abertos.last,
+      'https://www.gov.br/pt-br/servicos/apresentar-denuncia-ambiental',
+    );
+    await tester.scrollUntilVisible(
+      find.textContaining('Bruno Kelly', findRichText: true),
+      300,
+      scrollable: find.byType(Scrollable).first,
+      maxScrolls: 200,
+    );
+    await tester.pumpAndSettle();
+    await tester.tapOnText(
+      find.textRange.ofSubstring('Bruno Kelly/Amazônia Real'),
+    );
+    await tester.pumpAndSettle();
+    expect(abertos.last, startsWith('https://commons.wikimedia.org/wiki/'));
+    expect(tester.takeException(), isNull);
+  });
 
   testWidgets('o cadastro avisa dos termos e da política', (tester) async {
     tester.view.physicalSize = const Size(390, 844) * 2;
