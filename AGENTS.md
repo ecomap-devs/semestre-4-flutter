@@ -171,13 +171,13 @@ Teste novo em `test/`. Cubra pelo menos:
 Não precisa testar layout pixel a pixel. Teste comportamento: o widget dispara o
 callback? A tela de erro lista o que falta?
 
-A Edge Function e o SQL do limite por pessoa têm testes em Deno, também na CI (job
-`Edge Function`): a corrida dos modelos com `fetch` falso, e o SQL num Postgres em
-WebAssembly com os papéis do Supabase. Mexeu em `supabase/`, rode:
+As Edge Functions e o SQL dos limites por pessoa têm testes em Deno, também na CI (job
+`Edge Function`): a corrida dos modelos e o envio da foto de perfil com `fetch` falso, e o
+SQL num Postgres em WebAssembly com os papéis do Supabase. Mexeu em `supabase/`, rode:
 
 ```bash
 deno fmt --check supabase
-deno check supabase/functions/identificar-animal/index.ts
+deno check supabase/functions/identificar-animal/index.ts supabase/functions/enviar-avatar/index.ts
 deno test --allow-read --allow-env supabase
 ```
 
@@ -342,5 +342,16 @@ Tudo acima vale. Além disso:
   diferentes da cota do Gemini (`cota`). Sem a tabela, a função recusa tudo com 503:
   **o SQL entra antes da função nova**. Limite que fica: muitas contas novas ainda
   somam, porque o cadastro continua aberto.
+- 🟡 **Foto de perfil pela Edge Function `enviar-avatar`** (10/11/2026). O bucket `avatars`
+  aceitava envio direto de qualquer pessoa, até sem login, sem limite de quantidade. Agora
+  a foto passa pela função, que confere o ID token do Firebase, o tipo pelos bytes, 1 MB e
+  5 fotos por pessoa por dia (`LIMITE_AVATAR_POR_DIA` muda sem republicar), contadas em
+  `supabase/limite-avatar.sql`. **A ordem importa:**
+  1. o SQL do limite;
+  2. publicar a função (`supabase functions deploy enviar-avatar --no-verify-jwt`);
+  3. o site e uma versão nova do app;
+  4. por último, `supabase/avatars-so-pela-funcao.sql`, que fecha o envio direto.
+
+  Fechar antes deixa o APK antigo sem foto no cadastro; o cadastro em si continua.
 - 🟢 **O app já foi executado** (09/09/2026), no navegador e no emulador Android, sem
   exceção nas telas. Em 04/11/2026, o login e o mapa funcionaram num celular de verdade.
