@@ -52,7 +52,7 @@ flowchart LR
         auth[🔐 Firebase Auth]
         fs[(🗄️ Firestore)]
         sb[(🖼️ Supabase Storage)]
-        fn["⚡ Edge Functions<br/>identificar-animal · enviar-avatar"]
+        fn["⚡ Edge Functions<br/>identificar-animal · enviar-avatar · apagar-conta"]
     end
     web --> auth & fs & sb & fn
     app --> auth & fs & sb & fn
@@ -75,7 +75,9 @@ Flutter fica com o que faz melhor: **o app Android**.
 regras são uma só: duas cópias, uma em cada repositório, acabariam divergindo. Pelo
 mesmo motivo as Edge Functions, que o site também chama, moram aqui: a da identificação
 por foto, em [`supabase/functions/identificar-animal`](supabase/functions/identificar-animal),
-e a da foto de perfil, em [`supabase/functions/enviar-avatar`](supabase/functions/enviar-avatar).
+a da foto de perfil, em [`supabase/functions/enviar-avatar`](supabase/functions/enviar-avatar),
+e a que apaga o que a conta deixou no Supabase, em
+[`supabase/functions/apagar-conta`](supabase/functions/apagar-conta).
 
 ## 🛠️ Stack
 
@@ -213,6 +215,19 @@ quando um cadastro falhou no meio. Para publicar, a ordem está no cabeçalho de
 [`index.ts`](supabase/functions/enviar-avatar/index.ts). O envio direto ao bucket só fecha
 por último, com [`supabase/avatars-so-pela-funcao.sql`](supabase/avatars-so-pela-funcao.sql),
 depois que o site e uma versão nova do app usarem a função.
+
+**Apagar a conta (11/11/2026).** O botão fica no menu da conta, no app e no site, e pede a
+senha de novo. Ele apaga, nesta ordem:
+1. pela função [`apagar-conta`](supabase/functions/apagar-conta/conta.ts): as fotos de perfil
+   (a pasta `<uid>/` e o `<uid>.<ext>` da raiz, formato de antes de 01/10/2026) e a linha da
+   conta em `uso_avatar` e `uso_identificacao`. Ela exige login de até 5 minutos, pelo
+   `auth_time` do token;
+2. as avaliações da conta, inclusive as antigas, de id aleatório;
+3. o perfil em `usuarios/{uid}`, que as regras deixam o dono apagar;
+4. por último, o usuário no Firebase Auth.
+
+Se uma etapa falhar, as seguintes não rodam, e tentar de novo é seguro. A ordem e as
+mensagens estão em `AuthService.apagarConta` (`lib/services/auth_service.dart`), com testes.
 
 </details>
 

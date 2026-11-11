@@ -172,12 +172,14 @@ Não precisa testar layout pixel a pixel. Teste comportamento: o widget dispara 
 callback? A tela de erro lista o que falta?
 
 As Edge Functions e o SQL dos limites por pessoa têm testes em Deno, também na CI (job
-`Edge Function`): a corrida dos modelos e o envio da foto de perfil com `fetch` falso, e o
-SQL num Postgres em WebAssembly com os papéis do Supabase. Mexeu em `supabase/`, rode:
+`Edge Function`): a corrida dos modelos, o envio da foto de perfil e o apagamento da conta
+com `fetch` falso, a conferência do ID token com chaves geradas no teste, e o SQL num
+Postgres em WebAssembly com os papéis do Supabase. Mexeu em `supabase/`, rode:
 
 ```bash
 deno fmt --check supabase
-deno check supabase/functions/identificar-animal/index.ts supabase/functions/enviar-avatar/index.ts
+deno check supabase/functions/identificar-animal/index.ts supabase/functions/enviar-avatar/index.ts \
+  supabase/functions/apagar-conta/index.ts
 deno test --allow-read --allow-env supabase
 ```
 
@@ -351,5 +353,11 @@ Tudo acima vale. Além disso:
   `supabase/avatars-so-pela-funcao.sql` já foi aplicado: o bucket não tem política de envio,
   e o APK 1.0.0 cadastra sem foto. Mudou `supabase/functions/enviar-avatar/`? Publique de
   novo à mão: `supabase functions deploy enviar-avatar --no-verify-jwt`.
+- 🟢 **Botão de apagar conta** (11/11/2026), no menu da conta do app e do site, com a senha de
+  novo. Apaga a foto de perfil e as linhas de limite pela função `apagar-conta` (que exige
+  login de até 5 minutos), as avaliações, o perfil e, por último, a conta no Auth; se uma etapa
+  falha, as seguintes não rodam. Até aqui só a equipe apagava, por pedido numa issue. Para
+  publicar: a função e as regras (`usuarios/{uid}` passou a aceitar `delete` do dono) **antes**
+  do site e da versão do app com o botão. Apagar só a avaliação ou só a foto ainda é pela equipe.
 - 🟢 **O app já foi executado** (09/09/2026), no navegador e no emulador Android, sem
   exceção nas telas. Em 04/11/2026, o login e o mapa funcionaram num celular de verdade.

@@ -37,6 +37,56 @@ class CadastroIncompleto implements Exception {
   final Object causa;
 }
 
+/// As etapas de apagar a conta, na ordem em que rodam.
+///
+/// A senha vem primeiro porque o Firebase só apaga o usuário com login
+/// recente, e a função `apagar-conta` exige o mesmo: sem isso, a conta parava
+/// no fim, com o resto já apagado. O servidor (foto de perfil e linhas de
+/// limite, no Supabase) vem antes do Firebase porque precisa do ID token, que
+/// some com a conta. A conta no Auth sai por último: enquanto ela existe, dá
+/// para entrar e tentar de novo.
+enum EtapaDoApagamento { senha, servidor, avaliacoes, perfil, conta }
+
+/// Apagar a conta parou em [etapa]. O que veio antes já foi apagado.
+class ApagamentoIncompleto implements Exception {
+  const ApagamentoIncompleto(this.etapa, this.causa);
+
+  final EtapaDoApagamento etapa;
+  final Object causa;
+
+  /// O que a pessoa lê. Diz se algo já saiu, para ela saber que tentar de
+  /// novo é seguro.
+  String get mensagem => switch (etapa) {
+    EtapaDoApagamento.senha => switch (causa) {
+      FirebaseAuthException(
+        code: 'invalid-credential' || 'wrong-password' || 'user-mismatch',
+      ) =>
+        'Senha incorreta.',
+      _ => AuthService.mensagemDeErro(causa),
+    },
+    EtapaDoApagamento.servidor =>
+      'Não deu para apagar sua foto de perfil agora, e nada foi apagado. '
+          'Tente de novo em alguns minutos.',
+    _ =>
+      'A conta não terminou de ser apagada: parte dos seus dados já saiu. '
+          'Tente de novo.',
+  };
+}
+
+/// Roda as etapas na ordem e para na primeira que falhar, com
+/// [ApagamentoIncompleto] dizendo qual foi.
+Future<void> apagarEmOrdem(
+  List<(EtapaDoApagamento, Future<void> Function())> etapas,
+) async {
+  for (final (etapa, executar) in etapas) {
+    try {
+      await executar();
+    } catch (erro) {
+      throw ApagamentoIncompleto(etapa, erro);
+    }
+  }
+}
+
 /// Cadastro e login por e-mail/senha, com avatar no Supabase Storage.
 ///
 /// Mesmo fluxo do site: cria no Firebase Auth, sobe a foto pela funcao
@@ -159,6 +209,69 @@ class AuthService {
   }
 
   Future<void> sair() => _auth.signOut();
+
+  /// Apaga a conta e tudo o que ela deixou: a foto de perfil e as linhas de
+  /// limite no Supabase (pela função `apagar-conta`), as avaliações, o perfil
+  /// em `usuarios/{uid}` e, por último, o usuário no Firebase Auth. A ordem e
+  /// o porquê dela estão em [EtapaDoApagamento].
+  ///
+  /// Até 11/11/2026 não havia botão: a política de privacidade mandava pedir
+  /// à equipe por uma issue.
+  Future<void> apagarConta({required String senha}) async {
+    final user = _auth.currentUser;
+    final email = user?.email;
+    if (user == null || email == null) {
+      throw ApagamentoIncompleto(
+        EtapaDoApagamento.senha,
+        StateError('Ninguém logado com e-mail'),
+      );
+    }
+    await apagarEmOrdem([
+      (
+        EtapaDoApagamento.senha,
+        () => user.reauthenticateWithCredential(
+          EmailAuthProvider.credential(email: email, password: senha),
+        ),
+      ),
+      (EtapaDoApagamento.servidor, () => _apagarNoServidor(user)),
+      (EtapaDoApagamento.avaliacoes, () => _apagarAvaliacoes(user.uid)),
+      (
+        EtapaDoApagamento.perfil,
+        () => _db.collection('usuarios').doc(user.uid).delete(),
+      ),
+      (EtapaDoApagamento.conta, user.delete),
+    ]);
+  }
+
+  /// A função `apagar-conta` apaga as fotos de perfil (os dois formatos de
+  /// nome) e as linhas de `uso_avatar` e `uso_identificacao`. Ela exige login
+  /// recente, que a etapa da senha acabou de fazer; o token é renovado para
+  /// levar a hora desse login.
+  Future<void> _apagarNoServidor(User user) async {
+    final token = await user.getIdToken(true);
+    final resposta = await Supabase.instance.client.functions.invoke(
+      'apagar-conta',
+      headers: {'Authorization': 'Bearer $token'},
+    );
+    if (resposta.status != 200) {
+      throw StateError('apagar-conta respondeu ${resposta.status}');
+    }
+  }
+
+  /// Todas as avaliações da conta, inclusive as antigas, de antes de o id ser
+  /// o uid. As regras deixam o autor apagar as dele.
+  Future<void> _apagarAvaliacoes(String uid) async {
+    final minhas = await _db
+        .collection('avaliacoes')
+        .where('uid', isEqualTo: uid)
+        .get();
+    if (minhas.docs.isEmpty) return;
+    final lote = _db.batch();
+    for (final doc in minhas.docs) {
+      lote.delete(doc.reference);
+    }
+    await lote.commit();
+  }
 
   /// Traduz o codigo do Firebase para a mensagem que o usuario le.
   /// Porte do mapa `msgs` do AuthModal.jsx.

@@ -6,7 +6,7 @@
 import '../models/documento_legal.dart';
 
 /// A data da versao em vigor dos dois documentos.
-const atualizadoEm = '10 de novembro de 2026';
+const atualizadoEm = '11 de novembro de 2026';
 
 /// Onde fazer pedidos sobre dados: issue publica, com o modelo que avisa para
 /// nao escrever dado pessoal.
@@ -39,7 +39,7 @@ const privacidade = DocumentoLegal(
           '**Não usamos** cookies de rastreamento, ferramentas de audiência nem anúncios, e não vendemos nem cedemos dados para marketing.',
           '**A avaliação é pública**: o nome, a foto de perfil, a nota e o comentário aparecem para qualquer pessoa, mesmo sem login.',
           '**A foto de identificação** vai para o Gemini, do Google, sem a localização e os outros metadados, e não fica guardada com a gente.',
-          '**Para apagar** a conta, uma avaliação ou a foto de perfil, hoje é preciso pedir à equipe: o site e o app ainda não têm esse botão.',
+          '**Para apagar a conta**, com tudo o que ela guardava, use **Apagar conta**, no menu com o seu nome, no site, ou no círculo com a sua foto ou inicial, no alto do app. Para apagar só a avaliação ou só a foto de perfil, ainda é preciso pedir à equipe.',
         ]),
       ],
     ),
@@ -66,13 +66,13 @@ const privacidade = DocumentoLegal(
               'Arquivo da foto de perfil',
               'Bucket `avatars` do Supabase Storage, gravado pela função `enviar-avatar`: uma foto por conta, redesenhada em até 512 px e sem metadados, inclusive a localização',
               'Qualquer pessoa que tenha o endereço do arquivo',
-              'Até você pedir para apagar',
+              'Até a conta ser apagada, ou antes, se você pedir',
             ],
             [
               'Avaliação: nota, comentário, nome, foto, datas e o identificador da sua conta',
               'Coleção `avaliacoes` do Firestore',
               'Qualquer pessoa, mesmo sem login',
-              'Até você pedir para apagar. Dá para editar quando quiser',
+              'Até a conta ser apagada, ou antes, se você pedir. Dá para editar quando quiser',
             ],
             [
               'Uso da identificação por foto: o identificador da conta e quantas fotos você mandou no minuto e no dia',
@@ -186,10 +186,10 @@ const privacidade = DocumentoLegal(
           'Pela LGPD (art. 18), você pode pedir para confirmar se temos dados seus, ver quais são, corrigir, apagar, saber com quem foram compartilhados e levá-los para outro serviço.',
         ),
         ParagrafoLegal(
-          'No próprio site e no app você já edita a sua avaliação. Apagar a conta, a avaliação ou a foto de perfil, por enquanto, só a equipe consegue.',
+          '**Para apagar a conta**, entre e escolha **Apagar conta**: no site, no menu com o seu nome, no topo da página inicial; no app, no círculo com a sua foto ou inicial, no alto da tela. A senha é pedida de novo. Saem, sem volta, a conta (e-mail e senha), o perfil com o nome e a data do cadastro, a foto de perfil, as suas avaliações e as linhas de `uso_identificacao` e `uso_avatar`. A sua avaliação também se edita no próprio site e no app. Apagar só a avaliação ou só a foto, por enquanto, só a equipe consegue.',
         ),
         ParagrafoLegal(
-          '**Como pedir:** abra uma [issue no GitHub](https://github.com/ecomap-devs/semestre-4-nextjs/issues/new?template=pedido-de-dados.md) **sem escrever e-mail, nome completo ou outro dado pessoal**, porque a issue é pública. Diga só o que você quer, por exemplo "apagar a minha conta". A equipe responde ali mesmo, em até 15 dias, e combina como confirmar que a conta é sua sem expor nada.',
+          '**Como pedir:** abra uma [issue no GitHub](https://github.com/ecomap-devs/semestre-4-nextjs/issues/new?template=pedido-de-dados.md) **sem escrever e-mail, nome completo ou outro dado pessoal**, porque a issue é pública. Diga só o que você quer, por exemplo "apagar a minha avaliação", ou "apagar a minha conta", se você não lembra a senha. A equipe responde ali mesmo, em até 15 dias, e combina como confirmar que a conta é sua sem expor nada.',
         ),
         ParagrafoLegal(
           'Se achar que o pedido não foi atendido, você também pode reclamar à [Autoridade Nacional de Proteção de Dados (ANPD)](https://www.gov.br/anpd).',
@@ -213,9 +213,10 @@ const privacidade = DocumentoLegal(
       blocos: [
         ListaLegal([
           'Tudo trafega por HTTPS.',
-          'As regras do banco deixam só você criar, editar ou apagar a sua avaliação e ler o seu perfil, e conferem o formato de cada campo.',
+          'As regras do banco deixam só você criar, editar ou apagar a sua avaliação e ler ou apagar o seu perfil, e conferem o formato de cada campo.',
           'A foto de perfil só sobe com a conta conectada, por uma função no servidor que confere se o arquivo é mesmo uma imagem e limita os envios por dia. Ela fica no bucket do próprio projeto, e um arquivo enviado não pode ser sobrescrito.',
           'A função de identificação só aceita pedido de quem está logado, e a chave do Gemini fica no servidor, nunca no site ou no app.',
+          'Apagar a conta exige a senha de novo, e a função que apaga a foto de perfil e os registros de uso só aceita quem a digitou nos últimos 5 minutos.',
           'Se acontecer um incidente com os seus dados, avisamos nesta página e à ANPD, como a LGPD manda.',
         ]),
       ],
@@ -257,7 +258,7 @@ const termos = DocumentoLegal(
           'É preciso ter conta, com e-mail e senha, para avaliar e para identificar animais por foto.',
           'Use um nome que não se passe por outra pessoa. A senha é sua responsabilidade: não a compartilhe.',
           'Quem tem menos de 18 anos só pode criar conta com a autorização de um responsável.',
-          'Para apagar a conta, veja [como pedir](/privacidade#direitos).',
+          'Para apagar a conta, entre e escolha **Apagar conta**, no menu com o seu nome (site) ou no círculo com a sua foto ou inicial (app). O que sai está na [política de privacidade](/privacidade#direitos).',
         ]),
       ],
     ),
