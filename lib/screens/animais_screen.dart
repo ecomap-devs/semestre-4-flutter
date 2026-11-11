@@ -9,6 +9,7 @@ import '../widgets/animacao_na_tela.dart';
 import '../widgets/imagem_com_reserva.dart';
 import '../widgets/rolagem_suave.dart';
 import '../widgets/texto_com_links.dart';
+import '../widgets/toque_ampliado.dart';
 import 'legal_screen.dart';
 
 /// Busca sem acento e sem caixa: "onca" acha "Onça-pintada".
@@ -482,21 +483,14 @@ class _BarraDeFiltros extends StatelessWidget {
       ),
     );
 
-    final biomas = SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      child: Row(
-        children: [
-          for (final b in biomasFiltro)
-            Padding(
-              padding: const EdgeInsets.only(right: 6),
-              child: _Filtro(
-                rotulo: b,
-                ativo: bioma == b,
-                aoTocar: () => aoMudarBioma(b),
-              ),
-            ),
-        ],
-      ),
+    // Quebra em mais de uma linha em vez de rolar para o lado: no tablet a
+    // fileira terminava cortada em "Caat..." sem mostrar que havia mais.
+    final biomas = Wrap(
+      spacing: 6,
+      children: [
+        for (final b in biomasFiltro)
+          _Filtro(rotulo: b, ativo: bioma == b, aoTocar: () => aoMudarBioma(b)),
+      ],
     );
 
     final seletorStatus = Container(
@@ -631,29 +625,32 @@ class _Filtro extends StatelessWidget {
   final VoidCallback aoTocar;
 
   @override
-  Widget build(BuildContext context) => Semantics(
-    button: true,
-    selected: ativo,
-    child: InkWell(
-      onTap: aoTocar,
-      borderRadius: BorderRadius.circular(999),
-      child: AnimatedContainer(
-        duration: MediaQuery.disableAnimationsOf(context)
-            ? Duration.zero
-            : const Duration(milliseconds: 150),
-        constraints: const BoxConstraints(minHeight: 36),
-        alignment: Alignment.center,
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-        decoration: BoxDecoration(
-          color: ativo ? AppCores.mata : Colors.transparent,
-          borderRadius: BorderRadius.circular(999),
-          border: Border.all(color: ativo ? AppCores.mata : AppCores.linha),
-        ),
-        child: Text(
-          rotulo,
-          style: TextStyle(
-            fontSize: 15,
-            color: ativo ? AppCores.branco : AppCores.tinta2,
+  Widget build(BuildContext context) => ToqueAmpliado(
+    aoTocar: aoTocar,
+    child: Semantics(
+      button: true,
+      selected: ativo,
+      child: InkWell(
+        onTap: aoTocar,
+        borderRadius: BorderRadius.circular(999),
+        child: AnimatedContainer(
+          duration: MediaQuery.disableAnimationsOf(context)
+              ? Duration.zero
+              : const Duration(milliseconds: 150),
+          constraints: const BoxConstraints(minHeight: 36),
+          alignment: Alignment.center,
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+          decoration: BoxDecoration(
+            color: ativo ? AppCores.mata : Colors.transparent,
+            borderRadius: BorderRadius.circular(999),
+            border: Border.all(color: ativo ? AppCores.mata : AppCores.linha),
+          ),
+          child: Text(
+            rotulo,
+            style: TextStyle(
+              fontSize: 15,
+              color: ativo ? AppCores.branco : AppCores.tinta2,
+            ),
           ),
         ),
       ),

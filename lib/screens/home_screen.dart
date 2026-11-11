@@ -1197,9 +1197,14 @@ class _Rodape extends StatelessWidget {
         for (final (rotulo, aoTocar) in links)
           InkWell(
             onTap: aoTocar,
-            child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 6),
-              child: Text(rotulo, style: _texto),
+            // 48 dp de toque, como pede o Android (eram cerca de 33).
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(minHeight: 48),
+              child: Align(
+                alignment: Alignment.centerLeft,
+                widthFactor: 1,
+                child: Text(rotulo, style: _texto),
+              ),
             ),
           ),
       ],
@@ -1215,9 +1220,13 @@ class _Rodape extends StatelessWidget {
           link: true,
           child: InkWell(
             onTap: () => abrirLink(context, 'https://github.com/ecomap-devs'),
-            child: const Padding(
-              padding: EdgeInsets.symmetric(vertical: 6),
-              child: Text('github.com/ecomap-devs', style: _texto),
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(minHeight: 48),
+              child: const Align(
+                alignment: Alignment.centerLeft,
+                widthFactor: 1,
+                child: Text('github.com/ecomap-devs', style: _texto),
+              ),
             ),
           ),
         ),
