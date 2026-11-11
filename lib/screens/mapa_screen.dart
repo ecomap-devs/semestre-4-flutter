@@ -100,7 +100,9 @@ class _MapaScreenState extends State<MapaScreen> {
 
   /// A legenda dos alertas tapava o mapa e nao fechava (pedido de 11/11/2026):
   /// agora fecha pelo X ou deslizando, e um botao "Legenda" a traz de volta.
-  bool _legendaAberta = true;
+  /// Sem escolha de quem usa (`null`), comeca aberta, menos com o celular
+  /// deitado: ali ela cobria metade do mapa e o botao de afastar o zoom.
+  bool? _legendaEscolhida;
   bool _detalhe = false;
   _Fundo _fundo = _Fundo.claro;
 
@@ -122,6 +124,7 @@ class _MapaScreenState extends State<MapaScreen> {
   /// Pantanal minusculo. Enquadrar pelos limites serve aos dois.
   void _selecionar(Bioma b) {
     final ehMobile = Breakpoints.ehMobile(context);
+    final deitado = Breakpoints.ehCelularDeitado(context);
     setState(() {
       _selecionado = b;
       // No celular o painel fecha, para o mapa aparecer com o bioma.
@@ -130,8 +133,11 @@ class _MapaScreenState extends State<MapaScreen> {
     _mapa.fitCamera(
       CameraFit.bounds(
         bounds: b.limites,
-        // A ficha ocupa o pe da tela; o bioma fica acima dela.
-        padding: EdgeInsets.fromLTRB(40, 70, 40, ehMobile ? 300 : 240),
+        // A ficha ocupa o pe da tela; o bioma fica acima dela. Com o celular
+        // deitado nao ha altura para isso, e a ficha fica a esquerda.
+        padding: deitado
+            ? const EdgeInsets.fromLTRB(360, 24, 40, 24)
+            : EdgeInsets.fromLTRB(40, 70, 40, ehMobile ? 300 : 240),
       ),
     );
   }
@@ -220,7 +226,9 @@ class _MapaScreenState extends State<MapaScreen> {
   @override
   Widget build(BuildContext context) {
     final ehMobile = Breakpoints.ehMobile(context);
+    final deitado = Breakpoints.ehCelularDeitado(context);
     final larguraPainel = Breakpoints.ehTablet(context) ? 260.0 : 320.0;
+    final legendaAberta = _legendaEscolhida ?? !deitado;
 
     final mapa = FutureBuilder<_DadosMapa>(
       future: _dados,
@@ -318,40 +326,50 @@ class _MapaScreenState extends State<MapaScreen> {
                 ),
               ),
 
-            if (mostrarLegenda && _legendaAberta)
+            if (mostrarLegenda && legendaAberta)
               Positioned(
                 left: 16,
-                right: ehMobile ? 16 : null,
-                bottom: ehMobile ? 84 : 32,
+                right: ehMobile && !deitado ? 16 : null,
+                bottom: ehMobile && !deitado ? 84 : (ehMobile ? 20 : 32),
                 child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 320),
+                  // Deitado, a legenda aberta nao passa da metade da altura:
+                  // o resto rola, e o X continua a vista.
+                  constraints: BoxConstraints(
+                    maxWidth: 320,
+                    maxHeight: deitado
+                        ? MediaQuery.sizeOf(context).height * .5
+                        : double.infinity,
+                  ),
                   child: DeslizarParaFechar(
                     key: const ValueKey('legenda'),
-                    aoFechar: () => setState(() => _legendaAberta = false),
-                    child: _Legenda(
-                      dados: dados,
-                      detalhe: _detalhe,
-                      aoFechar: () => setState(() => _legendaAberta = false),
+                    aoFechar: () => setState(() => _legendaEscolhida = false),
+                    child: SingleChildScrollView(
+                      child: _Legenda(
+                        dados: dados,
+                        detalhe: _detalhe,
+                        aoFechar: () =>
+                            setState(() => _legendaEscolhida = false),
+                      ),
                     ),
                   ),
                 ),
               ),
 
             // No celular fica na linha do botao Biomas, do outro lado.
-            if (mostrarLegenda && !_legendaAberta)
+            if (mostrarLegenda && !legendaAberta)
               Positioned(
                 left: 16,
                 bottom: ehMobile ? 20 : 32,
                 child: _BotaoLegenda(
-                  aoTocar: () => setState(() => _legendaAberta = true),
+                  aoTocar: () => setState(() => _legendaEscolhida = true),
                 ),
               ),
 
             if (_selecionado != null)
               Positioned(
                 left: 16,
-                right: ehMobile ? 16 : null,
-                bottom: ehMobile ? 84 : 32,
+                right: ehMobile && !deitado ? 16 : null,
+                bottom: ehMobile && !deitado ? 84 : (ehMobile ? 20 : 32),
                 child: EntradaSuave(
                   key: ValueKey(_selecionado!.nome),
                   child: ConstrainedBox(
@@ -933,10 +951,15 @@ class _PainelCelularState extends State<_PainelCelular> {
         ? Duration.zero
         : const Duration(milliseconds: 300);
 
+    // Deitado, o painel nao atravessa a tela inteira: fica a direita, na
+    // coluna do botao Biomas, e o mapa continua a vista do outro lado.
+    final deitado = Breakpoints.ehCelularDeitado(context);
+
     return Positioned(
-      left: 0,
-      right: 0,
+      left: deitado ? null : 0,
+      right: deitado ? 16 : 0,
       bottom: 0,
+      width: deitado ? 380 : null,
       child: AnimatedSlide(
         offset: widget.aberto
             ? Offset(0, _arrasto / _altura)
