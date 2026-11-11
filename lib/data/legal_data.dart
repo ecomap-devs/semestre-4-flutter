@@ -176,7 +176,7 @@ const privacidade = DocumentoLegal(
       titulo: 'O que o site e o app não fazem',
       blocos: [
         ListaLegal([
-          'Não usam cookies de rastreamento, Google Analytics nem outra ferramenta de audiência, e não mostram anúncios. A única coisa que o site grava no seu navegador é o login, enquanto você estiver na conta.',
+          'Não usam cookies de rastreamento, Google Analytics nem outra ferramenta de audiência, e não mostram anúncios. O site só grava no seu navegador o login, enquanto você estiver na conta, e, se você confirmar que tem 18 anos ou mais para usar a identificação por foto, essa confirmação.',
           'Não pedem a sua localização. O mapa mostra o Brasil inteiro, não onde você está.',
           'O app não pede acesso a contatos, localização ou microfone. A câmera e a galeria abrem pelo seletor do próprio Android, só quando você escolhe tirar ou enviar uma foto.',
           'O quiz não grava nada: o placar some quando você sai da página.',
