@@ -178,6 +178,10 @@ class _AnimaisScreenState extends State<AnimaisScreen> {
   }
 
   void _abrirFicha(Animal a) {
+    // A ficha passa para as vizinhas da lista que esta na tela, com a busca e
+    // os filtros de agora.
+    final lista = _filtrados;
+    final inicial = lista.indexOf(a);
     showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
@@ -192,8 +196,105 @@ class _AnimaisScreenState extends State<AnimaisScreen> {
         initialChildSize: 0.9,
         maxChildSize: 0.95,
         minChildSize: 0.5,
-        builder: (_, controlador) =>
-            _FichaAnimal(animal: a, controlador: controlador),
+        builder: (_, controlador) => _FichaNavegavel(
+          lista: inicial < 0 ? [a] : lista,
+          inicial: inicial < 0 ? 0 : inicial,
+          controlador: controlador,
+        ),
+      ),
+    );
+  }
+}
+
+/// A ficha com as vizinhas (11/11/2026): deslizar para o lado, ou as setas
+/// sobre a foto, passa para a especie anterior ou a seguinte da lista que
+/// estava na tela. Para a esquerda vem a seguinte, como no carrossel da Home.
+/// O arrastar para baixo, que fecha a ficha, continua sendo da folha.
+class _FichaNavegavel extends StatefulWidget {
+  const _FichaNavegavel({
+    required this.lista,
+    required this.inicial,
+    required this.controlador,
+  });
+
+  final List<Animal> lista;
+  final int inicial;
+  final ScrollController controlador;
+
+  @override
+  State<_FichaNavegavel> createState() => _FichaNavegavelState();
+}
+
+class _FichaNavegavelState extends State<_FichaNavegavel>
+    with SingleTickerProviderStateMixin {
+  late int _indice = widget.inicial;
+  double _arrastoX = 0;
+  int _sentido = 1;
+
+  /// A ficha nova entra deslizando do lado de onde veio. Uma ficha so, com o
+  /// controlador da folha: duas ao mesmo tempo (um AnimatedSwitcher)
+  /// prenderiam o mesmo controlador em duas listas.
+  late final _entrada = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 220),
+    value: 1,
+  );
+
+  static const _distanciaMinima = 48.0;
+  static const _velocidadeMinima = 300.0;
+
+  @override
+  void dispose() {
+    _entrada.dispose();
+    super.dispose();
+  }
+
+  void _ir(int passo) {
+    final novo = _indice + passo;
+    if (novo < 0 || novo >= widget.lista.length) return;
+    setState(() {
+      _indice = novo;
+      _sentido = passo;
+    });
+    if (widget.controlador.hasClients) widget.controlador.jumpTo(0);
+    if (MediaQuery.disableAnimationsOf(context)) return;
+    _entrada.forward(from: 0);
+  }
+
+  void _soltar(DragEndDetails d) {
+    final v = d.velocity.pixelsPerSecond.dx;
+    final rapido = v.abs() > _velocidadeMinima;
+    final sentido = rapido ? v : _arrastoX;
+    final valeu = rapido || _arrastoX.abs() > _distanciaMinima;
+    _arrastoX = 0;
+    if (valeu) _ir(sentido < 0 ? 1 : -1);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final tem = widget.lista.length;
+    return GestureDetector(
+      onHorizontalDragUpdate: (d) => _arrastoX += d.delta.dx,
+      onHorizontalDragEnd: _soltar,
+      onHorizontalDragCancel: () => _arrastoX = 0,
+      child: AnimatedBuilder(
+        animation: _entrada,
+        builder: (_, ficha) {
+          final t = Curves.easeOut.transform(_entrada.value);
+          return Opacity(
+            opacity: .4 + .6 * t,
+            child: Transform.translate(
+              offset: Offset((1 - t) * 40 * _sentido, 0),
+              child: ficha,
+            ),
+          );
+        },
+        child: _FichaAnimal(
+          animal: widget.lista[_indice],
+          controlador: widget.controlador,
+          aoAnterior: _indice > 0 ? () => _ir(-1) : null,
+          aoProxima: _indice < tem - 1 ? () => _ir(1) : null,
+        ),
       ),
     );
   }
@@ -651,10 +752,19 @@ class _CartaoAnimal extends StatelessWidget {
 }
 
 class _FichaAnimal extends StatelessWidget {
-  const _FichaAnimal({required this.animal, required this.controlador});
+  const _FichaAnimal({
+    required this.animal,
+    required this.controlador,
+    this.aoAnterior,
+    this.aoProxima,
+  });
 
   final Animal animal;
   final ScrollController controlador;
+
+  /// As setas sobre a foto; sem vizinha daquele lado, a seta nao aparece.
+  final VoidCallback? aoAnterior;
+  final VoidCallback? aoProxima;
 
   @override
   Widget build(BuildContext context) {
@@ -697,6 +807,32 @@ class _FichaAnimal extends StatelessWidget {
                   ),
                 ),
               ),
+              if (aoAnterior != null)
+                Positioned(
+                  left: 8,
+                  top: 0,
+                  bottom: 0,
+                  child: Center(
+                    child: _SetaDaFicha(
+                      icone: Icons.chevron_left,
+                      rotulo: 'Espécie anterior',
+                      aoTocar: aoAnterior!,
+                    ),
+                  ),
+                ),
+              if (aoProxima != null)
+                Positioned(
+                  right: 8,
+                  top: 0,
+                  bottom: 0,
+                  child: Center(
+                    child: _SetaDaFicha(
+                      icone: Icons.chevron_right,
+                      rotulo: 'Próxima espécie',
+                      aoTocar: aoProxima!,
+                    ),
+                  ),
+                ),
             ],
           ),
         ),
@@ -878,6 +1014,32 @@ class _Vazio extends StatelessWidget {
           ],
         ),
       ),
+    ),
+  );
+}
+
+/// Seta branca e redonda sobre a foto, como o botao de fechar da ficha.
+class _SetaDaFicha extends StatelessWidget {
+  const _SetaDaFicha({
+    required this.icone,
+    required this.rotulo,
+    required this.aoTocar,
+  });
+
+  final IconData icone;
+  final String rotulo;
+  final VoidCallback aoTocar;
+
+  @override
+  Widget build(BuildContext context) => Material(
+    color: AppCores.branco.withValues(alpha: .92),
+    shape: const CircleBorder(),
+    elevation: 1,
+    child: IconButton(
+      onPressed: aoTocar,
+      icon: Icon(icone, size: 24),
+      color: AppCores.tinta,
+      tooltip: rotulo,
     ),
   );
 }

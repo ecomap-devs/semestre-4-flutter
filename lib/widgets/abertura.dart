@@ -10,7 +10,7 @@ import 'imagem_com_reserva.dart';
 ///
 /// Zoom lento na foto da vez e indicadores que se enchem ate a proxima. Com
 /// "remover animacoes" ligado no sistema as fotos nao trocam sozinhas: troca
-/// so quem tocar nos indicadores.
+/// so quem tocar nos indicadores ou deslizar a foto para o lado.
 class Abertura extends StatefulWidget {
   const Abertura({
     super.key,
@@ -74,6 +74,28 @@ class _AberturaState extends State<Abertura>
     pausado ? _relogio.stop() : _relogio.forward();
   }
 
+  /// Deslizar para o lado troca a foto (11/11/2026); antes so as setas (no
+  /// computador), os indicadores e o relogio trocavam. Para a esquerda vem a
+  /// proxima, como num album. O relogio pausa enquanto o dedo esta na tela.
+  double _arrastoX = 0;
+
+  /// Distancia ou velocidade minimas para contar como deslizar, e nao toque.
+  static const _distanciaMinima = 48.0;
+  static const _velocidadeMinima = 300.0;
+
+  void _soltarArrasto(DragEndDetails d) {
+    final v = d.velocity.pixelsPerSecond.dx;
+    final rapido = v.abs() > _velocidadeMinima;
+    final sentido = rapido ? v : _arrastoX;
+    final valeu = rapido || _arrastoX.abs() > _distanciaMinima;
+    _arrastoX = 0;
+    if (!valeu) {
+      _pausar(false);
+      return;
+    }
+    _irPara(sentido < 0 ? _atual + 1 : _atual - 1 + slides.length);
+  }
+
   @override
   Widget build(BuildContext context) {
     final tela = MediaQuery.sizeOf(context);
@@ -90,128 +112,139 @@ class _AberturaState extends State<Abertura>
     return MouseRegion(
       onEnter: (_) => _pausar(true),
       onExit: (_) => _pausar(false),
-      child: ColoredBox(
-        // Fundo escuro por baixo das fotos: se o Supabase nao responder, o
-        // texto claro continua legivel.
-        color: AppCores.mataNoite,
-        child: ClipRect(
-          child: Stack(
-            children: [
-              for (final (i, s) in slides.indexed)
-                Positioned.fill(
-                  child: ExcludeSemantics(
-                    child: AnimatedOpacity(
-                      opacity: i == _atual ? 1 : 0,
-                      duration: _semMovimento ? Duration.zero : _duracaoFade,
-                      curve: Curves.easeInOut,
-                      child: AnimatedScale(
-                        // Zoom lento na foto da vez; a que sai so volta ao
-                        // tamanho quando outra entrar no lugar dela.
-                        scale: !_semMovimento && (i == _atual || i == _anterior)
-                            ? 1.08
-                            : 1,
-                        duration: i == _atual
-                            ? _duracaoSlide + const Duration(milliseconds: 1500)
-                            : Duration.zero,
-                        curve: Curves.easeOut,
-                        child: ImagemComReserva(url: s.url, escura: true),
+      child: GestureDetector(
+        onHorizontalDragStart: (_) => _pausar(true),
+        onHorizontalDragUpdate: (d) => _arrastoX += d.delta.dx,
+        onHorizontalDragEnd: _soltarArrasto,
+        onHorizontalDragCancel: () {
+          _arrastoX = 0;
+          _pausar(false);
+        },
+        child: ColoredBox(
+          // Fundo escuro por baixo das fotos: se o Supabase nao responder, o
+          // texto claro continua legivel.
+          color: AppCores.mataNoite,
+          child: ClipRect(
+            child: Stack(
+              children: [
+                for (final (i, s) in slides.indexed)
+                  Positioned.fill(
+                    child: ExcludeSemantics(
+                      child: AnimatedOpacity(
+                        opacity: i == _atual ? 1 : 0,
+                        duration: _semMovimento ? Duration.zero : _duracaoFade,
+                        curve: Curves.easeInOut,
+                        child: AnimatedScale(
+                          // Zoom lento na foto da vez; a que sai so volta ao
+                          // tamanho quando outra entrar no lugar dela.
+                          scale:
+                              !_semMovimento && (i == _atual || i == _anterior)
+                              ? 1.08
+                              : 1,
+                          duration: i == _atual
+                              ? _duracaoSlide +
+                                    const Duration(milliseconds: 1500)
+                              : Duration.zero,
+                          curve: Curves.easeOut,
+                          child: ImagemComReserva(url: s.url, escura: true),
+                        ),
+                      ),
+                    ),
+                  ),
+                // Escurece o topo e a base (para o texto); o meio aparece.
+                const Positioned.fill(
+                  child: DecoratedBox(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        stops: [0, .22, .4, 1],
+                        colors: [
+                          Color(0x8C101812),
+                          Color(0x00101812),
+                          Color(0x00101812),
+                          Color(0xE0101812),
+                        ],
                       ),
                     ),
                   ),
                 ),
-              // Escurece o topo e a base (para o texto); o meio aparece.
-              const Positioned.fill(
-                child: DecoratedBox(
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      stops: [0, .22, .4, 1],
-                      colors: [
-                        Color(0x8C101812),
-                        Color(0x00101812),
-                        Color(0x00101812),
-                        Color(0xE0101812),
-                      ],
-                    ),
+                // Altura minima, nao fixa: com fonte grande num celular pequeno
+                // o texto nao cabe, e a abertura cresce em vez de estourar.
+                ConstrainedBox(
+                  constraints: BoxConstraints(
+                    minHeight: altura,
+                    minWidth: double.infinity,
                   ),
-                ),
-              ),
-              // Altura minima, nao fixa: com fonte grande num celular pequeno
-              // o texto nao cabe, e a abertura cresce em vez de estourar.
-              ConstrainedBox(
-                constraints: BoxConstraints(
-                  minHeight: altura,
-                  minWidth: double.infinity,
-                ),
-                child: Align(
-                  alignment: Alignment.bottomLeft,
-                  child: ConstrainedBox(
-                    constraints: const BoxConstraints(maxWidth: 1120),
-                    child: Padding(
-                      padding: EdgeInsets.fromLTRB(
-                        mobile ? 20 : 24,
-                        24,
-                        mobile ? 20 : 24,
-                        96,
-                      ),
-                      child: _Texto(
-                        tamanhoTitulo: tamanhoTitulo,
-                        aoAbrirMapa: widget.aoAbrirMapa,
-                        aoVerEspecies: widget.aoVerEspecies,
+                  child: Align(
+                    alignment: Alignment.bottomLeft,
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 1120),
+                      child: Padding(
+                        padding: EdgeInsets.fromLTRB(
+                          mobile ? 20 : 24,
+                          24,
+                          mobile ? 20 : 24,
+                          96,
+                        ),
+                        child: _Texto(
+                          tamanhoTitulo: tamanhoTitulo,
+                          aoAbrirMapa: widget.aoAbrirMapa,
+                          aoVerEspecies: widget.aoVerEspecies,
+                        ),
                       ),
                     ),
                   ),
                 ),
-              ),
-              if (!mobile) ...[
+                if (!mobile) ...[
+                  Positioned(
+                    left: 16,
+                    top: 0,
+                    bottom: 0,
+                    child: Center(
+                      child: _Seta(
+                        icone: Icons.chevron_left,
+                        rotulo: 'Foto anterior',
+                        aoTocar: () => _irPara(_atual - 1 + slides.length),
+                      ),
+                    ),
+                  ),
+                  Positioned(
+                    right: 16,
+                    top: 0,
+                    bottom: 0,
+                    child: Center(
+                      child: _Seta(
+                        icone: Icons.chevron_right,
+                        rotulo: 'Próxima foto',
+                        aoTocar: () => _irPara(_atual + 1),
+                      ),
+                    ),
+                  ),
+                ],
                 Positioned(
-                  left: 16,
-                  top: 0,
-                  bottom: 0,
+                  left: 0,
+                  right: 0,
+                  bottom: 28,
                   child: Center(
-                    child: _Seta(
-                      icone: Icons.chevron_left,
-                      rotulo: 'Foto anterior',
-                      aoTocar: () => _irPara(_atual - 1 + slides.length),
-                    ),
-                  ),
-                ),
-                Positioned(
-                  right: 16,
-                  top: 0,
-                  bottom: 0,
-                  child: Center(
-                    child: _Seta(
-                      icone: Icons.chevron_right,
-                      rotulo: 'Próxima foto',
-                      aoTocar: () => _irPara(_atual + 1),
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 1120),
+                      child: Padding(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: mobile ? 20 : 24,
+                        ),
+                        child: _Indicadores(
+                          atual: _atual,
+                          relogio: _relogio,
+                          semMovimento: _semMovimento,
+                          aoEscolher: _irPara,
+                        ),
+                      ),
                     ),
                   ),
                 ),
               ],
-              Positioned(
-                left: 0,
-                right: 0,
-                bottom: 28,
-                child: Center(
-                  child: ConstrainedBox(
-                    constraints: const BoxConstraints(maxWidth: 1120),
-                    child: Padding(
-                      padding: EdgeInsets.symmetric(
-                        horizontal: mobile ? 20 : 24,
-                      ),
-                      child: _Indicadores(
-                        atual: _atual,
-                        relogio: _relogio,
-                        semMovimento: _semMovimento,
-                        aoEscolher: _irPara,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ],
+            ),
           ),
         ),
       ),
