@@ -319,9 +319,15 @@ Tudo acima vale. Além disso:
   Escola, Agência Brasil). A abertura da Home e a faixa do mico saem do catálogo e mostram o
   crédito sobre a foto (`CreditoDaFoto`). Os arquivos antigos saem do bucket depois que uma
   versão nova do app estiver publicada: as versões anteriores ainda os pedem.
-- 🟡 **Identificação por foto e idade.** Os termos do Gemini proíbem a API em serviço
-  provável de ser acessado por menores de 18. A tela Fotos e os termos avisam; não há
-  trava.
+- 🟡 **Identificação por foto e idade.** Os termos da Gemini API (em vigor desde 23/03/2026,
+  iguais no grátis e no pago) exigem 18 anos e proíbem o uso em app ou site "directed towards or
+  likely to be accessed by individuals under the age of 18", sem exceção. Desde 11/11/2026 há
+  uma **trava por autodeclaração**: no primeiro toque em "Tirar foto" ou "Escolher imagem", a
+  tela pergunta a idade (`DeclaracaoDeIdade`, por conta, no `shared_preferences`; o site usa o
+  `localStorage`). Só o "sim" fica guardado. A trava reduz o risco, mas **não cumpre a letra dos
+  termos**: o app continua sendo de acesso provável por menores. A Edge Function não confere a
+  resposta. O ECA Digital (Lei 15.211/2025) só veda a autodeclaração para conteúdo impróprio ou
+  proibido por lei (art. 9º), o que não é o caso.
 - 🟡 **Identificação por foto** (aba Fotos, 01/10/2026). O app chama a Edge Function
   `supabase/functions/identificar-animal`, que confere o ID token do Firebase e consulta
   o **Gemini** pelo nível gratuito do Google AI Studio. A chave é **secret do Supabase**
