@@ -771,7 +771,7 @@ class _ItemBioma extends StatelessWidget {
         borderRadius: BorderRadius.circular(raioPadrao),
         hoverColor: AppCores.papel2,
         child: Container(
-          constraints: const BoxConstraints(minHeight: 44),
+          constraints: const BoxConstraints(minHeight: 48),
           padding: EdgeInsets.symmetric(
             horizontal: compacto ? 10 : 12,
             vertical: compacto ? 8 : 9,
@@ -783,27 +783,35 @@ class _ItemBioma extends StatelessWidget {
               color: ativo ? AppCores.tinta3 : Colors.transparent,
             ),
           ),
+          // O nome nunca e cortado: no painel de 260 dp "Mata Atlantica"
+          // virava "Mata Atlan...". Se nao couber ao lado do percentual, o
+          // percentual desce para baixo do nome.
           child: Row(
             children: [
               _Quadrado(bioma.cor),
               const SizedBox(width: 10),
               Expanded(
-                child: Text(
-                  bioma.nome,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    fontSize: compacto ? 15 : 16,
-                    color: AppCores.tinta,
-                  ),
-                ),
-              ),
-              Text(
-                '${bioma.percentualDesmatado}% desmatado',
-                style: const TextStyle(
-                  fontSize: 14,
-                  color: AppCores.tinta3,
-                  fontFeatures: [FontFeature.tabularFigures()],
+                child: Wrap(
+                  alignment: WrapAlignment.spaceBetween,
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  spacing: 8,
+                  children: [
+                    Text(
+                      bioma.nome,
+                      style: TextStyle(
+                        fontSize: compacto ? 15 : 16,
+                        color: AppCores.tinta,
+                      ),
+                    ),
+                    Text(
+                      '${bioma.percentualDesmatado}% desmatado',
+                      style: const TextStyle(
+                        fontSize: 14,
+                        color: AppCores.tinta3,
+                        fontFeatures: [FontFeature.tabularFigures()],
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ],
