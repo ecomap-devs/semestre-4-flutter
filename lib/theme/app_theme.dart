@@ -94,15 +94,32 @@ TextStyle estiloTitulo(
 );
 
 /// Larguras de quebra herdadas do `useWindowSize()` da versao React.
+///
+/// Ate 11/11/2026 o celular era decidido so pela largura, e um celular deitado
+/// (cerca de 915x412 dp) ganhava o layout de tablet: trilho lateral, painel de
+/// 320 dp no Mapa e a abertura da Home com os botoes fora da tela. Agora conta
+/// tambem o lado menor da tela: abaixo de [ladoMenorDeTablet] e celular, em pe
+/// ou deitado (o limite e o da classe "compacta" do Material).
 class Breakpoints {
   const Breakpoints._();
   static const mobile = 768.0;
   static const tablet = 1024.0;
+  static const ladoMenorDeTablet = 600.0;
 
-  static bool ehMobile(BuildContext c) => MediaQuery.sizeOf(c).width < mobile;
-  static bool ehTablet(BuildContext c) {
-    final l = MediaQuery.sizeOf(c).width;
-    return l >= mobile && l < tablet;
+  static bool ehMobile(BuildContext c) => ehMobileEm(MediaQuery.sizeOf(c));
+  static bool ehTablet(BuildContext c) => ehTabletEm(MediaQuery.sizeOf(c));
+
+  /// O mesmo que [ehMobile], para um tamanho dado (e para os testes).
+  static bool ehMobileEm(Size tela) =>
+      tela.width < mobile || tela.shortestSide < ladoMenorDeTablet;
+
+  static bool ehTabletEm(Size tela) => !ehMobileEm(tela) && tela.width < tablet;
+
+  /// Celular deitado: layout de celular, mas com pouca altura para a
+  /// abertura, a legenda e os paineis.
+  static bool ehCelularDeitado(BuildContext c) {
+    final tela = MediaQuery.sizeOf(c);
+    return ehMobileEm(tela) && tela.width > tela.height;
   }
 }
 
