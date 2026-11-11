@@ -16,7 +16,7 @@ const contatoDados =
 const privacidade = DocumentoLegal(
   titulo: 'Política de privacidade',
   descricao: 'O que o EcoMapBrasil guarda sobre você, onde fica, quem mais recebe e como pedir para ver, corrigir ou apagar.',
-  abertura: 'Vale para o site [ecomapbrasil-17756.web.app](https://ecomapbrasil-17756.web.app) e para o app Android. Sem conta, nada sobre você fica com a gente; com conta, esta página diz exatamente o que fica, onde e até quando.',
+  abertura: 'Vale para o site [ecomapbrasil.web.app](https://ecomapbrasil.web.app) e para o app Android. Sem conta, nada sobre você fica com a gente; com conta, esta página diz exatamente o que fica, onde e até quando.',
   secoes: [
     SecaoLegal(
       id: 'quem-somos',
