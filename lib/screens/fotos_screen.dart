@@ -58,12 +58,34 @@ class _FotosScreenState extends State<FotosScreen> {
   /// Respondeu que tem menos de 18 nesta visita: os botoes ficam desligados.
   bool _menor = false;
 
+  /// A tela e a mesma quando a conta muda (o `AppShell` a identifica so pela
+  /// aba), entao o estado da conta anterior precisa sair: o "nao" dela, a
+  /// pergunta pela metade, e a foto e o resultado, que num aparelho
+  /// compartilhado ficariam a vista de outra pessoa (revisao do Codex de
+  /// 11/11/2026).
+  @override
+  void didUpdateWidget(covariant FotosScreen antigo) {
+    super.didUpdateWidget(antigo);
+    if (antigo.usuario?.uid == widget.usuario?.uid) return;
+    _foto = null;
+    _resultado = null;
+    _erro = '';
+    _carregando = false;
+    _perguntando = null;
+    _menor = false;
+  }
+
+  /// Se a conta que comecou uma acao ainda e a da tela.
+  bool _mesmaConta(String? uid) => mounted && widget.usuario?.uid == uid;
+
   Future<void> _tentar(ImageSource origem) async {
     final uid = widget.usuario?.uid;
     if (uid == null) return;
-    if (await widget.declaracao.declarou(uid)) {
+    final declarou = await widget.declaracao.declarou(uid);
+    if (!_mesmaConta(uid)) return;
+    if (declarou) {
       await _escolher(origem);
-    } else if (mounted) {
+    } else {
       setState(() => _perguntando = origem);
     }
   }
@@ -82,7 +104,7 @@ class _FotosScreenState extends State<FotosScreen> {
     } catch (_) {
       // Sem guardar, a pergunta volta na proxima vez; o uso de agora segue.
     }
-    await _escolher(origem);
+    if (_mesmaConta(uid)) await _escolher(origem);
   }
 
   static Future<Uint8List?> _abrirImagem(ImageSource origem) async {
@@ -98,14 +120,17 @@ class _FotosScreenState extends State<FotosScreen> {
   }
 
   Future<void> _escolher(ImageSource origem) async {
+    final uid = widget.usuario?.uid;
     final Uint8List? bytes;
     try {
       bytes = await (widget.escolherImagem ?? _abrirImagem)(origem);
     } catch (_) {
-      setState(() => _erro = 'Não foi possível abrir a câmera ou a galeria.');
+      if (_mesmaConta(uid)) {
+        setState(() => _erro = 'Não foi possível abrir a câmera ou a galeria.');
+      }
       return;
     }
-    if (bytes == null || !mounted) return;
+    if (bytes == null || !_mesmaConta(uid)) return;
 
     setState(() {
       _foto = bytes;
@@ -114,18 +139,19 @@ class _FotosScreenState extends State<FotosScreen> {
       _carregando = true;
     });
 
+    // A resposta que chega depois de a conta mudar e da conta anterior: some.
     try {
       final r = await _servico.identificar(bytes);
-      if (mounted) setState(() => _resultado = r);
+      if (_mesmaConta(uid)) setState(() => _resultado = r);
     } catch (e) {
       // A tela mostra uma mensagem amigavel; o log guarda o erro real, com o
       // status e o corpo da resposta, para dar para diagnosticar pelo adb.
       debugPrint('Identificacao falhou: $e');
-      if (mounted) {
+      if (_mesmaConta(uid)) {
         setState(() => _erro = IdentificacaoService.mensagemDeErro(e));
       }
     } finally {
-      if (mounted) setState(() => _carregando = false);
+      if (_mesmaConta(uid)) setState(() => _carregando = false);
     }
   }
 
