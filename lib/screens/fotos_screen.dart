@@ -6,6 +6,7 @@ import 'package:image_picker/image_picker.dart';
 
 import '../data/legal_data.dart';
 import '../models/identificacao.dart';
+import '../services/declaracao_de_idade.dart';
 import '../services/identificacao_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/aviso_de_formulario.dart';
@@ -15,17 +16,28 @@ import 'legal_screen.dart';
 ///
 /// Exige login: cada consulta gasta a cota do projeto no Gemini, e a Edge
 /// Function recusa quem nao manda um ID token do Firebase.
+///
+/// Exige tambem a autodeclaracao de 18 anos ou mais (11/11/2026), pedida na
+/// primeira vez que a pessoa toca em "Tirar foto" ou "Escolher imagem": os
+/// termos da Gemini API nao aceitam uso por menores ([DeclaracaoDeIdade]).
 class FotosScreen extends StatefulWidget {
   const FotosScreen({
     super.key,
     required this.usuario,
     required this.aoPedirLogin,
     this.servico,
+    this.declaracao = const DeclaracaoDeIdade(),
+    this.escolherImagem,
   });
 
   final User? usuario;
   final VoidCallback aoPedirLogin;
   final IdentificacaoService? servico;
+  final DeclaracaoDeIdade declaracao;
+
+  /// Abre a camera ou a galeria e devolve os bytes, ou `null` se a pessoa
+  /// desistir. Trocavel nos testes, que nao abrem nenhuma das duas.
+  final Future<Uint8List?> Function(ImageSource origem)? escolherImagem;
 
   @override
   State<FotosScreen> createState() => _FotosScreenState();
@@ -39,24 +51,86 @@ class _FotosScreenState extends State<FotosScreen> {
   bool _carregando = false;
   String _erro = '';
 
-  Future<void> _escolher(ImageSource origem) async {
-    final XFile? img;
+  /// O botao tocado antes de a pessoa dizer a idade: com valor, a pergunta
+  /// aparece no lugar dos botoes, e a resposta "sim" abre essa origem.
+  ImageSource? _perguntando;
+
+  /// Respondeu que tem menos de 18 nesta visita: os botoes ficam desligados.
+  bool _menor = false;
+
+  /// A tela e a mesma quando a conta muda (o `AppShell` a identifica so pela
+  /// aba), entao o estado da conta anterior precisa sair: o "nao" dela, a
+  /// pergunta pela metade, e a foto e o resultado, que num aparelho
+  /// compartilhado ficariam a vista de outra pessoa (revisao do Codex de
+  /// 11/11/2026).
+  @override
+  void didUpdateWidget(covariant FotosScreen antigo) {
+    super.didUpdateWidget(antigo);
+    if (antigo.usuario?.uid == widget.usuario?.uid) return;
+    _foto = null;
+    _resultado = null;
+    _erro = '';
+    _carregando = false;
+    _perguntando = null;
+    _menor = false;
+  }
+
+  /// Se a conta que comecou uma acao ainda e a da tela.
+  bool _mesmaConta(String? uid) => mounted && widget.usuario?.uid == uid;
+
+  Future<void> _tentar(ImageSource origem) async {
+    final uid = widget.usuario?.uid;
+    if (uid == null) return;
+    final declarou = await widget.declaracao.declarou(uid);
+    if (!_mesmaConta(uid)) return;
+    if (declarou) {
+      await _escolher(origem);
+    } else {
+      setState(() => _perguntando = origem);
+    }
+  }
+
+  Future<void> _responder({required bool maior}) async {
+    final origem = _perguntando;
+    final uid = widget.usuario?.uid;
+    if (origem == null || uid == null) return;
+    setState(() {
+      _perguntando = null;
+      _menor = !maior;
+    });
+    if (!maior) return;
     try {
-      // 1024 px basta para o Gemini reconhecer o animal e mantem o envio
-      // pequeno em rede movel.
-      img = await ImagePicker().pickImage(
-        source: origem,
-        maxWidth: 1024,
-        maxHeight: 1024,
-        imageQuality: 80,
-      );
+      await widget.declaracao.registrar(uid);
     } catch (_) {
-      setState(() => _erro = 'Não foi possível abrir a câmera ou a galeria.');
+      // Sem guardar, a pergunta volta na proxima vez; o uso de agora segue.
+    }
+    if (_mesmaConta(uid)) await _escolher(origem);
+  }
+
+  static Future<Uint8List?> _abrirImagem(ImageSource origem) async {
+    // 1024 px basta para o Gemini reconhecer o animal e mantem o envio
+    // pequeno em rede movel.
+    final img = await ImagePicker().pickImage(
+      source: origem,
+      maxWidth: 1024,
+      maxHeight: 1024,
+      imageQuality: 80,
+    );
+    return img?.readAsBytes();
+  }
+
+  Future<void> _escolher(ImageSource origem) async {
+    final uid = widget.usuario?.uid;
+    final Uint8List? bytes;
+    try {
+      bytes = await (widget.escolherImagem ?? _abrirImagem)(origem);
+    } catch (_) {
+      if (_mesmaConta(uid)) {
+        setState(() => _erro = 'Não foi possível abrir a câmera ou a galeria.');
+      }
       return;
     }
-    if (img == null) return;
-    final bytes = await img.readAsBytes();
-    if (!mounted) return;
+    if (bytes == null || !_mesmaConta(uid)) return;
 
     setState(() {
       _foto = bytes;
@@ -65,18 +139,19 @@ class _FotosScreenState extends State<FotosScreen> {
       _carregando = true;
     });
 
+    // A resposta que chega depois de a conta mudar e da conta anterior: some.
     try {
       final r = await _servico.identificar(bytes);
-      if (mounted) setState(() => _resultado = r);
+      if (_mesmaConta(uid)) setState(() => _resultado = r);
     } catch (e) {
       // A tela mostra uma mensagem amigavel; o log guarda o erro real, com o
       // status e o corpo da resposta, para dar para diagnosticar pelo adb.
       debugPrint('Identificacao falhou: $e');
-      if (mounted) {
+      if (_mesmaConta(uid)) {
         setState(() => _erro = IdentificacaoService.mensagemDeErro(e));
       }
     } finally {
-      if (mounted) setState(() => _carregando = false);
+      if (_mesmaConta(uid)) setState(() => _carregando = false);
     }
   }
 
@@ -125,13 +200,14 @@ class _FotosScreenState extends State<FotosScreen> {
   }
 
   List<Widget> _conteudo(bool mobile) {
+    final desligado = _carregando || _menor;
     final camera = FilledButton.icon(
-      onPressed: _carregando ? null : () => _escolher(ImageSource.camera),
+      onPressed: desligado ? null : () => _tentar(ImageSource.camera),
       icon: const Icon(Icons.photo_camera_outlined, size: 20),
       label: const Text('Tirar foto'),
     );
     final galeria = OutlinedButton.icon(
-      onPressed: _carregando ? null : () => _escolher(ImageSource.gallery),
+      onPressed: desligado ? null : () => _tentar(ImageSource.gallery),
       icon: const Icon(Icons.photo_library_outlined, size: 20),
       label: const Text('Escolher imagem'),
     );
@@ -159,18 +235,23 @@ class _FotosScreenState extends State<FotosScreen> {
         ),
       ),
       const SizedBox(height: 20),
-      if (mobile) ...[
-        camera,
-        const SizedBox(height: 12),
-        galeria,
-      ] else
-        Row(
-          children: [
-            Expanded(child: camera),
-            const SizedBox(width: 12),
-            Expanded(child: galeria),
-          ],
-        ),
+      if (_perguntando != null)
+        _PerguntaDeIdade(aoResponder: _responder)
+      else ...[
+        if (_menor) ...[const _AvisoDeIdade(), const SizedBox(height: 20)],
+        if (mobile) ...[
+          camera,
+          const SizedBox(height: 12),
+          galeria,
+        ] else
+          Row(
+            children: [
+              Expanded(child: camera),
+              const SizedBox(width: 12),
+              Expanded(child: galeria),
+            ],
+          ),
+      ],
       if (_foto != null) ...[
         const SizedBox(height: 20),
         ClipRRect(
@@ -237,6 +318,63 @@ class _Cartao extends StatelessWidget {
       borderRadius: BorderRadius.circular(raioPadrao),
     ),
     child: child,
+  );
+}
+
+/// A trava por autodeclaracao, no lugar dos botoes, na primeira tentativa.
+class _PerguntaDeIdade extends StatelessWidget {
+  const _PerguntaDeIdade({required this.aoResponder});
+
+  final Future<void> Function({required bool maior}) aoResponder;
+
+  @override
+  Widget build(BuildContext context) => Semantics(
+    liveRegion: true,
+    child: _Cartao(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Semantics(
+            header: true,
+            child: Text('Você tem 18 anos ou mais?', style: estiloTitulo(22)),
+          ),
+          const SizedBox(height: 8),
+          const Text(
+            'A identificação por foto usa o Gemini, do Google, e os termos '
+            'dele só permitem o uso por quem tem 18 anos ou mais.',
+            style: TextStyle(fontSize: 16, height: 1.5, color: AppCores.tinta2),
+          ),
+          const SizedBox(height: 16),
+          FilledButton(
+            onPressed: () => aoResponder(maior: true),
+            child: const Text('Tenho 18 anos ou mais'),
+          ),
+          const SizedBox(height: 8),
+          OutlinedButton(
+            onPressed: () => aoResponder(maior: false),
+            child: const Text('Tenho menos de 18'),
+          ),
+        ],
+      ),
+    ),
+  );
+}
+
+/// O que aparece para quem respondeu que tem menos de 18.
+class _AvisoDeIdade extends StatelessWidget {
+  const _AvisoDeIdade();
+
+  @override
+  Widget build(BuildContext context) => Semantics(
+    liveRegion: true,
+    child: const _Cartao(
+      child: Text(
+        'A identificação por foto é só para quem tem 18 anos ou mais, por '
+        'exigência do Google. O mapa, as espécies e o resto do EcoMapBrasil '
+        'continuam abertos para você.',
+        style: TextStyle(fontSize: 16, height: 1.5, color: AppCores.tinta2),
+      ),
+    ),
   );
 }
 

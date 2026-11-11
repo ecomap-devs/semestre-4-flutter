@@ -99,6 +99,12 @@ const privacidade = DocumentoLegal(
               'Até você sair da conta',
             ],
             [
+              'Resposta à pergunta de idade da identificação por foto: só o "tenho 18 anos ou mais", com a data',
+              'No seu navegador (`localStorage`, uma chave por conta) ou no armazenamento do app no celular',
+              'Só você, no seu aparelho',
+              'Até você limpar os dados do navegador ou desinstalar o app',
+            ],
+            [
               'Registros técnicos: endereço IP, navegador, horário e o endereço pedido',
               'Registros (logs) do Firebase Hosting e do Supabase',
               'Os provedores e a equipe, para corrigir erros e conter abuso',
@@ -170,7 +176,7 @@ const privacidade = DocumentoLegal(
       titulo: 'O que o site e o app não fazem',
       blocos: [
         ListaLegal([
-          'Não usam cookies de rastreamento, Google Analytics nem outra ferramenta de audiência, e não mostram anúncios. A única coisa que o site grava no seu navegador é o login, enquanto você estiver na conta.',
+          'Não usam cookies de rastreamento, Google Analytics nem outra ferramenta de audiência, e não mostram anúncios. O site só grava no seu navegador o login, enquanto você estiver na conta, e, se você confirmar que tem 18 anos ou mais para usar a identificação por foto, essa confirmação.',
           'Não pedem a sua localização. O mapa mostra o Brasil inteiro, não onde você está.',
           'O app não pede acesso a contatos, localização ou microfone. A câmera e a galeria abrem pelo seletor do próprio Android, só quando você escolhe tirar ou enviar uma foto.',
           'O quiz não grava nada: o placar some quando você sai da página.',
@@ -201,7 +207,7 @@ const privacidade = DocumentoLegal(
       titulo: 'Idade',
       blocos: [
         ListaLegal([
-          '**Identificação por foto: só a partir de 18 anos.** É uma exigência dos [termos do Gemini](https://ai.google.dev/gemini-api/terms), o serviço do Google que reconhece o animal.',
+          '**Identificação por foto: só a partir de 18 anos.** É uma exigência dos [termos do Gemini](https://ai.google.dev/gemini-api/terms), o serviço do Google que reconhece o animal. Antes do primeiro uso, o site e o app perguntam se você tem 18 anos ou mais.',
           '**Conta e avaliações**: quem tem menos de 18 anos precisa da autorização de um responsável.',
           'Sem conta, o site e o app servem para qualquer idade.',
         ]),
@@ -285,7 +291,7 @@ const termos = DocumentoLegal(
       titulo: 'Identificação por foto',
       blocos: [
         ListaLegal([
-          '**Só a partir de 18 anos**, por exigência dos [termos do Gemini](https://ai.google.dev/gemini-api/terms), o serviço do Google que reconhece o animal.',
+          '**Só a partir de 18 anos**, por exigência dos [termos do Gemini](https://ai.google.dev/gemini-api/terms), o serviço do Google que reconhece o animal. Antes do primeiro uso, você confirma que tem 18 anos ou mais, e confirmar sem ter descumpre estes termos.',
           '**A resposta é de uma inteligência artificial e pode estar errada.** Não use para decidir se um animal é peçonhento ou perigoso, nem como motivo para chegar perto, tocar, capturar ou alimentar. Em caso de acidente com animal, procure atendimento médico na hora.',
           'Não envie fotos de pessoas, documentos ou qualquer coisa pessoal: a foto vai para o Google, que pode usá-la (veja a [política de privacidade](/privacidade#compartilhamento)).',
           'Cada conta pode enviar até 5 fotos por minuto e 30 por dia. O recurso usa a cota gratuita do Gemini e pode ficar fora do ar quando ela acaba.',
