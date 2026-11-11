@@ -62,7 +62,7 @@ flowchart LR
 
 **Decidido em 30/09/2026:** o site volta a ser React, em **Next.js com TypeScript**,
 hospedado no **Firebase Hosting** como site estático, e fica com o endereço principal
-(`ecomapbrasil-17756.web.app`), porque para site é a tecnologia mais adequada. O
+(`ecomapbrasil-17756.web.app`; desde 11/11/2026, `ecomapbrasil.web.app`), porque para site é a tecnologia mais adequada. O
 Flutter fica com o que faz melhor: **o app Android**.
 
 > [!NOTE]
@@ -351,8 +351,8 @@ inventada.
 ## 🔏 Privacidade e termos
 
 A **política de privacidade** e os **termos de uso** são os mesmos do site
-([/privacidade](https://ecomapbrasil-17756.web.app/privacidade) e
-[/termos](https://ecomapbrasil-17756.web.app/termos)) e valem para os dois. No app, abrem
+([/privacidade](https://ecomapbrasil.web.app/privacidade) e
+[/termos](https://ecomapbrasil.web.app/termos)) e valem para os dois. No app, abrem
 por cima da tela atual pelos atalhos do rodapé do Início e da tela Animais, pelo aviso do
 cadastro e pelo "Como tratamos a foto" da tela Fotos.
 

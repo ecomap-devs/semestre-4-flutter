@@ -210,7 +210,7 @@ void main() {
         tester,
         Scaffold(
           body: TextoMarcado(
-            'Veja o [site](https://ecomapbrasil-17756.web.app) e a '
+            'Veja o [site](https://ecomapbrasil.web.app) e a '
             '**política**.',
             aoSeguir: (d) => seguido = d,
             estilo: const TextStyle(fontSize: 16),
@@ -222,7 +222,7 @@ void main() {
         findsOneWidget,
       );
       await tester.tapOnText(find.textRange.ofSubstring('site'));
-      expect(seguido, 'https://ecomapbrasil-17756.web.app');
+      expect(seguido, 'https://ecomapbrasil.web.app');
 
       // Na tela de verdade, o link que nao abriu vai para a area de
       // transferencia, com o aviso.

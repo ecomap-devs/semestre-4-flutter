@@ -12,8 +12,10 @@ import 'especies_data.dart';
 import 'linha_do_tempo.dart';
 import 'prodes_data.dart';
 
-/// Endereco do site, para o "Compartilhar" do fim da Home.
-const enderecoDoSite = 'https://ecomapbrasil-17756.web.app';
+/// Endereco do site, para o "Compartilhar" do fim da Home e os links relativos
+/// da politica e dos termos. Desde 11/11/2026 e o nome proprio; o endereco antigo,
+/// do ID do projeto, so redireciona para ele.
+const enderecoDoSite = 'https://ecomapbrasil.web.app';
 
 /// Equipe do Projeto Interdisciplinar.
 const equipe = <String>[
