@@ -676,6 +676,10 @@ class _BotaoFundo extends StatelessWidget {
     return Semantics(
       button: true,
       label: claro ? 'Mostrar imagem de satélite' : 'Mostrar mapa',
+      // O excludeSemantics tira o toque do InkWell da arvore de acessibilidade:
+      // sem o onTap aqui, o TalkBack anunciava o botao, mas o toque duplo nao
+      // fazia nada (revisao do Codex de 11/11/2026).
+      onTap: aoTocar,
       excludeSemantics: true,
       child: Material(
         color: Colors.transparent,
@@ -716,6 +720,7 @@ class _BotaoLegenda extends StatelessWidget {
   Widget build(BuildContext context) => Semantics(
     button: true,
     label: 'Mostrar legenda',
+    onTap: aoTocar,
     excludeSemantics: true,
     child: Material(
       color: Colors.transparent,
@@ -970,6 +975,7 @@ class _PainelCelularState extends State<_PainelCelular> {
                   Semantics(
                     button: true,
                     label: 'Fechar painel',
+                    onTap: widget.aoFechar,
                     excludeSemantics: true,
                     child: InkWell(
                       onTap: widget.aoFechar,

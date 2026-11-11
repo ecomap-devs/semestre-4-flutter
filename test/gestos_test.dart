@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/semantics.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:ecomapbrasil/data/animais_data.dart';
@@ -288,6 +289,43 @@ void main() {
       );
       await tester.pumpAndSettle();
       expect(find.widgetWithText(FilledButton, 'Biomas'), findsOneWidget);
+    });
+
+    // Revisao do Codex de 11/11/2026: os tres botoes tiravam o toque do InkWell
+    // da arvore de acessibilidade, e o TalkBack anunciava sem conseguir tocar.
+    // Sem o "Legenda", quem usa leitor de tela nao reabria a legenda fechada.
+    testWidgets('os botões do Mapa também tocam pelo leitor de tela', (
+      tester,
+    ) async {
+      final semantica = tester.ensureSemantics();
+      await montar(tester);
+
+      void tocarPeloLeitor(String rotulo) {
+        final no = tester.getSemantics(find.bySemanticsLabel(rotulo));
+        expect(
+          no.getSemanticsData().hasAction(SemanticsAction.tap),
+          isTrue,
+          reason: rotulo,
+        );
+        no.owner!.performAction(no.id, SemanticsAction.tap);
+      }
+
+      await tester.tap(find.byTooltip('Fechar legenda'));
+      await tester.pump();
+      tocarPeloLeitor('Mostrar legenda');
+      await tester.pump();
+      expect(legenda, findsOneWidget);
+
+      tocarPeloLeitor('Mostrar imagem de satélite');
+      await tester.pump();
+      expect(find.bySemanticsLabel('Mostrar mapa'), findsOneWidget);
+
+      await tester.tap(find.widgetWithText(FilledButton, 'Biomas'));
+      await tester.pumpAndSettle();
+      tocarPeloLeitor('Fechar painel');
+      await tester.pumpAndSettle();
+      expect(find.widgetWithText(FilledButton, 'Biomas'), findsOneWidget);
+      semantica.dispose();
     });
 
     testWidgets('o painel volta ao lugar com um arrasto curto e lento', (
