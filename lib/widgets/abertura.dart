@@ -100,7 +100,14 @@ class _AberturaState extends State<Abertura>
   Widget build(BuildContext context) {
     final tela = MediaQuery.sizeOf(context);
     final mobile = Breakpoints.ehMobile(context);
-    final altura = widget.altura ?? (tela.height * .82).clamp(520.0, 900.0);
+    // Com o celular deitado nao cabem 520 dp: a abertura fica na altura da
+    // tela e cresce so o que o texto pedir.
+    final altura =
+        widget.altura ??
+        (Breakpoints.ehCelularDeitado(context)
+            ? tela.height * .7
+            : (tela.height * .82).clamp(520.0, 900.0));
+    final margem = mobile ? 20.0 : 24.0;
     // O titulo acompanha a largura e a altura da tela, como o
     // clamp(36px, min(8vw, 12.5vh), 108px) do site.
     final tamanhoTitulo = [
@@ -171,6 +178,11 @@ class _AberturaState extends State<Abertura>
                 ),
                 // Altura minima, nao fixa: com fonte grande num celular pequeno
                 // o texto nao cabe, e a abertura cresce em vez de estourar.
+                //
+                // Os indicadores e o credito vem no mesmo fluxo do texto, logo
+                // abaixo dos botoes. Ate 11/11/2026 ficavam presos a 28 dp da
+                // base, por cima, e com fonte grande o credito cobria o botao
+                // "Especies ameacadas".
                 ConstrainedBox(
                   constraints: BoxConstraints(
                     minHeight: altura,
@@ -181,16 +193,26 @@ class _AberturaState extends State<Abertura>
                     child: ConstrainedBox(
                       constraints: const BoxConstraints(maxWidth: 1120),
                       child: Padding(
-                        padding: EdgeInsets.fromLTRB(
-                          mobile ? 20 : 24,
-                          24,
-                          mobile ? 20 : 24,
-                          96,
-                        ),
-                        child: _Texto(
-                          tamanhoTitulo: tamanhoTitulo,
-                          aoAbrirMapa: widget.aoAbrirMapa,
-                          aoVerEspecies: widget.aoVerEspecies,
+                        padding: EdgeInsets.fromLTRB(margem, 24, margem, 12),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            _Texto(
+                              tamanhoTitulo: tamanhoTitulo,
+                              compacto: Breakpoints.ehCelularDeitado(context),
+                              aoAbrirMapa: widget.aoAbrirMapa,
+                              aoVerEspecies: widget.aoVerEspecies,
+                            ),
+                            const SizedBox(height: 24),
+                            _Indicadores(
+                              atual: _atual,
+                              relogio: _relogio,
+                              semMovimento: _semMovimento,
+                              creditoAbaixo: mobile,
+                              aoEscolher: _irPara,
+                            ),
+                          ],
                         ),
                       ),
                     ),
@@ -222,27 +244,6 @@ class _AberturaState extends State<Abertura>
                     ),
                   ),
                 ],
-                Positioned(
-                  left: 0,
-                  right: 0,
-                  bottom: 28,
-                  child: Center(
-                    child: ConstrainedBox(
-                      constraints: const BoxConstraints(maxWidth: 1120),
-                      child: Padding(
-                        padding: EdgeInsets.symmetric(
-                          horizontal: mobile ? 20 : 24,
-                        ),
-                        child: _Indicadores(
-                          atual: _atual,
-                          relogio: _relogio,
-                          semMovimento: _semMovimento,
-                          aoEscolher: _irPara,
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
               ],
             ),
           ),
@@ -255,11 +256,16 @@ class _AberturaState extends State<Abertura>
 class _Texto extends StatelessWidget {
   const _Texto({
     required this.tamanhoTitulo,
+    required this.compacto,
     required this.aoAbrirMapa,
     required this.aoVerEspecies,
   });
 
   final double tamanhoTitulo;
+
+  /// Celular deitado: espacos e subtitulo menores, para os botoes caberem na
+  /// altura da tela.
+  final bool compacto;
   final VoidCallback aoAbrirMapa;
   final VoidCallback aoVerEspecies;
 
@@ -300,20 +306,20 @@ class _Texto extends StatelessWidget {
               ),
         ),
       ),
-      const SizedBox(height: 20),
+      SizedBox(height: compacto ? 12 : 20),
       ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 580),
-        child: const Text(
+        child: Text(
           'Veja onde a floresta está sendo perdida e quais espécies estão '
           'ficando sem lugar para viver.',
           style: TextStyle(
-            fontSize: 19,
+            fontSize: compacto ? 16 : 19,
             height: 1.45,
-            color: Color(0xE0FFFDF8),
+            color: const Color(0xE0FFFDF8),
           ),
         ),
       ),
-      const SizedBox(height: 28),
+      SizedBox(height: compacto ? 16 : 28),
       Wrap(
         spacing: 12,
         runSpacing: 12,
@@ -335,74 +341,99 @@ class _Indicadores extends StatelessWidget {
     required this.atual,
     required this.relogio,
     required this.semMovimento,
+    required this.creditoAbaixo,
     required this.aoEscolher,
   });
 
   final int atual;
   final Animation<double> relogio;
   final bool semMovimento;
+
+  /// No celular o nome do animal e o credito vao numa linha propria, abaixo
+  /// das barras: ao lado delas sobravam poucos dp, e com fonte grande o
+  /// credito quebrava em varias linhas por cima dos botoes.
+  final bool creditoAbaixo;
   final ValueChanged<int> aoEscolher;
 
   @override
-  Widget build(BuildContext context) => Row(
-    children: [
-      for (final (i, s) in slides.indexed)
-        Semantics(
-          button: true,
-          selected: i == atual,
-          label: 'Mostrar ${s.rotulo}',
-          excludeSemantics: true,
-          child: InkWell(
-            onTap: () => aoEscolher(i),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 16),
-              child: SizedBox(
-                width: 40,
-                height: 2,
-                child: ColoredBox(
-                  color: const Color(0x4DFFFDF8),
-                  // A barra da foto da vez se enche ate a proxima.
-                  child: i != atual
-                      ? null
-                      : AnimatedBuilder(
-                          animation: relogio,
-                          builder: (_, _) => FractionallySizedBox(
-                            alignment: Alignment.centerLeft,
-                            widthFactor: semMovimento ? 1 : relogio.value,
-                            child: const ColoredBox(color: AppCores.branco),
+  Widget build(BuildContext context) {
+    final barras = Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        for (final (i, s) in slides.indexed)
+          Semantics(
+            button: true,
+            selected: i == atual,
+            label: 'Mostrar ${s.rotulo}',
+            excludeSemantics: true,
+            child: InkWell(
+              onTap: () => aoEscolher(i),
+              // 48 dp de toque, como pede o Android; a barra continua fina.
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 4,
+                  vertical: 23,
+                ),
+                child: SizedBox(
+                  width: 40,
+                  height: 2,
+                  child: ColoredBox(
+                    color: const Color(0x4DFFFDF8),
+                    // A barra da foto da vez se enche ate a proxima.
+                    child: i != atual
+                        ? null
+                        : AnimatedBuilder(
+                            animation: relogio,
+                            builder: (_, _) => FractionallySizedBox(
+                              alignment: Alignment.centerLeft,
+                              widthFactor: semMovimento ? 1 : relogio.value,
+                              child: const ColoredBox(color: AppCores.branco),
+                            ),
                           ),
-                        ),
+                  ),
                 ),
               ),
             ),
           ),
-        ),
-      const SizedBox(width: 16),
-      // O nome do animal da vez e o credito da foto, que a licenca CC pede a
-      // vista (desde 10/11/2026 todas sao do Wikimedia Commons).
-      Expanded(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ExcludeSemantics(
-              child: Text(
-                slides[atual].rotulo,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
-                  fontSize: 15,
-                  fontStyle: FontStyle.italic,
-                  color: Color(0xD9FFFDF8),
-                ),
-              ),
+      ],
+    );
+    // O nome do animal da vez e o credito da foto, que a licenca CC pede a
+    // vista (desde 10/11/2026 todas sao do Wikimedia Commons).
+    final legenda = Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        ExcludeSemantics(
+          child: Text(
+            slides[atual].rotulo,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(
+              fontSize: 15,
+              fontStyle: FontStyle.italic,
+              color: Color(0xD9FFFDF8),
             ),
-            CreditoDaFoto(credito: slides[atual].credito),
-          ],
+          ),
         ),
-      ),
-    ],
-  );
+        CreditoDaFoto(credito: slides[atual].credito),
+      ],
+    );
+
+    if (creditoAbaixo) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [barras, legenda],
+      );
+    }
+    return Row(
+      children: [
+        barras,
+        const SizedBox(width: 16),
+        Expanded(child: legenda),
+      ],
+    );
+  }
 }
 
 class _Seta extends StatelessWidget {
