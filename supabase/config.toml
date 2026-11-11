@@ -11,3 +11,9 @@ verify_jwt = false
 # (supabase/functions/_compartilhado/firebase.ts).
 [functions.enviar-avatar]
 verify_jwt = false
+
+# Apagar a conta (11/11/2026): apaga as fotos de perfil e as linhas de limite.
+# Mesmo motivo das outras: a funcao confere o ID token do Firebase, e exige
+# login recente (supabase/functions/apagar-conta/conta.ts).
+[functions.apagar-conta]
+verify_jwt = false
