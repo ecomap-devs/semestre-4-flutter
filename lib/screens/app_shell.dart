@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 
 import '../services/auth_service.dart';
 import '../theme/app_theme.dart';
+import '../widgets/apagar_conta_dialog.dart';
 import '../widgets/auth_modal.dart';
 import 'animais_screen.dart';
 import 'fotos_screen.dart';
@@ -38,6 +39,14 @@ class _AppShellState extends State<AppShell> {
   ];
 
   void _pedirLogin() => AuthModal.abrir(context, widget.auth);
+
+  Future<void> _apagarConta() async {
+    final apagou = await ApagarContaDialog.abrir(context, widget.auth);
+    if (!apagou || !mounted) return;
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(const SnackBar(content: Text('Sua conta foi apagada.')));
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -121,6 +130,7 @@ class _AppShellState extends State<AppShell> {
                   tooltip: usuario.displayName ?? 'Conta',
                   onSelected: (v) {
                     if (v == 'sair') widget.auth.sair();
+                    if (v == 'apagar') _apagarConta();
                   },
                   itemBuilder: (_) => [
                     PopupMenuItem(
@@ -135,6 +145,13 @@ class _AppShellState extends State<AppShell> {
                     ),
                     const PopupMenuDivider(),
                     const PopupMenuItem(value: 'sair', child: Text('Sair')),
+                    const PopupMenuItem(
+                      value: 'apagar',
+                      child: Text(
+                        'Apagar conta',
+                        style: TextStyle(color: AppCores.terra),
+                      ),
+                    ),
                   ],
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 8),

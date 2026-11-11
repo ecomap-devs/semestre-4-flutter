@@ -179,7 +179,7 @@ jobs:
         run: deno fmt --check supabase
 
       - name: Conferir tipos
-        run: deno check supabase/functions/identificar-animal/index.ts supabase/functions/enviar-avatar/index.ts
+        run: deno check supabase/functions/identificar-animal/index.ts supabase/functions/enviar-avatar/index.ts supabase/functions/apagar-conta/index.ts
 
       - name: Testar as funções e o SQL dos limites
         run: deno test --allow-read --allow-env supabase

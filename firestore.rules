@@ -115,7 +115,9 @@ service cloud.firestore {
         && textoEntre(request.resource.data.nome, 1, 200)
         && fotoValida(request.resource.data.photoURL);
 
-      allow delete: if false;
+      // O botão de apagar conta (11/11/2026) apaga o perfil antes da conta no
+      // Auth. Só o dono, e só o próprio: o id do documento é o uid.
+      allow delete: if logado() && request.auth.uid == uid;
     }
 
     // ─── Tudo o mais ─────────────────────────────────────────────────────
