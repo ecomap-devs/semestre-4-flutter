@@ -8,6 +8,7 @@ import '../models/bioma.dart';
 import '../services/geojson_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/animacao_na_tela.dart';
+import '../widgets/deslizar_para_fechar.dart';
 
 /// O fundo do mapa. Comeca no claro: biomas coloridos e alertas vermelhos
 /// aparecem muito mais sobre ele do que sobre o satelite escuro.
@@ -96,6 +97,10 @@ class _MapaScreenState extends State<MapaScreen> {
 
   Bioma? _selecionado;
   bool _painelAberto = false;
+
+  /// A legenda dos alertas tapava o mapa e nao fechava (pedido de 11/11/2026):
+  /// agora fecha pelo X ou deslizando, e um botao "Legenda" a traz de volta.
+  bool _legendaAberta = true;
   bool _detalhe = false;
   _Fundo _fundo = _Fundo.claro;
 
@@ -313,14 +318,32 @@ class _MapaScreenState extends State<MapaScreen> {
                 ),
               ),
 
-            if (mostrarLegenda)
+            if (mostrarLegenda && _legendaAberta)
               Positioned(
                 left: 16,
                 right: ehMobile ? 16 : null,
                 bottom: ehMobile ? 84 : 32,
                 child: ConstrainedBox(
                   constraints: const BoxConstraints(maxWidth: 320),
-                  child: _Legenda(dados: dados, detalhe: _detalhe),
+                  child: DeslizarParaFechar(
+                    key: const ValueKey('legenda'),
+                    aoFechar: () => setState(() => _legendaAberta = false),
+                    child: _Legenda(
+                      dados: dados,
+                      detalhe: _detalhe,
+                      aoFechar: () => setState(() => _legendaAberta = false),
+                    ),
+                  ),
+                ),
+              ),
+
+            // No celular fica na linha do botao Biomas, do outro lado.
+            if (mostrarLegenda && !_legendaAberta)
+              Positioned(
+                left: 16,
+                bottom: ehMobile ? 20 : 32,
+                child: _BotaoLegenda(
+                  aoTocar: () => setState(() => _legendaAberta = true),
                 ),
               ),
 
@@ -336,10 +359,15 @@ class _MapaScreenState extends State<MapaScreen> {
                       maxWidth: 320,
                       maxHeight: MediaQuery.sizeOf(context).height * .4,
                     ),
-                    child: SingleChildScrollView(
-                      child: _FichaBioma(
-                        bioma: _selecionado!,
-                        aoFechar: () => setState(() => _selecionado = null),
+                    // Para baixo so quando a ficha cabe inteira: com rolagem,
+                    // o arrasto vertical e dela, e fecha-se para o lado.
+                    child: DeslizarParaFechar(
+                      aoFechar: () => setState(() => _selecionado = null),
+                      child: SingleChildScrollView(
+                        child: _FichaBioma(
+                          bioma: _selecionado!,
+                          aoFechar: () => setState(() => _selecionado = null),
+                        ),
                       ),
                     ),
                   ),
@@ -496,10 +524,15 @@ class _Quadrado extends StatelessWidget {
 }
 
 class _Legenda extends StatelessWidget {
-  const _Legenda({required this.dados, required this.detalhe});
+  const _Legenda({
+    required this.dados,
+    required this.detalhe,
+    required this.aoFechar,
+  });
 
   final _DadosMapa? dados;
   final bool detalhe;
+  final VoidCallback aoFechar;
 
   static const _suave = TextStyle(
     fontSize: 13,
@@ -515,6 +548,7 @@ class _Legenda extends StatelessWidget {
         : '${_dataCurta(d.inicio!)} a ${_dataCurta(d.fim!)}';
 
     return _CartaoFlutuante(
+      padding: const EdgeInsets.fromLTRB(14, 8, 6, 12),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -553,37 +587,58 @@ class _Legenda extends StatelessWidget {
                   ],
                 ),
               ),
+              // Como o X da ficha do bioma, que ocupa o mesmo lugar.
+              IconButton(
+                onPressed: aoFechar,
+                icon: const Icon(Icons.close, size: 18),
+                color: AppCores.tinta3,
+                tooltip: 'Fechar legenda',
+                visualDensity: VisualDensity.compact,
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints.tightFor(
+                  width: 40,
+                  height: 40,
+                ),
+              ),
             ],
           ),
-          const SizedBox(height: 6),
-          const Text(
-            'Mata Atlântica, Caatinga, Pantanal e Pampa não têm alerta do '
-            'DETER.',
-            style: _suave,
+          // A direita do cartao e estreita por causa do X; o resto ganha a
+          // folga de volta aqui, como a ficha do bioma.
+          const SizedBox(height: 2),
+          const Padding(
+            padding: EdgeInsets.only(right: 8),
+            child: Text(
+              'Mata Atlântica, Caatinga, Pantanal e Pampa não têm alerta do '
+              'DETER.',
+              style: _suave,
+            ),
           ),
           const SizedBox(height: 10),
           const Text('Biomas, pelo limite do IBGE', style: _suave),
           const SizedBox(height: 4),
-          Wrap(
-            spacing: 12,
-            runSpacing: 2,
-            children: [
-              for (final b in biomas)
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    _Quadrado(b.cor, tamanho: 10),
-                    const SizedBox(width: 5),
-                    Text(
-                      b.nome,
-                      style: const TextStyle(
-                        fontSize: 14,
-                        color: AppCores.tinta2,
+          Padding(
+            padding: const EdgeInsets.only(right: 8),
+            child: Wrap(
+              spacing: 12,
+              runSpacing: 2,
+              children: [
+                for (final b in biomas)
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      _Quadrado(b.cor, tamanho: 10),
+                      const SizedBox(width: 5),
+                      Text(
+                        b.nome,
+                        style: const TextStyle(
+                          fontSize: 14,
+                          color: AppCores.tinta2,
+                        ),
                       ),
-                    ),
-                  ],
-                ),
-            ],
+                    ],
+                  ),
+              ],
+            ),
           ),
         ],
       ),
@@ -649,6 +704,41 @@ class _BotaoFundo extends StatelessWidget {
       ),
     );
   }
+}
+
+/// O que fica no lugar da legenda fechada, para traze-la de volta.
+class _BotaoLegenda extends StatelessWidget {
+  const _BotaoLegenda({required this.aoTocar});
+
+  final VoidCallback aoTocar;
+
+  @override
+  Widget build(BuildContext context) => Semantics(
+    button: true,
+    label: 'Mostrar legenda',
+    excludeSemantics: true,
+    child: Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: aoTocar,
+        borderRadius: BorderRadius.circular(raioPadrao),
+        child: const _CartaoFlutuante(
+          padding: EdgeInsets.symmetric(horizontal: 14, vertical: 11),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.info_outline, size: 18, color: AppCores.mata),
+              SizedBox(width: 8),
+              Text(
+                'Legenda',
+                style: TextStyle(fontSize: 15, color: AppCores.tinta),
+              ),
+            ],
+          ),
+        ),
+      ),
+    ),
+  );
 }
 
 /// Um bioma na lista do painel: amostra de cor, nome e quanto foi desmatado.
@@ -803,9 +893,38 @@ class _PainelCelular extends StatefulWidget {
 class _PainelCelularState extends State<_PainelCelular> {
   bool _linhaDoTempo = false;
 
+  /// Arrastar para baixo fecha (11/11/2026). O painel acompanha o dedo pela
+  /// propria animacao de abrir e fechar: ao soltar, ele desce o resto ou volta,
+  /// sem salto. Onde a lista rola, o arrasto e dela; o puxador e as abas
+  /// sempre arrastam o painel.
+  final _chave = GlobalKey();
+  double _arrasto = 0;
+  double _altura = 1;
+  bool _arrastando = false;
+
+  void _arrastar(DragUpdateDetails d) {
+    final altura = _chave.currentContext?.size?.height;
+    setState(() {
+      if (altura != null && altura > 0) _altura = altura;
+      _arrastando = true;
+      _arrasto = (_arrasto + d.delta.dy).clamp(0.0, _altura);
+    });
+  }
+
+  void _soltar(DragEndDetails d) {
+    final fecha =
+        _arrasto > _altura * .25 ||
+        d.velocity.pixelsPerSecond.dy > DeslizarParaFechar.velocidadeQueFecha;
+    setState(() {
+      _arrastando = false;
+      _arrasto = 0;
+    });
+    if (fecha) widget.aoFechar();
+  }
+
   @override
   Widget build(BuildContext context) {
-    final duracao = MediaQuery.disableAnimationsOf(context)
+    final duracao = MediaQuery.disableAnimationsOf(context) || _arrastando
         ? Duration.zero
         : const Duration(milliseconds: 300);
 
@@ -814,7 +933,9 @@ class _PainelCelularState extends State<_PainelCelular> {
       right: 0,
       bottom: 0,
       child: AnimatedSlide(
-        offset: widget.aberto ? Offset.zero : const Offset(0, 1),
+        offset: widget.aberto
+            ? Offset(0, _arrasto / _altura)
+            : const Offset(0, 1),
         duration: duracao,
         curve: Curves.easeOutCubic,
         child: Visibility(
@@ -822,90 +943,95 @@ class _PainelCelularState extends State<_PainelCelular> {
           maintainState: true,
           maintainAnimation: true,
           maintainSize: true,
-          child: Container(
-            constraints: BoxConstraints(
-              maxHeight: MediaQuery.sizeOf(context).height * .6,
-            ),
-            decoration: const BoxDecoration(
-              color: AppCores.papel,
-              borderRadius: BorderRadius.vertical(top: Radius.circular(12)),
-              border: Border(top: BorderSide(color: AppCores.linha)),
-              boxShadow: [
-                BoxShadow(
-                  color: Color(0x261D2620),
-                  blurRadius: 20,
-                  offset: Offset(0, -4),
-                ),
-              ],
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Semantics(
-                  button: true,
-                  label: 'Fechar painel',
-                  excludeSemantics: true,
-                  child: InkWell(
-                    onTap: widget.aoFechar,
-                    child: Padding(
-                      padding: const EdgeInsets.fromLTRB(0, 10, 0, 6),
-                      child: Center(
-                        child: Container(
-                          width: 36,
-                          height: 4,
-                          decoration: BoxDecoration(
-                            color: AppCores.linha,
-                            borderRadius: BorderRadius.circular(2),
+          child: GestureDetector(
+            onVerticalDragUpdate: widget.aberto ? _arrastar : null,
+            onVerticalDragEnd: widget.aberto ? _soltar : null,
+            child: Container(
+              key: _chave,
+              constraints: BoxConstraints(
+                maxHeight: MediaQuery.sizeOf(context).height * .6,
+              ),
+              decoration: const BoxDecoration(
+                color: AppCores.papel,
+                borderRadius: BorderRadius.vertical(top: Radius.circular(12)),
+                border: Border(top: BorderSide(color: AppCores.linha)),
+                boxShadow: [
+                  BoxShadow(
+                    color: Color(0x261D2620),
+                    blurRadius: 20,
+                    offset: Offset(0, -4),
+                  ),
+                ],
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Semantics(
+                    button: true,
+                    label: 'Fechar painel',
+                    excludeSemantics: true,
+                    child: InkWell(
+                      onTap: widget.aoFechar,
+                      child: Padding(
+                        padding: const EdgeInsets.fromLTRB(0, 10, 0, 6),
+                        child: Center(
+                          child: Container(
+                            width: 36,
+                            height: 4,
+                            decoration: BoxDecoration(
+                              color: AppCores.linha,
+                              borderRadius: BorderRadius.circular(2),
+                            ),
                           ),
                         ),
                       ),
                     ),
                   ),
-                ),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  decoration: const BoxDecoration(
-                    border: Border(bottom: BorderSide(color: AppCores.linha)),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    decoration: const BoxDecoration(
+                      border: Border(bottom: BorderSide(color: AppCores.linha)),
+                    ),
+                    child: Row(
+                      children: [
+                        _Aba(
+                          rotulo: 'Biomas',
+                          ativa: !_linhaDoTempo,
+                          aoTocar: () => setState(() => _linhaDoTempo = false),
+                        ),
+                        const SizedBox(width: 20),
+                        _Aba(
+                          rotulo: 'Linha do tempo',
+                          ativa: _linhaDoTempo,
+                          aoTocar: () => setState(() => _linhaDoTempo = true),
+                        ),
+                      ],
+                    ),
                   ),
-                  child: Row(
-                    children: [
-                      _Aba(
-                        rotulo: 'Biomas',
-                        ativa: !_linhaDoTempo,
-                        aoTocar: () => setState(() => _linhaDoTempo = false),
-                      ),
-                      const SizedBox(width: 20),
-                      _Aba(
-                        rotulo: 'Linha do tempo',
-                        ativa: _linhaDoTempo,
-                        aoTocar: () => setState(() => _linhaDoTempo = true),
-                      ),
-                    ],
+                  Flexible(
+                    child: SingleChildScrollView(
+                      padding: const EdgeInsets.fromLTRB(12, 12, 12, 20),
+                      child: _linhaDoTempo
+                          ? const Padding(
+                              padding: EdgeInsets.fromLTRB(4, 4, 4, 0),
+                              child: _LinhaDoTempo(),
+                            )
+                          : Column(
+                              children: [
+                                for (final b in biomas)
+                                  _ItemBioma(
+                                    bioma: b,
+                                    ativo: b == widget.selecionado,
+                                    compacto: true,
+                                    aoEscolher: () => widget.aoSelecionar(b),
+                                  ),
+                              ],
+                            ),
+                    ),
                   ),
-                ),
-                Flexible(
-                  child: SingleChildScrollView(
-                    padding: const EdgeInsets.fromLTRB(12, 12, 12, 20),
-                    child: _linhaDoTempo
-                        ? const Padding(
-                            padding: EdgeInsets.fromLTRB(4, 4, 4, 0),
-                            child: _LinhaDoTempo(),
-                          )
-                        : Column(
-                            children: [
-                              for (final b in biomas)
-                                _ItemBioma(
-                                  bioma: b,
-                                  ativo: b == widget.selecionado,
-                                  compacto: true,
-                                  aoEscolher: () => widget.aoSelecionar(b),
-                                ),
-                            ],
-                          ),
-                  ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),
