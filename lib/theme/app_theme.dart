@@ -77,20 +77,187 @@ class AppFontes {
 /// Raio padrão de cantos (`--raio` do site).
 const raioPadrao = 6.0;
 
+/// Escala tipográfica do app, nos papéis do Material 3.
+///
+/// Até 11/11/2026 cada texto escolhia o `fontSize` à mão: eram 125, de 10 a
+/// 52, sem papel nenhum (auditoria de responsividade da v1.3.0). Agora todo
+/// texto usa um destes papéis, e o `textTheme` do tema é feito deles, então os
+/// componentes do Material (diálogos, campos, menus) seguem a mesma escala.
+///
+/// Display, headline e `titleLarge` são títulos, em Fraunces com peso médio;
+/// o resto é Source Sans. Os tamanhos são os do app, não os do Material: o
+/// papel diz para que serve o texto, e o tamanho vem do desenho que já existia.
+/// Nada fixa o `textScaler`: a fonte do sistema continua valendo para todos.
+class Escala {
+  const Escala._();
+
+  /// Título de seção grande, no desktop.
+  static const displayLarge = TextStyle(
+    fontFamily: AppFontes.titulo,
+    fontSize: 48,
+    fontWeight: FontWeight.w500,
+    height: 1.05,
+    letterSpacing: -0.72, // -1,5% do tamanho
+  );
+
+  /// Título de seção no tablet; número de destaque.
+  static const displayMedium = TextStyle(
+    fontFamily: AppFontes.titulo,
+    fontSize: 40,
+    fontWeight: FontWeight.w500,
+    height: 1.05,
+    letterSpacing: -0.6, // -1,5% do tamanho
+  );
+
+  /// Título de seção no celular.
+  static const displaySmall = TextStyle(
+    fontFamily: AppFontes.titulo,
+    fontSize: 34,
+    fontWeight: FontWeight.w500,
+    height: 1.05,
+    letterSpacing: -0.51, // -1,5% do tamanho
+  );
+
+  /// Título de página e de diálogo grande.
+  static const headlineLarge = TextStyle(
+    fontFamily: AppFontes.titulo,
+    fontSize: 32,
+    fontWeight: FontWeight.w500,
+    height: 1.1,
+    letterSpacing: -0.48, // -1,5% do tamanho
+  );
+
+  /// Nome na ficha da espécie, título de cartão grande.
+  static const headlineMedium = TextStyle(
+    fontFamily: AppFontes.titulo,
+    fontSize: 26,
+    fontWeight: FontWeight.w500,
+    height: 1.1,
+    letterSpacing: -0.39, // -1,5% do tamanho
+  );
+
+  /// Título de cartão e de diálogo.
+  static const headlineSmall = TextStyle(
+    fontFamily: AppFontes.titulo,
+    fontSize: 24,
+    fontWeight: FontWeight.w500,
+    height: 1.1,
+    letterSpacing: -0.36, // -1,5% do tamanho
+  );
+
+  /// Título de painel e de bloco ("Biomas", "Linha do tempo").
+  static const titleLarge = TextStyle(
+    fontFamily: AppFontes.titulo,
+    fontSize: 20,
+    fontWeight: FontWeight.w500,
+    height: 1.1,
+    letterSpacing: -0.3, // -1,5% do tamanho
+  );
+
+  /// Texto de abertura, abaixo de um título; botão grande sobre foto.
+  static const titleMedium = TextStyle(
+    fontFamily: AppFontes.texto,
+    fontSize: 18,
+    fontWeight: FontWeight.w400,
+  );
+
+  /// Rótulo forte de item de lista.
+  static final titleSmall = Escala.labelLarge;
+
+  /// Texto corrido.
+  static const bodyLarge = TextStyle(
+    fontFamily: AppFontes.texto,
+    fontSize: 16,
+    fontWeight: FontWeight.w400,
+  );
+
+  /// Texto de apoio em cartões e listas.
+  static const bodyMedium = TextStyle(
+    fontFamily: AppFontes.texto,
+    fontSize: 15,
+    fontWeight: FontWeight.w400,
+  );
+
+  /// Texto secundário: data, fonte, legenda de gráfico.
+  static const bodySmall = TextStyle(
+    fontFamily: AppFontes.texto,
+    fontSize: 14,
+    fontWeight: FontWeight.w400,
+  );
+
+  /// Botões e abas.
+  static const labelLarge = TextStyle(
+    fontFamily: AppFontes.texto,
+    fontSize: 16,
+    fontWeight: FontWeight.w600,
+  );
+
+  /// Etiqueta, legenda do mapa, rótulo da barra de navegação.
+  static const labelMedium = TextStyle(
+    fontFamily: AppFontes.texto,
+    fontSize: 13,
+    fontWeight: FontWeight.w400,
+  );
+
+  /// Crédito de foto e de mapa.
+  static const labelSmall = TextStyle(
+    fontFamily: AppFontes.texto,
+    fontSize: 12,
+    fontWeight: FontWeight.w400,
+  );
+
+  /// Título sobre foto ou faixa escura, no tablet e no desktop. Fica acima dos
+  /// papéis do Material, que param no `displayLarge`: só para estes lugares.
+  static const destaque = TextStyle(
+    fontFamily: AppFontes.titulo,
+    fontSize: 64,
+    fontWeight: FontWeight.w500,
+    height: 1.0,
+    letterSpacing: -0.96, // -1,5% do tamanho
+  );
+
+  /// Os números grandes da Home ("1,5 mi ha"). Também acima do Material.
+  static const numero = TextStyle(
+    fontFamily: AppFontes.titulo,
+    fontSize: 88,
+    fontWeight: FontWeight.w500,
+    height: 1.0,
+    letterSpacing: -1.32, // -1,5% do tamanho
+  );
+
+  /// O `TextTheme` do tema, com as cores de texto do app.
+  static TextTheme textTheme({required Color titulo, required Color corpo}) =>
+      TextTheme(
+        displayLarge: displayLarge.copyWith(color: titulo),
+        displayMedium: displayMedium.copyWith(color: titulo),
+        displaySmall: displaySmall.copyWith(color: titulo),
+        headlineLarge: headlineLarge.copyWith(color: titulo),
+        headlineMedium: headlineMedium.copyWith(color: titulo),
+        headlineSmall: headlineSmall.copyWith(color: titulo),
+        titleLarge: titleLarge.copyWith(color: titulo),
+        titleMedium: titleMedium.copyWith(color: titulo),
+        titleSmall: titleSmall.copyWith(color: titulo),
+        bodyLarge: bodyLarge.copyWith(color: corpo),
+        bodyMedium: bodyMedium.copyWith(color: corpo),
+        bodySmall: bodySmall.copyWith(color: corpo),
+        labelLarge: labelLarge.copyWith(color: titulo),
+        labelMedium: labelMedium.copyWith(color: corpo),
+        labelSmall: labelSmall.copyWith(color: corpo),
+      );
+}
+
 /// Título em serifa, com peso médio: o 800 em tudo era o que mais dava cara
-/// de modelo pronto.
+/// de modelo pronto. O tamanho vem de um papel da [Escala].
 TextStyle estiloTitulo(
-  double tamanho, {
+  TextStyle papel, {
   Color cor = AppCores.tinta,
   FontWeight peso = FontWeight.w500,
-  double altura = 1.1,
-}) => TextStyle(
+  double? altura,
+}) => papel.copyWith(
   fontFamily: AppFontes.titulo,
-  fontSize: tamanho,
   fontWeight: peso,
   color: cor,
   height: altura,
-  letterSpacing: -tamanho * 0.015,
 );
 
 /// Larguras de quebra herdadas do `useWindowSize()` da versao React.
@@ -152,10 +319,7 @@ ThemeData construirTema() {
       scrolledUnderElevation: 0,
       shape: Border(bottom: BorderSide(color: AppCores.linha)),
     ),
-    textTheme: base.textTheme.apply(
-      bodyColor: AppCores.tinta2,
-      displayColor: AppCores.tinta,
-    ),
+    textTheme: Escala.textTheme(titulo: AppCores.tinta, corpo: AppCores.tinta2),
     dividerTheme: const DividerThemeData(color: AppCores.linha),
     navigationBarTheme: NavigationBarThemeData(
       height: 68,
@@ -164,8 +328,7 @@ ThemeData construirTema() {
       surfaceTintColor: Colors.transparent,
       indicatorColor: AppCores.mataClara,
       labelTextStyle: WidgetStateProperty.resolveWith(
-        (estados) => TextStyle(
-          fontSize: 13,
+        (estados) => Escala.labelMedium.copyWith(
           fontWeight: estados.contains(WidgetState.selected)
               ? FontWeight.w600
               : FontWeight.w400,
@@ -182,17 +345,18 @@ ThemeData construirTema() {
         ),
       ),
     ),
-    navigationRailTheme: const NavigationRailThemeData(
+    navigationRailTheme: NavigationRailThemeData(
       backgroundColor: AppCores.papel,
       indicatorColor: AppCores.mataClara,
       selectedIconTheme: IconThemeData(color: AppCores.mata),
       unselectedIconTheme: IconThemeData(color: AppCores.tinta3),
-      selectedLabelTextStyle: TextStyle(
-        fontSize: 13,
+      selectedLabelTextStyle: Escala.labelMedium.copyWith(
         fontWeight: FontWeight.w600,
         color: AppCores.tinta,
       ),
-      unselectedLabelTextStyle: TextStyle(fontSize: 13, color: AppCores.tinta3),
+      unselectedLabelTextStyle: Escala.labelMedium.copyWith(
+        color: AppCores.tinta3,
+      ),
     ),
     inputDecorationTheme: InputDecorationTheme(
       filled: true,
@@ -215,11 +379,7 @@ ThemeData construirTema() {
         minimumSize: const Size(48, 48),
         padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 12),
         shape: cantos,
-        textStyle: const TextStyle(
-          fontFamily: AppFontes.texto,
-          fontSize: 16,
-          fontWeight: FontWeight.w600,
-        ),
+        textStyle: Escala.labelLarge,
       ),
     ),
     outlinedButtonTheme: OutlinedButtonThemeData(
@@ -229,21 +389,13 @@ ThemeData construirTema() {
         minimumSize: const Size(48, 48),
         padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 12),
         shape: cantos,
-        textStyle: const TextStyle(
-          fontFamily: AppFontes.texto,
-          fontSize: 16,
-          fontWeight: FontWeight.w600,
-        ),
+        textStyle: Escala.labelLarge,
       ),
     ),
     textButtonTheme: TextButtonThemeData(
       style: TextButton.styleFrom(
         foregroundColor: AppCores.mata,
-        textStyle: const TextStyle(
-          fontFamily: AppFontes.texto,
-          fontSize: 16,
-          fontWeight: FontWeight.w600,
-        ),
+        textStyle: Escala.labelLarge,
       ),
     ),
     progressIndicatorTheme: const ProgressIndicatorThemeData(
@@ -262,13 +414,9 @@ ThemeData construirTema() {
       color: AppCores.branco,
       surfaceTintColor: Colors.transparent,
     ),
-    snackBarTheme: const SnackBarThemeData(
+    snackBarTheme: SnackBarThemeData(
       backgroundColor: AppCores.mataNoite,
-      contentTextStyle: TextStyle(
-        fontFamily: AppFontes.texto,
-        fontSize: 15,
-        color: AppCores.branco,
-      ),
+      contentTextStyle: Escala.bodyMedium.copyWith(color: AppCores.branco),
       behavior: SnackBarBehavior.floating,
     ),
   );

@@ -217,13 +217,20 @@ class _ReviewsSectionState extends State<ReviewsSection> {
                         header: true,
                         child: Text(
                           'O que dizem do site',
-                          style: estiloTitulo(mobile ? 36 : 52, altura: 1.05),
+                          style: estiloTitulo(
+                            (mobile
+                                ? Escala.displaySmall
+                                : Escala.displayLarge),
+                            altura: 1.05,
+                          ),
                         ),
                       ),
                       const SizedBox(height: 12),
-                      const Text(
+                      Text(
                         'Opiniões de quem passou por aqui.',
-                        style: TextStyle(fontSize: 18, color: AppCores.tinta2),
+                        style: Escala.titleMedium.copyWith(
+                          color: AppCores.tinta2,
+                        ),
                       ),
                     ],
                   ),
@@ -234,20 +241,20 @@ class _ReviewsSectionState extends State<ReviewsSection> {
               const SizedBox(height: 40),
 
               if (_carregando)
-                const Padding(
+                Padding(
                   padding: EdgeInsets.only(bottom: 24),
                   child: Text(
                     'Carregando avaliações...',
-                    style: TextStyle(fontSize: 16, color: AppCores.tinta3),
+                    style: Escala.bodyLarge.copyWith(color: AppCores.tinta3),
                   ),
                 ),
 
               if (_falhou)
-                const Padding(
+                Padding(
                   padding: EdgeInsets.only(bottom: 24),
                   child: Text(
                     'Não foi possível carregar as avaliações agora.',
-                    style: TextStyle(fontSize: 16, color: AppCores.tinta3),
+                    style: Escala.bodyLarge.copyWith(color: AppCores.tinta3),
                   ),
                 ),
 
@@ -278,9 +285,7 @@ class _ReviewsSectionState extends State<ReviewsSection> {
                     onPressed: () =>
                         _mudarLimite(temMais ? _limite + 12 : _porPagina),
                     style: TextButton.styleFrom(
-                      textStyle: const TextStyle(
-                        fontFamily: AppFontes.texto,
-                        fontSize: 16,
+                      textStyle: Escala.bodyLarge.copyWith(
                         fontWeight: FontWeight.w600,
                         decoration: TextDecoration.underline,
                       ),
@@ -328,7 +333,7 @@ class _Media extends StatelessWidget {
     children: [
       Text(
         media.toStringAsFixed(1).replaceAll('.', ','),
-        style: estiloTitulo(40, altura: 1),
+        style: estiloTitulo(Escala.displayMedium, altura: 1),
       ),
       const SizedBox(width: 12),
       Column(
@@ -339,7 +344,7 @@ class _Media extends StatelessWidget {
           const SizedBox(height: 2),
           Text(
             '$quantidade ${quantidade == 1 ? 'avaliação' : 'avaliações'}',
-            style: const TextStyle(fontSize: 14, color: AppCores.tinta3),
+            style: Escala.bodySmall.copyWith(color: AppCores.tinta3),
           ),
         ],
       ),
@@ -367,8 +372,7 @@ class _Citacao extends StatelessWidget {
         const SizedBox(height: 10),
         Text(
           avaliacao.comentario,
-          style: const TextStyle(
-            fontSize: 17,
+          style: Escala.titleMedium.copyWith(
             height: 1.55,
             color: AppCores.tinta,
           ),
@@ -391,7 +395,7 @@ class _Citacao extends StatelessWidget {
                 ),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: const TextStyle(fontSize: 15, color: AppCores.tinta2),
+                style: Escala.bodyMedium.copyWith(color: AppCores.tinta2),
               ),
             ),
           ],
@@ -412,8 +416,7 @@ class _Avatar extends StatelessWidget {
     final inicial = Center(
       child: Text(
         nome.isEmpty ? '?' : nome.characters.first.toUpperCase(),
-        style: const TextStyle(
-          fontSize: 14,
+        style: Escala.bodySmall.copyWith(
           fontWeight: FontWeight.w600,
           color: AppCores.mata,
         ),
@@ -476,7 +479,7 @@ class _Formulario extends StatelessWidget {
         children: [
           Text(
             logado ? 'Deixe sua avaliação' : 'Faça login para avaliar',
-            style: estiloTitulo(22),
+            style: estiloTitulo(Escala.headlineSmall),
           ),
           const SizedBox(height: 20),
 
@@ -492,9 +495,9 @@ class _Formulario extends StatelessWidget {
             const SizedBox(height: 16),
           ],
 
-          const Text(
+          Text(
             'Sua nota',
-            style: TextStyle(fontSize: 15, color: AppCores.tinta2),
+            style: Escala.bodyMedium.copyWith(color: AppCores.tinta2),
           ),
           const SizedBox(height: 6),
           Align(
@@ -516,7 +519,7 @@ class _Formulario extends StatelessWidget {
             // qualquer tamanho e o servidor recusava sem dizer por quê.
             maxLength: maxComentario,
             inputFormatters: [LengthLimitingTextInputFormatter(maxComentario)],
-            style: const TextStyle(fontSize: 16, color: AppCores.tinta),
+            style: Escala.bodyLarge.copyWith(color: AppCores.tinta),
             decoration: InputDecoration(
               hintText: logado
                   ? 'Escreva seu comentário sobre o site...'

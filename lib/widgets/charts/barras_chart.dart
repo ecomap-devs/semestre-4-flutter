@@ -38,16 +38,14 @@ class BarrasChart extends StatelessWidget {
                         Expanded(
                           child: Text(
                             b.nome,
-                            style: const TextStyle(
-                              fontSize: 15,
+                            style: Escala.bodyMedium.copyWith(
                               color: AppCores.tinta,
                             ),
                           ),
                         ),
                         Text(
                           '${b.valor} mil km²',
-                          style: const TextStyle(
-                            fontSize: 15,
+                          style: Escala.bodyMedium.copyWith(
                             color: AppCores.tinta3,
                             fontFeatures: [FontFeature.tabularFigures()],
                           ),

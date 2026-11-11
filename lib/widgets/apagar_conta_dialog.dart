@@ -85,7 +85,10 @@ class _ApagarContaDialogState extends State<ApagarContaDialog> {
                   Row(
                     children: [
                       Expanded(
-                        child: Text('Apagar conta', style: estiloTitulo(26)),
+                        child: Text(
+                          'Apagar conta',
+                          style: estiloTitulo(Escala.headlineMedium),
+                        ),
                       ),
                       IconButton(
                         onPressed: _carregando
@@ -98,9 +101,9 @@ class _ApagarContaDialogState extends State<ApagarContaDialog> {
                     ],
                   ),
                   const SizedBox(height: 6),
-                  const Text(
+                  Text(
                     'Isto apaga, sem volta:',
-                    style: TextStyle(fontSize: 15, color: AppCores.tinta2),
+                    style: Escala.bodyMedium.copyWith(color: AppCores.tinta2),
                   ),
                   const SizedBox(height: 8),
                   for (final item in const [
@@ -113,8 +116,7 @@ class _ApagarContaDialogState extends State<ApagarContaDialog> {
                       padding: const EdgeInsets.only(left: 4, bottom: 4),
                       child: Text(
                         '•  $item',
-                        style: const TextStyle(
-                          fontSize: 15,
+                        style: Escala.bodyMedium.copyWith(
                           height: 1.4,
                           color: AppCores.tinta2,
                         ),
@@ -125,11 +127,11 @@ class _ApagarContaDialogState extends State<ApagarContaDialog> {
                     AvisoDeFormulario(texto: _erro, erro: true),
                     const SizedBox(height: 16),
                   ],
-                  const Padding(
+                  Padding(
                     padding: EdgeInsets.only(bottom: 4),
                     child: Text(
                       'Para confirmar, digite sua senha',
-                      style: TextStyle(fontSize: 14, color: AppCores.tinta2),
+                      style: Escala.bodySmall.copyWith(color: AppCores.tinta2),
                     ),
                   ),
                   TextField(

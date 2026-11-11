@@ -21,8 +21,7 @@ class AvisoDeFormulario extends StatelessWidget {
       ),
       child: Text(
         texto,
-        style: TextStyle(
-          fontSize: 15,
+        style: Escala.bodyMedium.copyWith(
           color: erro ? AppCores.terra : AppCores.mataEscura,
         ),
       ),

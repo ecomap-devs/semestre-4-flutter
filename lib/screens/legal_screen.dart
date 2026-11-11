@@ -121,20 +121,22 @@ class _LegalScreenState extends State<LegalScreen> {
                   header: true,
                   child: Text(
                     doc.titulo,
-                    style: estiloTitulo(mobile ? 34 : 48, altura: 1.05),
+                    style: estiloTitulo(
+                      (mobile ? Escala.displaySmall : Escala.displayLarge),
+                      altura: 1.05,
+                    ),
                   ),
                 ),
                 const SizedBox(height: 10),
-                const Text(
+                Text(
                   'Versão de $atualizadoEm',
-                  style: TextStyle(fontSize: 15, color: AppCores.tinta3),
+                  style: Escala.bodyMedium.copyWith(color: AppCores.tinta3),
                 ),
                 const SizedBox(height: 18),
                 TextoMarcado(
                   doc.abertura,
                   aoSeguir: _seguir,
-                  estilo: const TextStyle(
-                    fontSize: 18,
+                  estilo: Escala.titleMedium.copyWith(
                     height: 1.55,
                     color: AppCores.tinta2,
                   ),
@@ -148,7 +150,9 @@ class _LegalScreenState extends State<LegalScreen> {
                     header: true,
                     child: Text(
                       s.titulo,
-                      style: estiloTitulo(mobile ? 24 : 28),
+                      style: estiloTitulo(
+                        (mobile ? Escala.headlineSmall : Escala.headlineMedium),
+                      ),
                     ),
                   ),
                   const SizedBox(height: 12),
@@ -206,10 +210,9 @@ class _Indice extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
+          Text(
             'Nesta página',
-            style: TextStyle(
-              fontSize: 14,
+            style: Escala.bodySmall.copyWith(
               fontWeight: FontWeight.w600,
               color: AppCores.tinta3,
             ),
@@ -223,8 +226,7 @@ class _Indice extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(vertical: 11),
                 child: Text(
                   '${i + 1}. ${s.titulo}',
-                  style: const TextStyle(
-                    fontSize: 16,
+                  style: Escala.bodyLarge.copyWith(
                     color: AppCores.mata,
                     decoration: TextDecoration.underline,
                     decorationColor: AppCores.mata,
@@ -244,8 +246,7 @@ class _Bloco extends StatelessWidget {
   final BlocoLegal bloco;
   final void Function(String destino) aoSeguir;
 
-  static const _corpo = TextStyle(
-    fontSize: 16,
+  static final _corpo = Escala.bodyLarge.copyWith(
     height: 1.55,
     color: AppCores.tinta2,
   );
@@ -266,7 +267,7 @@ class _Bloco extends StatelessWidget {
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text('•  ', style: _corpo),
+                Text('•  ', style: _corpo),
                 Expanded(
                   child: TextoMarcado(item, aoSeguir: aoSeguir, estilo: _corpo),
                 ),
@@ -295,8 +296,7 @@ class _Bloco extends StatelessWidget {
                 TextoMarcado(
                   linha.first,
                   aoSeguir: aoSeguir,
-                  estilo: const TextStyle(
-                    fontSize: 16,
+                  estilo: Escala.bodyLarge.copyWith(
                     height: 1.45,
                     fontWeight: FontWeight.w600,
                     color: AppCores.tinta,
@@ -310,8 +310,7 @@ class _Bloco extends StatelessWidget {
                   const SizedBox(height: 8),
                   Text(
                     colunas[j],
-                    style: const TextStyle(
-                      fontSize: 13,
+                    style: Escala.labelMedium.copyWith(
                       fontWeight: FontWeight.w600,
                       color: AppCores.tinta3,
                     ),
@@ -319,8 +318,7 @@ class _Bloco extends StatelessWidget {
                   TextoMarcado(
                     linha[j],
                     aoSeguir: aoSeguir,
-                    estilo: const TextStyle(
-                      fontSize: 15,
+                    estilo: Escala.bodyMedium.copyWith(
                       height: 1.5,
                       color: AppCores.tinta2,
                     ),
@@ -434,10 +432,14 @@ class _TextoMarcadoState extends State<TextoMarcado> {
 
 /// "Política de privacidade · Termos de uso", os atalhos dos rodapes.
 class LinksLegais extends StatelessWidget {
-  const LinksLegais({super.key, required this.cor, this.tamanho = 13});
+  const LinksLegais({
+    super.key,
+    required this.cor,
+    this.papel = Escala.labelMedium,
+  });
 
   final Color cor;
-  final double tamanho;
+  final TextStyle papel;
 
   @override
   Widget build(BuildContext context) {
@@ -450,8 +452,7 @@ class LinksLegais extends StatelessWidget {
           widthFactor: 1,
           child: Text(
             rotulo,
-            style: TextStyle(
-              fontSize: tamanho,
+            style: papel.copyWith(
               color: cor,
               decoration: TextDecoration.underline,
               decorationColor: cor,
@@ -465,10 +466,7 @@ class LinksLegais extends StatelessWidget {
       crossAxisAlignment: WrapCrossAlignment.center,
       children: [
         link('Política de privacidade', privacidade),
-        Text(
-          '  ·  ',
-          style: TextStyle(fontSize: tamanho, color: cor),
-        ),
+        Text('  ·  ', style: papel.copyWith(color: cor)),
         link('Termos de uso', termos),
       ],
     );

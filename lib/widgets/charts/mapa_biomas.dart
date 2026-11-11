@@ -116,9 +116,9 @@ class _MapaBiomasState extends State<MapaBiomas> {
             child: Semantics(
               liveRegion: true,
               child: ativo == null
-                  ? const Text(
+                  ? Text(
                       'Toque num bioma para ver quanto dele já foi desmatado.',
-                      style: TextStyle(fontSize: 16, color: AppCores.tinta3),
+                      style: Escala.bodyLarge.copyWith(color: AppCores.tinta3),
                     )
                   : Wrap(
                       crossAxisAlignment: WrapCrossAlignment.end,
@@ -126,7 +126,10 @@ class _MapaBiomasState extends State<MapaBiomas> {
                       children: [
                         Text(
                           '${ativo.percentualDesmatado}%',
-                          style: estiloTitulo(44, cor: AppCores.terra),
+                          style: estiloTitulo(
+                            Escala.displayMedium,
+                            cor: AppCores.terra,
+                          ),
                         ),
                         Padding(
                           padding: const EdgeInsets.only(bottom: 4),
@@ -144,8 +147,7 @@ class _MapaBiomasState extends State<MapaBiomas> {
                                 const TextSpan(text: ' já foi desmatado'),
                               ],
                             ),
-                            style: const TextStyle(
-                              fontSize: 17,
+                            style: Escala.titleMedium.copyWith(
                               color: AppCores.tinta2,
                             ),
                           ),
@@ -219,8 +221,7 @@ class _ItemLegenda extends StatelessWidget {
               const SizedBox(width: 6),
               Text(
                 bioma.nome,
-                style: TextStyle(
-                  fontSize: 14,
+                style: Escala.bodySmall.copyWith(
                   color: ativo ? AppCores.tinta : AppCores.tinta2,
                 ),
               ),

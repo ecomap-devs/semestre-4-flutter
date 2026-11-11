@@ -293,8 +293,10 @@ class _Texto extends StatelessWidget {
             ],
           ),
           style:
+              // O tamanho acompanha a largura e a altura da tela, como o
+              // clamp() do site: e o unico texto fora dos degraus da Escala.
               estiloTitulo(
-                tamanhoTitulo,
+                Escala.destaque.copyWith(fontSize: tamanhoTitulo),
                 cor: AppCores.branco,
                 peso: FontWeight.w400,
                 altura: 1.0,
@@ -312,8 +314,7 @@ class _Texto extends StatelessWidget {
         child: Text(
           'Veja onde a floresta está sendo perdida e quais espécies estão '
           'ficando sem lugar para viver.',
-          style: TextStyle(
-            fontSize: compacto ? 16 : 19,
+          style: (compacto ? Escala.bodyLarge : Escala.titleMedium).copyWith(
             height: 1.45,
             color: const Color(0xE0FFFDF8),
           ),
@@ -408,8 +409,7 @@ class _Indicadores extends StatelessWidget {
             slides[atual].rotulo,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: const TextStyle(
-              fontSize: 15,
+            style: Escala.bodyMedium.copyWith(
               fontStyle: FontStyle.italic,
               color: Color(0xD9FFFDF8),
             ),
@@ -484,11 +484,7 @@ class BotaoClaro extends StatelessWidget {
       backgroundColor: AppCores.branco,
       foregroundColor: AppCores.tinta,
       padding: const EdgeInsets.symmetric(horizontal: 26, vertical: 16),
-      textStyle: const TextStyle(
-        fontFamily: AppFontes.texto,
-        fontSize: 17,
-        fontWeight: FontWeight.w600,
-      ),
+      textStyle: Escala.titleMedium.copyWith(fontWeight: FontWeight.w600),
     ),
     child: _RotuloComIcone(rotulo: rotulo, icone: icone, antes: iconeAntes),
   );
@@ -514,11 +510,7 @@ class BotaoVazado extends StatelessWidget {
       foregroundColor: AppCores.branco,
       side: const BorderSide(color: Color(0x80FFFDF8)),
       padding: const EdgeInsets.symmetric(horizontal: 26, vertical: 16),
-      textStyle: const TextStyle(
-        fontFamily: AppFontes.texto,
-        fontSize: 17,
-        fontWeight: FontWeight.w600,
-      ),
+      textStyle: Escala.titleMedium.copyWith(fontWeight: FontWeight.w600),
     ),
     child: _RotuloComIcone(rotulo: rotulo, icone: icone, antes: true),
   );

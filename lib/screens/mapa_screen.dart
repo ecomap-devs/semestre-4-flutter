@@ -277,8 +277,7 @@ class _MapaScreenState extends State<MapaScreen> {
                       snap.hasError
                           ? 'Não foi possível carregar os alertas'
                           : 'Carregando alertas...',
-                      style: TextStyle(
-                        fontSize: 14,
+                      style: Escala.bodySmall.copyWith(
                         color: snap.hasError ? AppCores.terra : AppCores.tinta2,
                       ),
                     ),
@@ -442,14 +441,14 @@ class _MapaScreenState extends State<MapaScreen> {
               children: [
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 4),
-                  child: Text('Biomas', style: estiloTitulo(18)),
+                  child: Text('Biomas', style: estiloTitulo(Escala.titleLarge)),
                 ),
                 const SizedBox(height: 6),
-                const Padding(
+                Padding(
                   padding: EdgeInsets.symmetric(horizontal: 4),
                   child: Text(
                     'Escolha um para centralizar o mapa nele.',
-                    style: TextStyle(fontSize: 14, color: AppCores.tinta3),
+                    style: Escala.bodySmall.copyWith(color: AppCores.tinta3),
                   ),
                 ),
                 const SizedBox(height: 10),
@@ -463,7 +462,10 @@ class _MapaScreenState extends State<MapaScreen> {
                 const SizedBox(height: 28),
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 4),
-                  child: Text('Linha do tempo', style: estiloTitulo(18)),
+                  child: Text(
+                    'Linha do tempo',
+                    style: estiloTitulo(Escala.titleLarge),
+                  ),
                 ),
                 const SizedBox(height: 14),
                 const Padding(
@@ -552,8 +554,7 @@ class _Legenda extends StatelessWidget {
   final bool detalhe;
   final VoidCallback aoFechar;
 
-  static const _suave = TextStyle(
-    fontSize: 13,
+  static final _suave = Escala.labelMedium.copyWith(
     height: 1.4,
     color: AppCores.tinta3,
   );
@@ -582,11 +583,11 @@ class _Legenda extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
+                    Text(
                       'Alertas de desmatamento',
-                      style: TextStyle(fontSize: 15, color: AppCores.tinta),
+                      style: Escala.bodyMedium.copyWith(color: AppCores.tinta),
                     ),
-                    const Text(
+                    Text(
                       'DETER / INPE · Amazônia Legal e Cerrado',
                       style: _suave,
                     ),
@@ -623,7 +624,7 @@ class _Legenda extends StatelessWidget {
           // A direita do cartao e estreita por causa do X; o resto ganha a
           // folga de volta aqui, como a ficha do bioma.
           const SizedBox(height: 2),
-          const Padding(
+          Padding(
             padding: EdgeInsets.only(right: 8),
             child: Text(
               'Mata Atlântica, Caatinga, Pantanal e Pampa não têm alerta do '
@@ -632,7 +633,7 @@ class _Legenda extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 10),
-          const Text('Biomas, pelo limite do IBGE', style: _suave),
+          Text('Biomas, pelo limite do IBGE', style: _suave),
           const SizedBox(height: 4),
           Padding(
             padding: const EdgeInsets.only(right: 8),
@@ -648,8 +649,7 @@ class _Legenda extends StatelessWidget {
                       const SizedBox(width: 5),
                       Text(
                         b.nome,
-                        style: const TextStyle(
-                          fontSize: 14,
+                        style: Escala.bodySmall.copyWith(
                           color: AppCores.tinta2,
                         ),
                       ),
@@ -674,9 +674,9 @@ class _Creditos extends StatelessWidget {
       color: AppCores.branco.withValues(alpha: 0.8),
       borderRadius: BorderRadius.circular(4),
     ),
-    child: const Text(
+    child: Text(
       'Mapa: Esri · Biomas: IBGE · Alertas: INPE',
-      style: TextStyle(fontSize: 10, color: AppCores.tinta2),
+      style: Escala.labelSmall.copyWith(color: AppCores.tinta2),
     ),
   );
 }
@@ -717,7 +717,7 @@ class _BotaoFundo extends StatelessWidget {
                 const SizedBox(width: 8),
                 Text(
                   claro ? 'Satélite' : 'Mapa',
-                  style: const TextStyle(fontSize: 15, color: AppCores.tinta),
+                  style: Escala.bodyMedium.copyWith(color: AppCores.tinta),
                 ),
               ],
             ),
@@ -745,7 +745,7 @@ class _BotaoLegenda extends StatelessWidget {
       child: InkWell(
         onTap: aoTocar,
         borderRadius: BorderRadius.circular(raioPadrao),
-        child: const _CartaoFlutuante(
+        child: _CartaoFlutuante(
           padding: EdgeInsets.symmetric(horizontal: 14, vertical: 11),
           child: Row(
             mainAxisSize: MainAxisSize.min,
@@ -754,7 +754,7 @@ class _BotaoLegenda extends StatelessWidget {
               SizedBox(width: 8),
               Text(
                 'Legenda',
-                style: TextStyle(fontSize: 15, color: AppCores.tinta),
+                style: Escala.bodyMedium.copyWith(color: AppCores.tinta),
               ),
             ],
           ),
@@ -816,15 +816,12 @@ class _ItemBioma extends StatelessWidget {
                   children: [
                     Text(
                       bioma.nome,
-                      style: TextStyle(
-                        fontSize: compacto ? 15 : 16,
-                        color: AppCores.tinta,
-                      ),
+                      style: (compacto ? Escala.bodyMedium : Escala.bodyLarge)
+                          .copyWith(color: AppCores.tinta),
                     ),
                     Text(
                       '${bioma.percentualDesmatado}% desmatado',
-                      style: const TextStyle(
-                        fontSize: 14,
+                      style: Escala.bodySmall.copyWith(
                         color: AppCores.tinta3,
                         fontFeatures: [FontFeature.tabularFigures()],
                       ),
@@ -876,16 +873,14 @@ class _LinhaDoTempo extends StatelessWidget {
                   children: [
                     Text(
                       '${item.ano}',
-                      style: const TextStyle(
-                        fontSize: 14,
+                      style: Escala.bodySmall.copyWith(
                         color: AppCores.tinta3,
                         fontFeatures: [FontFeature.tabularFigures()],
                       ),
                     ),
                     Text(
                       item.texto,
-                      style: const TextStyle(
-                        fontSize: 15,
+                      style: Escala.bodyMedium.copyWith(
                         height: 1.45,
                         color: AppCores.tinta2,
                       ),
@@ -1107,8 +1102,7 @@ class _Aba extends StatelessWidget {
         ),
         child: Text(
           rotulo,
-          style: TextStyle(
-            fontSize: 16,
+          style: Escala.bodyLarge.copyWith(
             fontWeight: ativa ? FontWeight.w600 : FontWeight.w400,
             color: ativa ? AppCores.tinta : AppCores.tinta3,
           ),
@@ -1137,7 +1131,9 @@ class _FichaBioma extends StatelessWidget {
           children: [
             _Quadrado(bioma.cor),
             const SizedBox(width: 8),
-            Expanded(child: Text(bioma.nome, style: estiloTitulo(19))),
+            Expanded(
+              child: Text(bioma.nome, style: estiloTitulo(Escala.titleLarge)),
+            ),
             IconButton(
               onPressed: aoFechar,
               icon: const Icon(Icons.close, size: 18),
@@ -1163,7 +1159,7 @@ class _FichaBioma extends StatelessWidget {
               const SizedBox(height: 8),
               Text(
                 bioma.descricao,
-                style: const TextStyle(fontSize: 14, color: AppCores.tinta2),
+                style: Escala.bodySmall.copyWith(color: AppCores.tinta2),
               ),
             ],
           ),
@@ -1188,14 +1184,10 @@ class _LinhaFicha extends StatelessWidget {
   Widget build(BuildContext context) => Row(
     mainAxisAlignment: MainAxisAlignment.spaceBetween,
     children: [
-      Text(
-        rotulo,
-        style: const TextStyle(fontSize: 14, color: AppCores.tinta3),
-      ),
+      Text(rotulo, style: Escala.bodySmall.copyWith(color: AppCores.tinta3)),
       Text(
         valor,
-        style: TextStyle(
-          fontSize: 14,
+        style: Escala.bodySmall.copyWith(
           fontWeight: destaque ? FontWeight.w600 : FontWeight.w400,
           color: destaque ? AppCores.terra : AppCores.tinta2,
         ),

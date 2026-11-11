@@ -57,21 +57,19 @@ class TelaDeConfiguracao extends StatelessWidget {
               children: [
                 const Icon(Icons.key_off, size: 40, color: AppCores.terra),
                 const SizedBox(height: 16),
-                const Text(
+                Text(
                   'Faltam credenciais',
-                  style: TextStyle(
-                    fontSize: 22,
+                  style: Escala.headlineSmall.copyWith(
                     fontWeight: FontWeight.w800,
                     color: AppCores.tinta,
                   ),
                 ),
                 const SizedBox(height: 10),
-                const Text(
+                Text(
                   'O app precisa das chaves do Firebase e do Supabase '
                   'para subir. Copie env.example.json para env.json, '
                   'preencha, e rode com:',
-                  style: TextStyle(
-                    fontSize: 14,
+                  style: Escala.bodySmall.copyWith(
                     height: 1.6,
                     color: AppCores.tinta2,
                   ),
@@ -84,20 +82,17 @@ class TelaDeConfiguracao extends StatelessWidget {
                     color: AppCores.mataNoite,
                     borderRadius: BorderRadius.circular(10),
                   ),
-                  child: const SelectableText(
+                  child: SelectableText(
                     'flutter run --dart-define-from-file=env.json',
-                    style: TextStyle(
-                      fontFamily: 'monospace',
-                      fontSize: 13,
+                    style: Escala.labelMedium.copyWith(
                       color: AppCores.mataClara,
                     ),
                   ),
                 ),
                 const SizedBox(height: 20),
-                const Text(
+                Text(
                   'Variáveis ausentes:',
-                  style: TextStyle(
-                    fontSize: 13,
+                  style: Escala.labelMedium.copyWith(
                     fontWeight: FontWeight.w700,
                     color: AppCores.tinta,
                   ),
@@ -116,9 +111,7 @@ class TelaDeConfiguracao extends StatelessWidget {
                         const SizedBox(width: 8),
                         SelectableText(
                           v,
-                          style: const TextStyle(
-                            fontFamily: 'monospace',
-                            fontSize: 13,
+                          style: Escala.labelMedium.copyWith(
                             color: AppCores.terra,
                           ),
                         ),

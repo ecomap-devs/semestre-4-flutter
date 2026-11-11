@@ -163,12 +163,12 @@ class _AnimaisScreenState extends State<AnimaisScreen> {
                     'No mundo: Lista Vermelha da IUCN, pelo GBIF. População: a '
                     'fonte de cada estimativa está na ficha. Fotos do Wikimedia '
                     'Commons: autor e licença na ficha.',
-                    style: const TextStyle(
-                      fontSize: 14,
-                      color: AppCores.tinta3,
-                    ),
+                    style: Escala.bodySmall.copyWith(color: AppCores.tinta3),
                   ),
-                  const LinksLegais(cor: AppCores.mata, tamanho: 14),
+                  const LinksLegais(
+                    cor: AppCores.mata,
+                    papel: Escala.bodySmall,
+                  ),
                 ],
               ),
             ),
@@ -371,7 +371,7 @@ class _Abertura extends StatelessWidget {
                         child: Text(
                           'Espécies que o desmatamento está levando embora',
                           style: estiloTitulo(
-                            mobile ? 38 : 64,
+                            mobile ? Escala.displaySmall : Escala.destaque,
                             cor: AppCores.branco,
                             altura: 1.02,
                           ),
@@ -385,8 +385,7 @@ class _Abertura extends StatelessWidget {
                           'mata que está sumindo. Toque numa espécie para ver '
                           'o status dela no Brasil e no mundo, e quantas '
                           'restam, onde alguém contou.',
-                          style: TextStyle(
-                            fontSize: mobile ? 17 : 20,
+                          style: Escala.titleMedium.copyWith(
                             height: 1.45,
                             color: const Color(0xD9FFFDF8),
                           ),
@@ -404,15 +403,16 @@ class _Abertura extends StatelessWidget {
                                   TextSpan(
                                     text: '$valor  ',
                                     style: estiloTitulo(
-                                      mobile ? 30 : 40,
+                                      mobile
+                                          ? Escala.headlineLarge
+                                          : Escala.displayMedium,
                                       cor: AppCores.sol,
                                     ),
                                   ),
                                   TextSpan(text: rotulo),
                                 ],
                               ),
-                              style: const TextStyle(
-                                fontSize: 16,
+                              style: Escala.bodyLarge.copyWith(
                                 color: AppCores.claroSuave,
                               ),
                             ),
@@ -459,13 +459,13 @@ class _BarraDeFiltros extends StatelessWidget {
     final temFiltro = bioma != 'Todos' || status != 'Todos';
     final contador = Text(
       '$quantidade espécie${quantidade == 1 ? '' : 's'}',
-      style: const TextStyle(fontSize: 15, color: AppCores.tinta3),
+      style: Escala.bodyMedium.copyWith(color: AppCores.tinta3),
     );
 
     final campo = TextField(
       controller: busca,
       onChanged: (_) => aoBuscar(),
-      style: const TextStyle(fontSize: 16, color: AppCores.tinta),
+      style: Escala.bodyLarge.copyWith(color: AppCores.tinta),
       decoration: InputDecoration(
         hintText: 'Buscar espécie ou bioma',
         isDense: true,
@@ -506,11 +506,7 @@ class _BarraDeFiltros extends StatelessWidget {
           value: status,
           isExpanded: true,
           dropdownColor: AppCores.branco,
-          style: const TextStyle(
-            fontFamily: AppFontes.texto,
-            fontSize: 15,
-            color: AppCores.tinta2,
-          ),
+          style: Escala.bodyMedium.copyWith(color: AppCores.tinta2),
           onChanged: (s) => aoMudarStatus(s ?? 'Todos'),
           items: [
             for (final s in statusFiltro)
@@ -560,10 +556,7 @@ class _BarraDeFiltros extends StatelessWidget {
                           side: BorderSide(
                             color: temFiltro ? AppCores.mata : AppCores.linha,
                           ),
-                          textStyle: const TextStyle(
-                            fontFamily: AppFontes.texto,
-                            fontSize: 15,
-                          ),
+                          textStyle: Escala.bodyMedium,
                         ),
                         icon: const Icon(Icons.tune, size: 18),
                         label: Text(
@@ -647,8 +640,7 @@ class _Filtro extends StatelessWidget {
           ),
           child: Text(
             rotulo,
-            style: TextStyle(
-              fontSize: 15,
+            style: Escala.bodyMedium.copyWith(
               color: ativo ? AppCores.branco : AppCores.tinta2,
             ),
           ),
@@ -692,23 +684,21 @@ class _CartaoAnimal extends StatelessWidget {
           const SizedBox(height: 14),
           Text(
             animal.status,
-            style: TextStyle(
-              fontSize: 14,
+            style: Escala.bodySmall.copyWith(
               fontWeight: FontWeight.w600,
               color: animal.corStatus,
             ),
           ),
           const SizedBox(height: 2),
-          Text(animal.nome, style: estiloTitulo(22)),
+          Text(animal.nome, style: estiloTitulo(Escala.headlineSmall)),
           const SizedBox(height: 2),
-          _CientificoEBioma(animal: animal, fonte: 14),
+          _CientificoEBioma(animal: animal, papel: Escala.bodySmall),
           const SizedBox(height: 8),
           Text(
             animal.descricao,
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
-            style: const TextStyle(
-              fontSize: 16,
+            style: Escala.bodyLarge.copyWith(
               height: 1.5,
               color: AppCores.tinta2,
             ),
@@ -727,14 +717,13 @@ class _CartaoAnimal extends StatelessWidget {
                 ),
               ],
             ),
-            style: const TextStyle(fontSize: 14, color: AppCores.tinta3),
+            style: Escala.bodySmall.copyWith(color: AppCores.tinta3),
           ),
           const SizedBox(height: 10),
-          const ExcludeSemantics(
+          ExcludeSemantics(
             child: Text(
               'Ver ficha →',
-              style: TextStyle(
-                fontSize: 15,
+              style: Escala.bodyMedium.copyWith(
                 fontWeight: FontWeight.w600,
                 color: AppCores.mata,
                 decoration: TextDecoration.underline,
@@ -844,7 +833,7 @@ class _FichaAnimal extends StatelessWidget {
               const Trecho('Foto: '),
               Trecho(credito.autor, link: credito.link),
               Trecho(' · ${credito.licenca} · Wikimedia Commons'),
-            ], estilo: const TextStyle(fontSize: 13, color: AppCores.tinta3)),
+            ], estilo: Escala.labelMedium.copyWith(color: AppCores.tinta3)),
           ),
         Padding(
           padding: mobile
@@ -855,15 +844,23 @@ class _FichaAnimal extends StatelessWidget {
             children: [
               Semantics(
                 header: true,
-                child: Text(animal.nome, style: estiloTitulo(mobile ? 26 : 32)),
+                child: Text(
+                  animal.nome,
+                  style: estiloTitulo(
+                    (mobile ? Escala.headlineMedium : Escala.headlineLarge),
+                  ),
+                ),
               ),
               const SizedBox(height: 2),
-              _CientificoEBioma(animal: animal, fonte: 15, comRegiao: true),
+              _CientificoEBioma(
+                animal: animal,
+                papel: Escala.bodyMedium,
+                comRegiao: true,
+              ),
               const SizedBox(height: 16),
               Text(
                 animal.descricao,
-                style: const TextStyle(
-                  fontSize: 16,
+                style: Escala.bodyLarge.copyWith(
                   height: 1.55,
                   color: AppCores.tinta2,
                 ),
@@ -888,15 +885,16 @@ class _FichaAnimal extends StatelessWidget {
                             Text(
                               valor,
                               style: estiloTitulo(
-                                mobile ? 22 : 26,
+                                (mobile
+                                    ? Escala.headlineSmall
+                                    : Escala.headlineMedium),
                                 cor: cor,
                                 altura: 1.15,
                               ),
                             ),
                             Text(
                               rotulo,
-                              style: const TextStyle(
-                                fontSize: 14,
+                              style: Escala.bodySmall.copyWith(
                                 color: AppCores.tinta3,
                               ),
                             ),
@@ -909,7 +907,10 @@ class _FichaAnimal extends StatelessWidget {
               ),
               const SizedBox(height: 24),
               if (populacao != null) ...[
-                Text('População estimada', style: estiloTitulo(18)),
+                Text(
+                  'População estimada',
+                  style: estiloTitulo(Escala.titleLarge),
+                ),
                 const SizedBox(height: 6),
                 // Como no site: a fonte e o link, sem o endereco por extenso
                 // (ate 10/11/2026 o app nao abria links e mostrava o endereco).
@@ -918,25 +919,24 @@ class _FichaAnimal extends StatelessWidget {
                     Trecho('${populacao.texto}. '),
                     Trecho(populacao.fonte, link: populacao.link),
                   ],
-                  estilo: const TextStyle(
-                    fontSize: 16,
+                  estilo: Escala.bodyLarge.copyWith(
                     height: 1.5,
                     color: AppCores.tinta2,
                   ),
                 ),
                 const SizedBox(height: 24),
               ],
-              Text('Principais ameaças', style: estiloTitulo(18)),
+              Text(
+                'Principais ameaças',
+                style: estiloTitulo(Escala.titleLarge),
+              ),
               const SizedBox(height: 8),
               for (final ameaca in animal.ameacas)
                 Padding(
                   padding: const EdgeInsets.only(left: 4, bottom: 4),
                   child: Text(
                     '•  $ameaca',
-                    style: const TextStyle(
-                      fontSize: 16,
-                      color: AppCores.tinta2,
-                    ),
+                    style: Escala.bodyLarge.copyWith(color: AppCores.tinta2),
                   ),
                 ),
             ],
@@ -951,12 +951,12 @@ class _FichaAnimal extends StatelessWidget {
 class _CientificoEBioma extends StatelessWidget {
   const _CientificoEBioma({
     required this.animal,
-    required this.fonte,
+    required this.papel,
     this.comRegiao = false,
   });
 
   final Animal animal;
-  final double fonte;
+  final TextStyle papel;
   final bool comRegiao;
 
   @override
@@ -972,7 +972,7 @@ class _CientificoEBioma extends StatelessWidget {
         ),
       ],
     ),
-    style: TextStyle(fontSize: fonte, color: AppCores.tinta3),
+    style: papel.copyWith(color: AppCores.tinta3),
   );
 }
 
@@ -990,18 +990,16 @@ class _Vazio extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
+            Text(
               'Nenhuma espécie encontrada com esses filtros.',
-              style: TextStyle(fontSize: 18, color: AppCores.tinta),
+              style: Escala.titleMedium.copyWith(color: AppCores.tinta),
             ),
             const SizedBox(height: 8),
             TextButton(
               onPressed: aoLimpar,
               style: TextButton.styleFrom(
                 padding: EdgeInsets.zero,
-                textStyle: const TextStyle(
-                  fontFamily: AppFontes.texto,
-                  fontSize: 16,
+                textStyle: Escala.bodyLarge.copyWith(
                   fontWeight: FontWeight.w600,
                   decoration: TextDecoration.underline,
                 ),

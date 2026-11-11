@@ -187,7 +187,9 @@ class _TituloSecao extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final tamanho = Breakpoints.ehMobile(context) ? 36.0 : 52.0;
+    final papel = Breakpoints.ehMobile(context)
+        ? Escala.displaySmall
+        : Escala.displayLarge;
     return RevelarAoRolar(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -197,7 +199,7 @@ class _TituloSecao extends StatelessWidget {
             child: Text(
               titulo,
               style: estiloTitulo(
-                tamanho,
+                papel,
                 cor: escuro ? AppCores.branco : AppCores.tinta,
                 altura: 1.05,
               ),
@@ -209,8 +211,7 @@ class _TituloSecao extends StatelessWidget {
               constraints: const BoxConstraints(maxWidth: 580),
               child: Text(
                 intro!,
-                style: TextStyle(
-                  fontSize: 19,
+                style: Escala.titleMedium.copyWith(
                   height: 1.5,
                   color: escuro ? AppCores.claroSuave : AppCores.tinta2,
                 ),
@@ -303,7 +304,7 @@ class _Numeros extends StatelessWidget {
                           child: Contador(
                             valor: n.valor,
                             estilo: estiloTitulo(
-                              mobile ? 60 : 88,
+                              mobile ? Escala.destaque : Escala.numero,
                               cor: AppCores.branco,
                               peso: FontWeight.w400,
                               altura: 1,
@@ -313,8 +314,7 @@ class _Numeros extends StatelessWidget {
                         const SizedBox(height: 14),
                         Text(
                           n.rotulo,
-                          style: const TextStyle(
-                            fontSize: 18,
+                          style: Escala.titleMedium.copyWith(
                             height: 1.4,
                             color: AppCores.claroSuave,
                           ),
@@ -352,11 +352,10 @@ class _SecaoMapa extends StatelessWidget {
           ),
           ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 580),
-            child: const Text(
+            child: Text(
               'Escolha um bioma na lista para ir até ele e ver quanto já foi '
               'desmatado.',
-              style: TextStyle(
-                fontSize: 19,
+              style: Escala.titleMedium.copyWith(
                 height: 1.5,
                 color: AppCores.tinta2,
               ),
@@ -484,7 +483,9 @@ class _FraseDoMico extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final tamanho = Breakpoints.ehMobile(context) ? 36.0 : 64.0;
+    final papel = Breakpoints.ehMobile(context)
+        ? Escala.displaySmall
+        : Escala.destaque;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -502,7 +503,7 @@ class _FraseDoMico extends StatelessWidget {
               ],
             ),
             style: estiloTitulo(
-              tamanho,
+              papel,
               cor: AppCores.branco,
               peso: FontWeight.w400,
               altura: 1.05,
@@ -510,10 +511,10 @@ class _FraseDoMico extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 20),
-        const Text(
+        Text(
           'Mico-leão-dourado, Mata Atlântica · censo de 2023 da Associação '
           'Mico-Leão-Dourado',
-          style: TextStyle(fontSize: 18, color: AppCores.claroSuave),
+          style: Escala.titleMedium.copyWith(color: AppCores.claroSuave),
         ),
         const SizedBox(height: 4),
         CreditoDaFoto(credito: credito),
@@ -606,29 +607,24 @@ class _CartaoDestaque extends StatelessWidget {
       const SizedBox(height: 18),
       Text(
         animal.status,
-        style: TextStyle(
-          fontSize: 14,
+        style: Escala.bodySmall.copyWith(
           fontWeight: FontWeight.w600,
           color: animal.corStatus,
         ),
       ),
       const SizedBox(height: 4),
-      Text(animal.nome, style: estiloTitulo(26)),
+      Text(animal.nome, style: estiloTitulo(Escala.headlineMedium)),
       const SizedBox(height: 8),
       Text(
         animal.descricao,
         maxLines: 3,
         overflow: TextOverflow.ellipsis,
-        style: const TextStyle(
-          fontSize: 16,
-          height: 1.5,
-          color: AppCores.tinta2,
-        ),
+        style: Escala.bodyLarge.copyWith(height: 1.5, color: AppCores.tinta2),
       ),
       const SizedBox(height: 8),
       Text(
         '${animal.bioma} · no mundo (IUCN): ${animal.iucnOuNaoAvaliada}',
-        style: const TextStyle(fontSize: 14, color: AppCores.tinta3),
+        style: Escala.bodySmall.copyWith(color: AppCores.tinta3),
       ),
     ],
   );
@@ -637,7 +633,7 @@ class _CartaoDestaque extends StatelessWidget {
 class _Dados extends StatelessWidget {
   const _Dados({super.key});
 
-  static TextStyle get _subtitulo => estiloTitulo(24);
+  static TextStyle get _subtitulo => estiloTitulo(Escala.headlineSmall);
 
   @override
   Widget build(BuildContext context) {
@@ -653,7 +649,7 @@ class _Dados extends StatelessWidget {
           const SizedBox(height: 6),
           Text(
             'De ${ultimoPeriodo.rotulo}',
-            style: const TextStyle(fontSize: 15, color: AppCores.tinta3),
+            style: Escala.bodyMedium.copyWith(color: AppCores.tinta3),
           ),
           const SizedBox(height: 20),
           const _UltimoPeriodo(),
@@ -702,7 +698,7 @@ class _Dados extends StatelessWidget {
             'Desmatamento: PRODES/INPE, pelo TerraBrasilis, atualizado em '
             '$dadosAtualizadosEm. Área dos biomas: IBGE (2019). Na linha do '
             'tempo, as taxas são as oficiais da Amazônia Legal.',
-            style: const TextStyle(fontSize: 14, color: AppCores.tinta3),
+            style: Escala.bodySmall.copyWith(color: AppCores.tinta3),
           ),
         ],
       ),
@@ -736,18 +732,21 @@ class _UltimoPeriodo extends StatelessWidget {
                       TextSpan(text: '${formatarMilhar(b.km2)} '),
                       TextSpan(
                         text: 'km²',
-                        style: estiloTitulo(18, cor: AppCores.tinta2),
+                        style: estiloTitulo(
+                          Escala.titleLarge,
+                          cor: AppCores.tinta2,
+                        ),
                       ),
                     ],
                   ),
-                  style: estiloTitulo(32).copyWith(
+                  style: estiloTitulo(Escala.headlineLarge).copyWith(
                     fontFeatures: const [FontFeature.tabularFigures()],
                   ),
                 ),
                 const SizedBox(height: 4),
                 Text(
                   b.nome,
-                  style: const TextStyle(fontSize: 14, color: AppCores.tinta3),
+                  style: Escala.bodySmall.copyWith(color: AppCores.tinta3),
                 ),
               ],
             ),
@@ -793,24 +792,21 @@ class _LinhaDoTempo extends StatelessWidget {
                   children: [
                     Text(
                       '${item.ano}',
-                      style: const TextStyle(
-                        fontSize: 14,
+                      style: Escala.bodySmall.copyWith(
                         color: AppCores.tinta3,
                         fontFeatures: [FontFeature.tabularFigures()],
                       ),
                     ),
                     Text(
                       item.titulo,
-                      style: const TextStyle(
-                        fontSize: 16,
+                      style: Escala.bodyLarge.copyWith(
                         fontWeight: FontWeight.w600,
                         color: AppCores.tinta,
                       ),
                     ),
                     Text(
                       item.texto,
-                      style: const TextStyle(
-                        fontSize: 15,
+                      style: Escala.bodyMedium.copyWith(
                         height: 1.45,
                         color: AppCores.tinta2,
                       ),
@@ -859,7 +855,7 @@ class _Solucoes extends StatelessWidget {
                         Text(
                           (i + 1).toString().padLeft(2, '0'),
                           style: estiloTitulo(
-                            56,
+                            Escala.displayLarge,
                             cor: AppCores.sol,
                             peso: FontWeight.w400,
                             altura: 1,
@@ -868,13 +864,15 @@ class _Solucoes extends StatelessWidget {
                         const SizedBox(height: 16),
                         Text(
                           s.titulo,
-                          style: estiloTitulo(24, cor: AppCores.branco),
+                          style: estiloTitulo(
+                            Escala.headlineSmall,
+                            cor: AppCores.branco,
+                          ),
                         ),
                         const SizedBox(height: 10),
                         Text(
                           s.texto,
-                          style: const TextStyle(
-                            fontSize: 16,
+                          style: Escala.bodyLarge.copyWith(
                             height: 1.5,
                             color: AppCores.claroSuave,
                           ),
@@ -896,8 +894,7 @@ class _Solucoes extends StatelessWidget {
 class _ComoDenunciar extends StatelessWidget {
   const _ComoDenunciar({super.key});
 
-  static const _texto = TextStyle(
-    fontSize: 17,
+  static final _texto = Escala.titleMedium.copyWith(
     height: 1.5,
     color: AppCores.tinta2,
   );
@@ -912,7 +909,10 @@ class _ComoDenunciar extends StatelessWidget {
         children: [
           Semantics(
             header: true,
-            child: Text('O que contar na denúncia', style: estiloTitulo(24)),
+            child: Text(
+              'O que contar na denúncia',
+              style: estiloTitulo(Escala.headlineSmall),
+            ),
           ),
           const SizedBox(height: 14),
           for (final item in oQueInformar)
@@ -921,7 +921,7 @@ class _ComoDenunciar extends StatelessWidget {
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('•  ', style: _texto),
+                  Text('•  ', style: _texto),
                   Expanded(child: Text(item, style: _texto)),
                 ],
               ),
@@ -936,10 +936,13 @@ class _ComoDenunciar extends StatelessWidget {
         children: [
           Semantics(
             header: true,
-            child: Text('Sem se identificar', style: estiloTitulo(24)),
+            child: Text(
+              'Sem se identificar',
+              style: estiloTitulo(Escala.headlineSmall),
+            ),
           ),
           const SizedBox(height: 14),
-          const Text(sobreAnonimato, style: _texto),
+          Text(sobreAnonimato, style: _texto),
           const SizedBox(height: 16),
           // Como no site: o nome da pagina e o link, sem o endereco por extenso
           // (ate 10/11/2026 o app nao abria links e mostrava o endereco).
@@ -947,7 +950,7 @@ class _ComoDenunciar extends StatelessWidget {
             const Trecho('Fonte: '),
             Trecho(fonteDenuncia.rotulo, link: fonteDenuncia.link),
             Trecho(', conferido em ${fonteDenuncia.conferidoEm}.'),
-          ], estilo: const TextStyle(fontSize: 14, color: AppCores.tinta3)),
+          ], estilo: Escala.bodySmall.copyWith(color: AppCores.tinta3)),
         ],
       ),
     );
@@ -986,8 +989,7 @@ class _ComoDenunciar extends StatelessWidget {
                           children: [
                             Text(
                               canal.titulo,
-                              style: const TextStyle(
-                                fontSize: 16,
+                              style: Escala.bodyLarge.copyWith(
                                 fontWeight: FontWeight.w600,
                                 color: AppCores.tinta3,
                               ),
@@ -997,8 +999,7 @@ class _ComoDenunciar extends StatelessWidget {
                             const SizedBox(height: 10),
                             Text(
                               canal.texto,
-                              style: const TextStyle(
-                                fontSize: 16,
+                              style: Escala.bodyLarge.copyWith(
                                 height: 1.5,
                                 color: AppCores.tinta2,
                               ),
@@ -1036,7 +1037,9 @@ class _Chamada extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final tamanho = Breakpoints.ehMobile(context) ? 48.0 : 80.0;
+    final papel = Breakpoints.ehMobile(context)
+        ? Escala.displayLarge
+        : Escala.destaque;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -1044,17 +1047,16 @@ class _Chamada extends StatelessWidget {
           header: true,
           child: Text(
             'Passe adiante.',
-            style: estiloTitulo(tamanho, cor: AppCores.branco, altura: 1.05),
+            style: estiloTitulo(papel, cor: AppCores.branco, altura: 1.05),
           ),
         ),
         const SizedBox(height: 18),
         ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 560),
-          child: const Text(
+          child: Text(
             'Quanto mais gente souber o tamanho do problema, mais difícil '
             'fica ignorá-lo.',
-            style: TextStyle(
-              fontSize: 20,
+            style: Escala.titleMedium.copyWith(
               height: 1.45,
               color: Color(0xD9FFFDF8),
             ),
@@ -1073,7 +1075,7 @@ class _Chamada extends StatelessWidget {
             ),
             Trecho(' · ${creditoDaChamadaFinal.licenca} · Wikimedia Commons'),
           ],
-          estilo: const TextStyle(fontSize: 13, color: Color(0xBFFFFDF8)),
+          estilo: Escala.labelMedium.copyWith(color: Color(0xBFFFFDF8)),
           corDoLink: const Color(0xE6FFFDF8),
         ),
       ],
@@ -1101,10 +1103,15 @@ class _ContatoDoCanal extends StatelessWidget {
             copiarComAviso(context, telefone ? canal.contato : canal.link),
         child: Text(
           canal.contato,
-          style: estiloTitulo(36, cor: AppCores.mata, altura: 1.1).copyWith(
-            decoration: TextDecoration.underline,
-            decorationColor: AppCores.mata.withValues(alpha: 0.35),
-          ),
+          style:
+              estiloTitulo(
+                Escala.displaySmall,
+                cor: AppCores.mata,
+                altura: 1.1,
+              ).copyWith(
+                decoration: TextDecoration.underline,
+                decorationColor: AppCores.mata.withValues(alpha: 0.35),
+              ),
         ),
       ),
     );
@@ -1154,13 +1161,11 @@ class _Rodape extends StatelessWidget {
 
   final List<(String, VoidCallback)> links;
 
-  static const _tituloColuna = TextStyle(
-    fontSize: 14,
+  static final _tituloColuna = Escala.bodySmall.copyWith(
     fontWeight: FontWeight.w600,
     color: AppCores.branco,
   );
-  static const _texto = TextStyle(
-    fontSize: 15,
+  static final _texto = Escala.bodyMedium.copyWith(
     height: 1.6,
     color: Color(0xB3FFFDF8),
   );
@@ -1177,7 +1182,10 @@ class _Rodape extends StatelessWidget {
           children: [
             Image.asset('assets/img/logo.png', height: 28),
             const SizedBox(width: 8),
-            Text('EcoMapBrasil', style: estiloTitulo(19, cor: AppCores.branco)),
+            Text(
+              'EcoMapBrasil',
+              style: estiloTitulo(Escala.titleLarge, cor: AppCores.branco),
+            ),
           ],
         ),
         const SizedBox(height: 12),
@@ -1192,7 +1200,7 @@ class _Rodape extends StatelessWidget {
     final noApp = Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text('No app', style: _tituloColuna),
+        Text('No app', style: _tituloColuna),
         const SizedBox(height: 8),
         for (final (rotulo, aoTocar) in links)
           InkWell(
@@ -1212,9 +1220,9 @@ class _Rodape extends StatelessWidget {
     final contato = Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text('Contato', style: _tituloColuna),
+        Text('Contato', style: _tituloColuna),
         const SizedBox(height: 8),
-        const Text('Matão, São Paulo', style: _texto),
+        Text('Matão, São Paulo', style: _texto),
         // Tocavel como os atalhos de "No app", com a mesma altura de toque.
         Semantics(
           link: true,
@@ -1222,7 +1230,7 @@ class _Rodape extends StatelessWidget {
             onTap: () => abrirLink(context, 'https://github.com/ecomap-devs'),
             child: ConstrainedBox(
               constraints: const BoxConstraints(minHeight: 48),
-              child: const Align(
+              child: Align(
                 alignment: Alignment.centerLeft,
                 widthFactor: 1,
                 child: Text('github.com/ecomap-devs', style: _texto),
@@ -1268,7 +1276,7 @@ class _Rodape extends StatelessWidget {
                 const SizedBox(height: 40),
                 const Divider(color: Color(0x1FFFFDF8), height: 1),
                 const SizedBox(height: 24),
-                const Wrap(
+                Wrap(
                   alignment: WrapAlignment.spaceBetween,
                   crossAxisAlignment: WrapCrossAlignment.center,
                   spacing: 24,
@@ -1276,12 +1284,16 @@ class _Rodape extends StatelessWidget {
                   children: [
                     Text(
                       '© 2025–2026 EcoMapBrasil',
-                      style: TextStyle(fontSize: 13, color: Color(0xB3FFFDF8)),
+                      style: Escala.labelMedium.copyWith(
+                        color: Color(0xB3FFFDF8),
+                      ),
                     ),
                     LinksLegais(cor: Color(0xD9FFFDF8)),
                     Text(
                       'Dados de fontes públicas: INPE, IBGE, MMA e IUCN.',
-                      style: TextStyle(fontSize: 13, color: Color(0xB3FFFDF8)),
+                      style: Escala.labelMedium.copyWith(
+                        color: Color(0xB3FFFDF8),
+                      ),
                     ),
                   ],
                 ),

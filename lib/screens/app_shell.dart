@@ -115,7 +115,7 @@ class _AppShellState extends State<AppShell> {
                 children: [
                   Image.asset('assets/img/logo.png', height: 30),
                   const SizedBox(width: 10),
-                  Text('EcoMapBrasil', style: estiloTitulo(20)),
+                  Text('EcoMapBrasil', style: estiloTitulo(Escala.titleLarge)),
                 ],
               ),
               actions: [
@@ -128,9 +128,7 @@ class _AppShellState extends State<AppShell> {
                       minimumSize: const Size(48, 40),
                       tapTargetSize: MaterialTapTargetSize.padded,
                       padding: const EdgeInsets.symmetric(horizontal: 16),
-                      textStyle: const TextStyle(
-                        fontFamily: AppFontes.texto,
-                        fontSize: 15,
+                      textStyle: Escala.bodyMedium.copyWith(
                         fontWeight: FontWeight.w600,
                       ),
                     ),
@@ -175,10 +173,9 @@ class _AppShellState extends State<AppShell> {
                         child: Text(
                           (usuario.displayName ?? 'U').characters.first
                               .toUpperCase(),
-                          style: const TextStyle(
+                          style: Escala.bodySmall.copyWith(
                             color: AppCores.mata,
                             fontWeight: FontWeight.w600,
-                            fontSize: 14,
                           ),
                         ),
                       ),

@@ -134,7 +134,7 @@ class _AuthModalState extends State<AuthModal> {
                     Expanded(
                       child: Text(
                         _cadastro ? 'Criar conta' : 'Entrar na conta',
-                        style: estiloTitulo(26),
+                        style: estiloTitulo(Escala.headlineMedium),
                       ),
                     ),
                     IconButton(
@@ -150,7 +150,7 @@ class _AuthModalState extends State<AuthModal> {
                   _cadastro
                       ? 'Cadastre-se para participar da comunidade.'
                       : 'Acesse para deixar sua avaliação.',
-                  style: const TextStyle(fontSize: 15, color: AppCores.tinta3),
+                  style: Escala.bodyMedium.copyWith(color: AppCores.tinta3),
                 ),
                 const SizedBox(height: 24),
 
@@ -204,10 +204,9 @@ class _AuthModalState extends State<AuthModal> {
                           ),
                         ),
                         const SizedBox(height: 8),
-                        const Text(
+                        Text(
                           'Foto de perfil (opcional)',
-                          style: TextStyle(
-                            fontSize: 14,
+                          style: Escala.bodySmall.copyWith(
                             color: AppCores.tinta3,
                           ),
                         ),
@@ -265,8 +264,7 @@ class _AuthModalState extends State<AuthModal> {
                       context,
                       destino == '/termos' ? termos : privacidade,
                     ),
-                    estilo: const TextStyle(
-                      fontSize: 14,
+                    estilo: Escala.bodySmall.copyWith(
                       height: 1.45,
                       color: AppCores.tinta3,
                     ),
@@ -284,8 +282,7 @@ class _AuthModalState extends State<AuthModal> {
                     _cadastro
                         ? 'Já tem conta? Entrar'
                         : 'Não tem conta? Cadastre-se',
-                    style: const TextStyle(
-                      fontSize: 15,
+                    style: Escala.bodyMedium.copyWith(
                       fontWeight: FontWeight.w400,
                       decoration: TextDecoration.underline,
                     ),
@@ -310,7 +307,7 @@ class _Rotulo extends StatelessWidget {
     padding: const EdgeInsets.only(bottom: 4),
     child: Text(
       texto,
-      style: const TextStyle(fontSize: 14, color: AppCores.tinta2),
+      style: Escala.bodySmall.copyWith(color: AppCores.tinta2),
     ),
   );
 }
