@@ -210,9 +210,22 @@ describe("usuarios", () => {
     });
   });
 
-  test("nega: apagar o perfil", async () => {
-    await semRegras("usuarios/ana", { nome: "Ana", photoURL: "", criadoEm: Timestamp.now() });
-    await assertFails(deleteDoc(doc(comoAna(), "usuarios/ana")));
+  describe("apagar (botão de apagar conta)", () => {
+    beforeEach(async () => {
+      await semRegras("usuarios/ana", { nome: "Ana", photoURL: "", criadoEm: Timestamp.now() });
+    });
+
+    test("permite: o dono apaga o próprio perfil", async () => {
+      await assertSucceeds(deleteDoc(doc(comoAna(), "usuarios/ana")));
+    });
+
+    test("nega: apagar o perfil de outra pessoa", async () => {
+      await assertFails(deleteDoc(doc(comoBia(), "usuarios/ana")));
+    });
+
+    test("nega: apagar sem login", async () => {
+      await assertFails(deleteDoc(doc(anonimo(), "usuarios/ana")));
+    });
   });
 });
 
