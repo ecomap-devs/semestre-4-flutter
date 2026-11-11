@@ -7,6 +7,7 @@ import '../../data/biomas_data.dart';
 import '../../models/bioma.dart';
 import '../../theme/app_theme.dart';
 import '../animacao_na_tela.dart';
+import '../toque_ampliado.dart';
 
 /// Os seis biomas desenhados com o mesmo contorno do IBGE do mapa
 /// interativo — o `MapaBiomas` da Home do site.
@@ -156,7 +157,6 @@ class _MapaBiomasState extends State<MapaBiomas> {
           const SizedBox(height: 8),
           Wrap(
             spacing: 6,
-            runSpacing: 4,
             children: [
               for (final b in biomas)
                 _ItemLegenda(
@@ -184,45 +184,48 @@ class _ItemLegenda extends StatelessWidget {
   final VoidCallback aoEscolher;
 
   @override
-  Widget build(BuildContext context) => Semantics(
-    button: true,
-    selected: ativo,
-    child: InkWell(
-      onTap: aoEscolher,
-      onHover: (dentro) {
-        if (dentro) aoEscolher();
-      },
-      borderRadius: BorderRadius.circular(999),
-      child: Container(
-        constraints: const BoxConstraints(minHeight: 36),
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-        decoration: BoxDecoration(
-          color: ativo ? AppCores.branco : Colors.transparent,
-          borderRadius: BorderRadius.circular(999),
-          border: Border.all(
-            color: ativo ? AppCores.linha : Colors.transparent,
+  Widget build(BuildContext context) => ToqueAmpliado(
+    aoTocar: aoEscolher,
+    child: Semantics(
+      button: true,
+      selected: ativo,
+      child: InkWell(
+        onTap: aoEscolher,
+        onHover: (dentro) {
+          if (dentro) aoEscolher();
+        },
+        borderRadius: BorderRadius.circular(999),
+        child: Container(
+          constraints: const BoxConstraints(minHeight: 36),
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+          decoration: BoxDecoration(
+            color: ativo ? AppCores.branco : Colors.transparent,
+            borderRadius: BorderRadius.circular(999),
+            border: Border.all(
+              color: ativo ? AppCores.linha : Colors.transparent,
+            ),
           ),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 10,
-              height: 10,
-              decoration: BoxDecoration(
-                color: bioma.cor,
-                borderRadius: BorderRadius.circular(2),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 10,
+                height: 10,
+                decoration: BoxDecoration(
+                  color: bioma.cor,
+                  borderRadius: BorderRadius.circular(2),
+                ),
               ),
-            ),
-            const SizedBox(width: 6),
-            Text(
-              bioma.nome,
-              style: TextStyle(
-                fontSize: 14,
-                color: ativo ? AppCores.tinta : AppCores.tinta2,
+              const SizedBox(width: 6),
+              Text(
+                bioma.nome,
+                style: TextStyle(
+                  fontSize: 14,
+                  color: ativo ? AppCores.tinta : AppCores.tinta2,
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     ),

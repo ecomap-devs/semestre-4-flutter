@@ -99,123 +99,136 @@ class _AppShellState extends State<AppShell> {
           child: KeyedSubtree(key: ValueKey(_indice), child: telas[_indice]),
         );
 
-        return Scaffold(
-          appBar: AppBar(
-            toolbarHeight: ehMobile ? 56 : 64,
-            titleSpacing: ehMobile ? 16 : 24,
-            title: Row(
-              children: [
-                Image.asset('assets/img/logo.png', height: 30),
-                const SizedBox(width: 10),
-                Text('EcoMapBrasil', style: estiloTitulo(20)),
+        // O Voltar do sistema fechava o app de qualquer aba. Agora, fora do
+        // Inicio, ele volta para o Inicio; so dali o app fecha, como nos apps
+        // do proprio Android (auditoria de 11/11/2026).
+        return PopScope(
+          canPop: _indice == 0,
+          onPopInvokedWithResult: (saiu, _) {
+            if (!saiu) setState(() => _indice = 0);
+          },
+          child: Scaffold(
+            appBar: AppBar(
+              toolbarHeight: ehMobile ? 56 : 64,
+              titleSpacing: ehMobile ? 16 : 24,
+              title: Row(
+                children: [
+                  Image.asset('assets/img/logo.png', height: 30),
+                  const SizedBox(width: 10),
+                  Text('EcoMapBrasil', style: estiloTitulo(20)),
+                ],
+              ),
+              actions: [
+                if (usuario == null)
+                  OutlinedButton(
+                    onPressed: _pedirLogin,
+                    style: OutlinedButton.styleFrom(
+                      // O desenho fica com 40 dp para caber na barra; o toque
+                      // tem 48, pela margem que o Material poe em volta.
+                      minimumSize: const Size(48, 40),
+                      tapTargetSize: MaterialTapTargetSize.padded,
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      textStyle: const TextStyle(
+                        fontFamily: AppFontes.texto,
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    child: const Text('Entrar'),
+                  )
+                else
+                  PopupMenuButton<String>(
+                    tooltip: usuario.displayName ?? 'Conta',
+                    onSelected: (v) {
+                      if (v == 'sair') widget.auth.sair();
+                      if (v == 'apagar') _apagarConta();
+                    },
+                    itemBuilder: (_) => [
+                      PopupMenuItem(
+                        enabled: false,
+                        child: Text(
+                          usuario.displayName ?? usuario.email ?? 'Usuário',
+                          style: const TextStyle(
+                            fontWeight: FontWeight.w600,
+                            color: AppCores.tinta,
+                          ),
+                        ),
+                      ),
+                      const PopupMenuDivider(),
+                      const PopupMenuItem(value: 'sair', child: Text('Sair')),
+                      const PopupMenuItem(
+                        value: 'apagar',
+                        child: Text(
+                          'Apagar conta',
+                          style: TextStyle(color: AppCores.terra),
+                        ),
+                      ),
+                    ],
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 8),
+                      child: CircleAvatar(
+                        radius: 16,
+                        backgroundColor: AppCores.mataClara,
+                        foregroundImage: (usuario.photoURL ?? '').isEmpty
+                            ? null
+                            : NetworkImage(usuario.photoURL!),
+                        child: Text(
+                          (usuario.displayName ?? 'U').characters.first
+                              .toUpperCase(),
+                          style: const TextStyle(
+                            color: AppCores.mata,
+                            fontWeight: FontWeight.w600,
+                            fontSize: 14,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                SizedBox(width: ehMobile ? 12 : 20),
               ],
             ),
-            actions: [
-              if (usuario == null)
-                OutlinedButton(
-                  onPressed: _pedirLogin,
-                  style: OutlinedButton.styleFrom(
-                    minimumSize: const Size(48, 40),
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    textStyle: const TextStyle(
-                      fontFamily: AppFontes.texto,
-                      fontSize: 15,
-                      fontWeight: FontWeight.w600,
-                    ),
+            body: ehMobile
+                ? corpo
+                : Row(
+                    children: [
+                      NavigationRail(
+                        selectedIndex: _indice,
+                        onDestinationSelected: (i) =>
+                            setState(() => _indice = i),
+                        labelType: NavigationRailLabelType.all,
+                        destinations: [
+                          for (final d in _destinos)
+                            NavigationRailDestination(
+                              icon: Icon(d.icone),
+                              selectedIcon: Icon(d.ativo),
+                              label: Text(d.rotulo),
+                            ),
+                        ],
+                      ),
+                      const VerticalDivider(width: 1),
+                      Expanded(child: corpo),
+                    ],
                   ),
-                  child: const Text('Entrar'),
-                )
-              else
-                PopupMenuButton<String>(
-                  tooltip: usuario.displayName ?? 'Conta',
-                  onSelected: (v) {
-                    if (v == 'sair') widget.auth.sair();
-                    if (v == 'apagar') _apagarConta();
-                  },
-                  itemBuilder: (_) => [
-                    PopupMenuItem(
-                      enabled: false,
-                      child: Text(
-                        usuario.displayName ?? usuario.email ?? 'Usuário',
-                        style: const TextStyle(
-                          fontWeight: FontWeight.w600,
-                          color: AppCores.tinta,
-                        ),
-                      ),
+            bottomNavigationBar: ehMobile
+                ? DecoratedBox(
+                    decoration: const BoxDecoration(
+                      border: Border(top: BorderSide(color: AppCores.linha)),
                     ),
-                    const PopupMenuDivider(),
-                    const PopupMenuItem(value: 'sair', child: Text('Sair')),
-                    const PopupMenuItem(
-                      value: 'apagar',
-                      child: Text(
-                        'Apagar conta',
-                        style: TextStyle(color: AppCores.terra),
-                      ),
-                    ),
-                  ],
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 8),
-                    child: CircleAvatar(
-                      radius: 16,
-                      backgroundColor: AppCores.mataClara,
-                      foregroundImage: (usuario.photoURL ?? '').isEmpty
-                          ? null
-                          : NetworkImage(usuario.photoURL!),
-                      child: Text(
-                        (usuario.displayName ?? 'U').characters.first
-                            .toUpperCase(),
-                        style: const TextStyle(
-                          color: AppCores.mata,
-                          fontWeight: FontWeight.w600,
-                          fontSize: 14,
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              SizedBox(width: ehMobile ? 12 : 20),
-            ],
-          ),
-          body: ehMobile
-              ? corpo
-              : Row(
-                  children: [
-                    NavigationRail(
+                    child: NavigationBar(
                       selectedIndex: _indice,
                       onDestinationSelected: (i) => setState(() => _indice = i),
-                      labelType: NavigationRailLabelType.all,
                       destinations: [
                         for (final d in _destinos)
-                          NavigationRailDestination(
+                          NavigationDestination(
                             icon: Icon(d.icone),
                             selectedIcon: Icon(d.ativo),
-                            label: Text(d.rotulo),
+                            label: d.rotulo,
                           ),
                       ],
                     ),
-                    const VerticalDivider(width: 1),
-                    Expanded(child: corpo),
-                  ],
-                ),
-          bottomNavigationBar: ehMobile
-              ? DecoratedBox(
-                  decoration: const BoxDecoration(
-                    border: Border(top: BorderSide(color: AppCores.linha)),
-                  ),
-                  child: NavigationBar(
-                    selectedIndex: _indice,
-                    onDestinationSelected: (i) => setState(() => _indice = i),
-                    destinations: [
-                      for (final d in _destinos)
-                        NavigationDestination(
-                          icon: Icon(d.icone),
-                          selectedIcon: Icon(d.ativo),
-                          label: d.rotulo,
-                        ),
-                    ],
-                  ),
-                )
-              : null,
+                  )
+                : null,
+          ),
         );
       },
     );
