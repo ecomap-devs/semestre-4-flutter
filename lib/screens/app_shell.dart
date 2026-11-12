@@ -2,9 +2,11 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 import '../services/auth_service.dart';
+import '../services/preferencia_de_tema.dart';
 import '../theme/app_theme.dart';
 import '../widgets/apagar_conta_dialog.dart';
 import '../widgets/auth_modal.dart';
+import '../widgets/botao_de_tema.dart';
 import 'animais_screen.dart';
 import 'fotos_screen.dart';
 import 'home_screen.dart';
@@ -16,9 +18,14 @@ import 'mapa_screen.dart';
 /// `NavigationBar` no mobile e `NavigationRail` no desktop — o padrao que o
 /// usuario de cada plataforma ja espera —, com o mesmo fade entre telas.
 class AppShell extends StatefulWidget {
-  const AppShell({super.key, required this.auth});
+  AppShell({super.key, required this.auth, PreferenciaDeTema? tema})
+    : tema = tema ?? PreferenciaDeTema();
 
   final AuthService auth;
+
+  /// A escolha de tema do botão da barra. O `EcoMapApp` passa a mesma que o
+  /// `MaterialApp` escuta; sem ela (nos testes), o botão troca só o ícone.
+  final PreferenciaDeTema tema;
 
   @override
   State<AppShell> createState() => _AppShellState();
@@ -125,6 +132,8 @@ class _AppShellState extends State<AppShell> {
                 ],
               ),
               actions: [
+                BotaoDeTema(tema: widget.tema),
+                const SizedBox(width: 4),
                 if (usuario == null)
                   OutlinedButton(
                     onPressed: _pedirLogin,
