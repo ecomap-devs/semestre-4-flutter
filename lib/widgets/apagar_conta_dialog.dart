@@ -20,7 +20,7 @@ class ApagarContaDialog extends StatefulWidget {
   static Future<bool> abrir(BuildContext context, AuthService auth) async {
     final apagou = await showDialog<bool>(
       context: context,
-      barrierColor: context.cores.tinta.withValues(alpha: 0.55),
+      barrierColor: AppCores.veu,
       builder: (_) => ApagarContaDialog(
         aoApagar: (senha) => auth.apagarConta(senha: senha),
       ),

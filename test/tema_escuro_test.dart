@@ -28,10 +28,7 @@ void main() {
     ]) {
       test('texto do tema $nome tem 4,5:1 sobre o papel e o cartão', () {
         for (final fundo in [c.papel, c.cartao]) {
-          // O tinta3 do claro tem 3,7:1 desde antes do tema escuro; fica de
-          // fora até alguém decidir mexer na paleta clara.
-          final textos = [c.tinta, c.tinta2, c.mata, c.terra];
-          if (nome == 'escuro') textos.add(c.tinta3);
+          final textos = [c.tinta, c.tinta2, c.tinta3, c.mata, c.terra];
           for (final texto in textos) {
             expect(
               contraste(texto, fundo),

@@ -16,7 +16,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
 # In Windows, build-name is used as the major, minor, and patch parts
 # of the product and file versions while build-number is used as the build suffix.
-version: 1.4.0+6
+version: 1.5.0+7
 
 environment:
   sdk: ^3.13.0
@@ -70,7 +70,9 @@ flutter:
 
   assets:
     - assets/data/alertas-desmatamento.json
-    - assets/img/logo.png
+    # Só o pino: o nome da logo, preto, sumia no tema escuro e no rodapé. A
+    # logo inteira fica em assets/img/ para o tool/icone/gerar.py.
+    - assets/img/pino.png
 
   # As mesmas fontes do site (semestre-4-nextjs): Fraunces nos títulos e
   # Source Sans 3 no texto. Licença OFL, em assets/fonts/. O Fraunces só existe

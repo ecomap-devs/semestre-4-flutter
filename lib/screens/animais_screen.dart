@@ -186,7 +186,7 @@ class _AnimaisScreenState extends State<AnimaisScreen> {
       context: context,
       isScrollControlled: true,
       backgroundColor: context.cores.cartao,
-      barrierColor: context.cores.tinta.withValues(alpha: 0.55),
+      barrierColor: AppCores.veu,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(12)),
       ),

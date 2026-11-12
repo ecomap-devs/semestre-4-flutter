@@ -20,7 +20,7 @@ class AuthModal extends StatefulWidget {
   static Future<void> abrir(BuildContext context, AuthService auth) {
     return showDialog<void>(
       context: context,
-      barrierColor: context.cores.tinta.withValues(alpha: 0.55),
+      barrierColor: AppCores.veu,
       builder: (_) => AuthModal(auth: auth),
     );
   }

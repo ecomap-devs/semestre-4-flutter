@@ -6,7 +6,7 @@
 import '../models/documento_legal.dart';
 
 /// A data da versao em vigor dos dois documentos.
-const atualizadoEm = '11 de novembro de 2026';
+const atualizadoEm = '12 de novembro de 2026';
 
 /// Onde fazer pedidos sobre dados: issue publica, com o modelo que avisa para
 /// nao escrever dado pessoal.
@@ -105,6 +105,12 @@ const privacidade = DocumentoLegal(
               'Até você limpar os dados do navegador ou desinstalar o app',
             ],
             [
+              'O tema escolhido no botão de tema: claro, escuro ou seguir o sistema. Não fica ligado à sua conta',
+              'No seu navegador (`localStorage`) ou no armazenamento do app no celular',
+              'Só você, no seu aparelho',
+              'Até você escolher outro, limpar os dados do navegador ou desinstalar o app',
+            ],
+            [
               'Registros técnicos: endereço IP, navegador, horário e o endereço pedido',
               'Registros (logs) do Firebase Hosting e do Supabase',
               'Os provedores e a equipe, para corrigir erros e conter abuso',
@@ -176,7 +182,7 @@ const privacidade = DocumentoLegal(
       titulo: 'O que o site e o app não fazem',
       blocos: [
         ListaLegal([
-          'Não usam cookies de rastreamento, Google Analytics nem outra ferramenta de audiência, e não mostram anúncios. O site só grava no seu navegador o login, enquanto você estiver na conta, e, se você confirmar que tem 18 anos ou mais para usar a identificação por foto, essa confirmação.',
+          'Não usam cookies de rastreamento, Google Analytics nem outra ferramenta de audiência, e não mostram anúncios. O site só grava no seu navegador o login, enquanto você estiver na conta, o tema, se você escolher claro ou escuro no botão de tema, e, se você confirmar que tem 18 anos ou mais para usar a identificação por foto, essa confirmação.',
           'Não pedem a sua localização. O mapa mostra o Brasil inteiro, não onde você está.',
           'O app não pede acesso a contatos, localização ou microfone. A câmera e a galeria abrem pelo seletor do próprio Android, só quando você escolhe tirar ou enviar uma foto.',
           'O quiz não grava nada: o placar some quando você sai da página.',
