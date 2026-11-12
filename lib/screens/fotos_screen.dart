@@ -173,17 +173,19 @@ class _FotosScreenState extends State<FotosScreen> {
                   header: true,
                   child: Text(
                     'Que animal é esse?',
-                    style: estiloTitulo(mobile ? 32 : 48),
+                    style: estiloTitulo(
+                      (mobile ? Escala.headlineLarge : Escala.displayLarge),
+                      cor: context.cores.tinta,
+                    ),
                   ),
                 ),
                 const SizedBox(height: 12),
                 Text(
                   'Tire uma foto ou escolha uma imagem, e o Gemini, do '
                   'Google, tenta dizer qual é o animal.',
-                  style: TextStyle(
-                    fontSize: mobile ? 17 : 19,
+                  style: Escala.titleMedium.copyWith(
                     height: 1.5,
-                    color: AppCores.tinta2,
+                    color: context.cores.tinta2,
                   ),
                 ),
                 const SizedBox(height: 28),
@@ -216,11 +218,14 @@ class _FotosScreenState extends State<FotosScreen> {
       // O nivel gratuito do Gemini permite ao Google usar o que e enviado;
       // quem manda a foto precisa saber disso antes. E os termos do Gemini
       // exigem 18 anos (vistos em 02/11/2026).
-      const Text(
+      Text(
         'Só para maiores de 18 anos. A foto é enviada ao Gemini, do Google, '
         'que pode usá-la para melhorar os serviços dele. Não envie fotos de '
         'pessoas.',
-        style: TextStyle(fontSize: 15, height: 1.5, color: AppCores.tinta3),
+        style: Escala.bodyMedium.copyWith(
+          height: 1.5,
+          color: context.cores.tinta3,
+        ),
       ),
       Align(
         alignment: Alignment.centerLeft,
@@ -270,21 +275,21 @@ class _FotosScreenState extends State<FotosScreen> {
         const SizedBox(height: 20),
         Semantics(
           liveRegion: true,
-          child: const Row(
+          child: Row(
             children: [
               SizedBox(
                 width: 22,
                 height: 22,
                 child: CircularProgressIndicator(
                   strokeWidth: 2,
-                  backgroundColor: AppCores.linha,
+                  backgroundColor: context.cores.linha,
                 ),
               ),
               SizedBox(width: 12),
               Expanded(
                 child: Text(
                   'Procurando o animal... pode levar alguns segundos.',
-                  style: TextStyle(fontSize: 16, color: AppCores.tinta2),
+                  style: Escala.bodyLarge.copyWith(color: context.cores.tinta2),
                 ),
               ),
             ],
@@ -313,8 +318,8 @@ class _Cartao extends StatelessWidget {
   Widget build(BuildContext context) => Container(
     padding: const EdgeInsets.all(24),
     decoration: BoxDecoration(
-      color: AppCores.branco,
-      border: Border.all(color: AppCores.linha),
+      color: context.cores.cartao,
+      border: Border.all(color: context.cores.linha),
       borderRadius: BorderRadius.circular(raioPadrao),
     ),
     child: child,
@@ -336,13 +341,22 @@ class _PerguntaDeIdade extends StatelessWidget {
         children: [
           Semantics(
             header: true,
-            child: Text('Você tem 18 anos ou mais?', style: estiloTitulo(22)),
+            child: Text(
+              'Você tem 18 anos ou mais?',
+              style: estiloTitulo(
+                Escala.headlineSmall,
+                cor: context.cores.tinta,
+              ),
+            ),
           ),
           const SizedBox(height: 8),
-          const Text(
+          Text(
             'A identificação por foto usa o Gemini, do Google, e os termos '
             'dele só permitem o uso por quem tem 18 anos ou mais.',
-            style: TextStyle(fontSize: 16, height: 1.5, color: AppCores.tinta2),
+            style: Escala.bodyLarge.copyWith(
+              height: 1.5,
+              color: context.cores.tinta2,
+            ),
           ),
           const SizedBox(height: 16),
           FilledButton(
@@ -367,12 +381,15 @@ class _AvisoDeIdade extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Semantics(
     liveRegion: true,
-    child: const _Cartao(
+    child: _Cartao(
       child: Text(
         'A identificação por foto é só para quem tem 18 anos ou mais, por '
         'exigência do Google. O mapa, as espécies e o resto do EcoMapBrasil '
         'continuam abertos para você.',
-        style: TextStyle(fontSize: 16, height: 1.5, color: AppCores.tinta2),
+        style: Escala.bodyLarge.copyWith(
+          height: 1.5,
+          color: context.cores.tinta2,
+        ),
       ),
     ),
   );
@@ -388,10 +405,13 @@ class _PedirLogin extends StatelessWidget {
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
+        Text(
           'Para identificar animais por foto é preciso entrar na sua conta. '
           'Cada consulta tem custo, e o login evita abuso.',
-          style: TextStyle(fontSize: 16, height: 1.5, color: AppCores.tinta2),
+          style: Escala.bodyLarge.copyWith(
+            height: 1.5,
+            color: context.cores.tinta2,
+          ),
         ),
         const SizedBox(height: 16),
         FilledButton(onPressed: aoPedirLogin, child: const Text('Entrar')),
@@ -415,7 +435,7 @@ class _Resultado extends StatelessWidget {
               ? 'Parece haver um animal, mas não deu para dizer qual. '
                     'Tente uma imagem mais nítida, com o animal em destaque.'
               : 'Não encontramos nenhum animal nesta foto.',
-          style: const TextStyle(fontSize: 16, color: AppCores.tinta2),
+          style: Escala.bodyLarge.copyWith(color: context.cores.tinta2),
         ),
       );
     }
@@ -424,42 +444,45 @@ class _Resultado extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
+          Text(
             'Parece ser',
-            style: TextStyle(fontSize: 15, color: AppCores.tinta3),
+            style: Escala.bodyMedium.copyWith(color: context.cores.tinta3),
           ),
           const SizedBox(height: 2),
-          Text(r.nomePopular!, style: estiloTitulo(32)),
+          Text(
+            r.nomePopular!,
+            style: estiloTitulo(Escala.headlineLarge, cor: context.cores.tinta),
+          ),
           if (r.nomeCientifico != null) ...[
             const SizedBox(height: 2),
             Text(
               r.nomeCientifico!,
-              style: const TextStyle(
-                fontSize: 17,
+              style: Escala.titleMedium.copyWith(
                 fontStyle: FontStyle.italic,
-                color: AppCores.tinta2,
+                color: context.cores.tinta2,
               ),
             ),
           ],
           const SizedBox(height: 10),
           Text(
             r.confianca.rotulo,
-            style: const TextStyle(
-              fontSize: 15,
+            style: Escala.bodyMedium.copyWith(
               fontWeight: FontWeight.w600,
-              color: AppCores.mata,
+              color: context.cores.mata,
             ),
           ),
           if (r.descricao != null) ...[
             const SizedBox(height: 20),
-            Text('Por quê', style: estiloTitulo(18)),
+            Text(
+              'Por quê',
+              style: estiloTitulo(Escala.titleLarge, cor: context.cores.tinta),
+            ),
             const SizedBox(height: 4),
             Text(
               r.descricao!,
-              style: const TextStyle(
-                fontSize: 16,
+              style: Escala.bodyLarge.copyWith(
                 height: 1.5,
-                color: AppCores.tinta2,
+                color: context.cores.tinta2,
               ),
             ),
           ],
@@ -467,12 +490,12 @@ class _Resultado extends StatelessWidget {
           Container(
             width: double.infinity,
             padding: const EdgeInsets.only(top: 12),
-            decoration: const BoxDecoration(
-              border: Border(top: BorderSide(color: AppCores.linha)),
+            decoration: BoxDecoration(
+              border: Border(top: BorderSide(color: context.cores.linha)),
             ),
-            child: const Text(
+            child: Text(
               'Identificação feita por inteligência artificial: pode errar.',
-              style: TextStyle(fontSize: 14, color: AppCores.tinta3),
+              style: Escala.bodySmall.copyWith(color: context.cores.tinta3),
             ),
           ),
         ],

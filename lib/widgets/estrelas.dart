@@ -33,8 +33,8 @@ class _EstrelasState extends State<Estrelas> {
     Icons.star_rounded,
     size: tam,
     color: estrela <= (_hover > 0 ? _hover : widget.valor)
-        ? AppCores.ocre
-        : AppCores.linha,
+        ? context.cores.ocre
+        : context.cores.linha,
   );
 
   @override

@@ -20,7 +20,7 @@ class ApagarContaDialog extends StatefulWidget {
   static Future<bool> abrir(BuildContext context, AuthService auth) async {
     final apagou = await showDialog<bool>(
       context: context,
-      barrierColor: AppCores.tinta.withValues(alpha: 0.55),
+      barrierColor: context.cores.tinta.withValues(alpha: 0.55),
       builder: (_) => ApagarContaDialog(
         aoApagar: (senha) => auth.apagarConta(senha: senha),
       ),
@@ -85,22 +85,30 @@ class _ApagarContaDialogState extends State<ApagarContaDialog> {
                   Row(
                     children: [
                       Expanded(
-                        child: Text('Apagar conta', style: estiloTitulo(26)),
+                        child: Text(
+                          'Apagar conta',
+                          style: estiloTitulo(
+                            Escala.headlineMedium,
+                            cor: context.cores.tinta,
+                          ),
+                        ),
                       ),
                       IconButton(
                         onPressed: _carregando
                             ? null
                             : () => Navigator.of(context).pop(false),
                         icon: const Icon(Icons.close, size: 20),
-                        color: AppCores.tinta3,
+                        color: context.cores.tinta3,
                         tooltip: 'Fechar',
                       ),
                     ],
                   ),
                   const SizedBox(height: 6),
-                  const Text(
+                  Text(
                     'Isto apaga, sem volta:',
-                    style: TextStyle(fontSize: 15, color: AppCores.tinta2),
+                    style: Escala.bodyMedium.copyWith(
+                      color: context.cores.tinta2,
+                    ),
                   ),
                   const SizedBox(height: 8),
                   for (final item in const [
@@ -113,10 +121,9 @@ class _ApagarContaDialogState extends State<ApagarContaDialog> {
                       padding: const EdgeInsets.only(left: 4, bottom: 4),
                       child: Text(
                         '•  $item',
-                        style: const TextStyle(
-                          fontSize: 15,
+                        style: Escala.bodyMedium.copyWith(
                           height: 1.4,
-                          color: AppCores.tinta2,
+                          color: context.cores.tinta2,
                         ),
                       ),
                     ),
@@ -125,11 +132,13 @@ class _ApagarContaDialogState extends State<ApagarContaDialog> {
                     AvisoDeFormulario(texto: _erro, erro: true),
                     const SizedBox(height: 16),
                   ],
-                  const Padding(
+                  Padding(
                     padding: EdgeInsets.only(bottom: 4),
                     child: Text(
                       'Para confirmar, digite sua senha',
-                      style: TextStyle(fontSize: 14, color: AppCores.tinta2),
+                      style: Escala.bodySmall.copyWith(
+                        color: context.cores.tinta2,
+                      ),
                     ),
                   ),
                   TextField(
@@ -145,8 +154,8 @@ class _ApagarContaDialogState extends State<ApagarContaDialog> {
                   FilledButton(
                     onPressed: _carregando ? null : _apagar,
                     style: FilledButton.styleFrom(
-                      backgroundColor: AppCores.terra,
-                      foregroundColor: AppCores.branco,
+                      backgroundColor: context.cores.terra,
+                      foregroundColor: context.cores.sobreDestaque,
                     ),
                     child: Text(
                       _carregando ? 'Apagando...' : 'Apagar minha conta',

@@ -166,13 +166,17 @@ class _MapaScreenState extends State<MapaScreen> {
   // camada e deixava o `flutter_map` recarregar os tiles no lugar — e no
   // celular (02/10/2026) o botao trocava o estado, mas a imagem nao mudava.
   // Com a key, a camada antiga sai inteira e a nova comeca do zero.
-  List<Widget> _camadasDeFundo() => switch (_fundo) {
+  //
+  // No tema escuro, o fundo "claro" vira o cinza escuro da mesma série da
+  // Esri: um mapa claro no meio da tela escura ofusca.
+  List<Widget> _camadasDeFundo(bool escuro) => switch (_fundo) {
     _Fundo.claro => [
       TileLayer(
-        key: const ValueKey('fundo-claro'),
+        key: ValueKey('fundo-claro-$escuro'),
         urlTemplate:
             'https://server.arcgisonline.com/ArcGIS/rest/services/'
-            'Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}',
+            'Canvas/World_${escuro ? 'Dark' : 'Light'}_Gray_Base/'
+            'MapServer/tile/{z}/{y}/{x}',
         userAgentPackageName: 'br.com.ecomapbrasil',
       ),
     ],
@@ -189,12 +193,13 @@ class _MapaScreenState extends State<MapaScreen> {
 
   /// Nomes de cidades e fronteiras, por cima dos biomas e dos alertas — senao
   /// o preenchimento colorido apagaria os nomes.
-  Widget _camadaDeNomes() => TileLayer(
-    key: ValueKey('nomes-${_fundo.name}'),
+  Widget _camadaDeNomes(bool escuro) => TileLayer(
+    key: ValueKey('nomes-${_fundo.name}-$escuro'),
     urlTemplate: switch (_fundo) {
       _Fundo.claro =>
         'https://server.arcgisonline.com/ArcGIS/rest/services/'
-            'Canvas/World_Light_Gray_Reference/MapServer/tile/{z}/{y}/{x}',
+            'Canvas/World_${escuro ? 'Dark' : 'Light'}_Gray_Reference/'
+            'MapServer/tile/{z}/{y}/{x}',
       _Fundo.satelite =>
         'https://server.arcgisonline.com/ArcGIS/rest/services/'
             'Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}',
@@ -247,18 +252,18 @@ class _MapaScreenState extends State<MapaScreen> {
                 initialZoom: ehMobile ? 3.4 : 4,
                 minZoom: 2,
                 maxZoom: 12,
-                backgroundColor: AppCores.papel2,
+                backgroundColor: context.cores.papel2,
                 onTap: (_, ponto) => _tocarNoMapa(ponto),
                 onPositionChanged: _mudouCamera,
               ),
               children: [
-                ..._camadasDeFundo(),
+                ..._camadasDeFundo(context.temaEscuro),
                 _camadaDeBiomas(),
                 if (dados != null)
                   _detalhe
                       ? PolygonLayer(polygons: dados.poligonos)
                       : CircleLayer(circles: dados.pontos),
-                _camadaDeNomes(),
+                _camadaDeNomes(context.temaEscuro),
               ],
             ),
 
@@ -277,9 +282,10 @@ class _MapaScreenState extends State<MapaScreen> {
                       snap.hasError
                           ? 'Não foi possível carregar os alertas'
                           : 'Carregando alertas...',
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: snap.hasError ? AppCores.terra : AppCores.tinta2,
+                      style: Escala.bodySmall.copyWith(
+                        color: snap.hasError
+                            ? context.cores.terra
+                            : context.cores.tinta2,
                       ),
                     ),
                   ),
@@ -313,13 +319,13 @@ class _MapaScreenState extends State<MapaScreen> {
                       IconButton(
                         tooltip: 'Aproximar mapa',
                         onPressed: () => _aproximar(1),
-                        icon: const Icon(Icons.add, color: AppCores.tinta),
+                        icon: Icon(Icons.add, color: context.cores.tinta),
                       ),
                       const SizedBox(width: 28, child: Divider(height: 1)),
                       IconButton(
                         tooltip: 'Afastar mapa',
                         onPressed: () => _aproximar(-1),
-                        icon: const Icon(Icons.remove, color: AppCores.tinta),
+                        icon: Icon(Icons.remove, color: context.cores.tinta),
                       ),
                     ],
                   ),
@@ -436,20 +442,28 @@ class _MapaScreenState extends State<MapaScreen> {
         SizedBox(
           width: larguraPainel,
           child: ColoredBox(
-            color: AppCores.papel,
+            color: context.cores.papel,
             child: ListView(
               padding: const EdgeInsets.fromLTRB(16, 20, 16, 20),
               children: [
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 4),
-                  child: Text('Biomas', style: estiloTitulo(18)),
+                  child: Text(
+                    'Biomas',
+                    style: estiloTitulo(
+                      Escala.titleLarge,
+                      cor: context.cores.tinta,
+                    ),
+                  ),
                 ),
                 const SizedBox(height: 6),
-                const Padding(
+                Padding(
                   padding: EdgeInsets.symmetric(horizontal: 4),
                   child: Text(
                     'Escolha um para centralizar o mapa nele.',
-                    style: TextStyle(fontSize: 14, color: AppCores.tinta3),
+                    style: Escala.bodySmall.copyWith(
+                      color: context.cores.tinta3,
+                    ),
                   ),
                 ),
                 const SizedBox(height: 10),
@@ -463,7 +477,13 @@ class _MapaScreenState extends State<MapaScreen> {
                 const SizedBox(height: 28),
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 4),
-                  child: Text('Linha do tempo', style: estiloTitulo(18)),
+                  child: Text(
+                    'Linha do tempo',
+                    style: estiloTitulo(
+                      Escala.titleLarge,
+                      cor: context.cores.tinta,
+                    ),
+                  ),
                 ),
                 const SizedBox(height: 14),
                 const Padding(
@@ -509,8 +529,8 @@ class _CartaoFlutuante extends StatelessWidget {
   Widget build(BuildContext context) => Container(
     padding: padding,
     decoration: BoxDecoration(
-      color: AppCores.branco,
-      border: Border.all(color: AppCores.linha),
+      color: context.cores.cartao,
+      border: Border.all(color: context.cores.linha),
       borderRadius: BorderRadius.circular(raioPadrao),
       boxShadow: const [
         BoxShadow(
@@ -552,11 +572,8 @@ class _Legenda extends StatelessWidget {
   final bool detalhe;
   final VoidCallback aoFechar;
 
-  static const _suave = TextStyle(
-    fontSize: 13,
-    height: 1.4,
-    color: AppCores.tinta3,
-  );
+  static TextStyle _suave(BuildContext context) =>
+      Escala.labelMedium.copyWith(height: 1.4, color: context.cores.tinta3);
 
   @override
   Widget build(BuildContext context) {
@@ -582,25 +599,27 @@ class _Legenda extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
+                    Text(
                       'Alertas de desmatamento',
-                      style: TextStyle(fontSize: 15, color: AppCores.tinta),
+                      style: Escala.bodyMedium.copyWith(
+                        color: context.cores.tinta,
+                      ),
                     ),
-                    const Text(
+                    Text(
                       'DETER / INPE · Amazônia Legal e Cerrado',
-                      style: _suave,
+                      style: _suave(context),
                     ),
                     if (d != null)
                       Text(
                         '${periodo == null ? '' : '$periodo · '}'
                         '${_milhar(d.total)} alertas · ${_hectares(d.areaHa)}',
-                        style: _suave,
+                        style: _suave(context),
                       ),
                     Text(
                       detalhe
                           ? 'Cada mancha é a área desmatada detectada.'
                           : 'Cada ponto é um alerta. Aproxime para ver a área.',
-                      style: _suave,
+                      style: _suave(context),
                     ),
                   ],
                 ),
@@ -609,7 +628,7 @@ class _Legenda extends StatelessWidget {
               IconButton(
                 onPressed: aoFechar,
                 icon: const Icon(Icons.close, size: 18),
-                color: AppCores.tinta3,
+                color: context.cores.tinta3,
                 tooltip: 'Fechar legenda',
                 visualDensity: VisualDensity.compact,
                 padding: EdgeInsets.zero,
@@ -623,16 +642,16 @@ class _Legenda extends StatelessWidget {
           // A direita do cartao e estreita por causa do X; o resto ganha a
           // folga de volta aqui, como a ficha do bioma.
           const SizedBox(height: 2),
-          const Padding(
+          Padding(
             padding: EdgeInsets.only(right: 8),
             child: Text(
               'Mata Atlântica, Caatinga, Pantanal e Pampa não têm alerta do '
               'DETER.',
-              style: _suave,
+              style: _suave(context),
             ),
           ),
           const SizedBox(height: 10),
-          const Text('Biomas, pelo limite do IBGE', style: _suave),
+          Text('Biomas, pelo limite do IBGE', style: _suave(context)),
           const SizedBox(height: 4),
           Padding(
             padding: const EdgeInsets.only(right: 8),
@@ -648,9 +667,8 @@ class _Legenda extends StatelessWidget {
                       const SizedBox(width: 5),
                       Text(
                         b.nome,
-                        style: const TextStyle(
-                          fontSize: 14,
-                          color: AppCores.tinta2,
+                        style: Escala.bodySmall.copyWith(
+                          color: context.cores.tinta2,
                         ),
                       ),
                     ],
@@ -671,12 +689,12 @@ class _Creditos extends StatelessWidget {
   Widget build(BuildContext context) => Container(
     padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
     decoration: BoxDecoration(
-      color: AppCores.branco.withValues(alpha: 0.8),
+      color: context.cores.cartao.withValues(alpha: 0.8),
       borderRadius: BorderRadius.circular(4),
     ),
-    child: const Text(
+    child: Text(
       'Mapa: Esri · Biomas: IBGE · Alertas: INPE',
-      style: TextStyle(fontSize: 10, color: AppCores.tinta2),
+      style: Escala.labelSmall.copyWith(color: context.cores.tinta2),
     ),
   );
 }
@@ -712,12 +730,12 @@ class _BotaoFundo extends StatelessWidget {
                 Icon(
                   claro ? Icons.satellite_alt_outlined : Icons.map_outlined,
                   size: 18,
-                  color: AppCores.mata,
+                  color: context.cores.mata,
                 ),
                 const SizedBox(width: 8),
                 Text(
                   claro ? 'Satélite' : 'Mapa',
-                  style: const TextStyle(fontSize: 15, color: AppCores.tinta),
+                  style: Escala.bodyMedium.copyWith(color: context.cores.tinta),
                 ),
               ],
             ),
@@ -745,16 +763,16 @@ class _BotaoLegenda extends StatelessWidget {
       child: InkWell(
         onTap: aoTocar,
         borderRadius: BorderRadius.circular(raioPadrao),
-        child: const _CartaoFlutuante(
+        child: _CartaoFlutuante(
           padding: EdgeInsets.symmetric(horizontal: 14, vertical: 11),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(Icons.info_outline, size: 18, color: AppCores.mata),
+              Icon(Icons.info_outline, size: 18, color: context.cores.mata),
               SizedBox(width: 8),
               Text(
                 'Legenda',
-                style: TextStyle(fontSize: 15, color: AppCores.tinta),
+                style: Escala.bodyMedium.copyWith(color: context.cores.tinta),
               ),
             ],
           ),
@@ -787,7 +805,7 @@ class _ItemBioma extends StatelessWidget {
       child: InkWell(
         onTap: aoEscolher,
         borderRadius: BorderRadius.circular(raioPadrao),
-        hoverColor: AppCores.papel2,
+        hoverColor: context.cores.papel2,
         child: Container(
           constraints: const BoxConstraints(minHeight: 48),
           padding: EdgeInsets.symmetric(
@@ -795,10 +813,10 @@ class _ItemBioma extends StatelessWidget {
             vertical: compacto ? 8 : 9,
           ),
           decoration: BoxDecoration(
-            color: ativo ? AppCores.branco : Colors.transparent,
+            color: ativo ? context.cores.cartao : Colors.transparent,
             borderRadius: BorderRadius.circular(raioPadrao),
             border: Border.all(
-              color: ativo ? AppCores.tinta3 : Colors.transparent,
+              color: ativo ? context.cores.tinta3 : Colors.transparent,
             ),
           ),
           // O nome nunca e cortado: no painel de 260 dp "Mata Atlantica"
@@ -816,16 +834,13 @@ class _ItemBioma extends StatelessWidget {
                   children: [
                     Text(
                       bioma.nome,
-                      style: TextStyle(
-                        fontSize: compacto ? 15 : 16,
-                        color: AppCores.tinta,
-                      ),
+                      style: (compacto ? Escala.bodyMedium : Escala.bodyLarge)
+                          .copyWith(color: context.cores.tinta),
                     ),
                     Text(
                       '${bioma.percentualDesmatado}% desmatado',
-                      style: const TextStyle(
-                        fontSize: 14,
-                        color: AppCores.tinta3,
+                      style: Escala.bodySmall.copyWith(
+                        color: context.cores.tinta3,
                         fontFeatures: [FontFeature.tabularFigures()],
                       ),
                     ),
@@ -846,8 +861,8 @@ class _LinhaDoTempo extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Container(
     margin: const EdgeInsets.only(left: 5),
-    decoration: const BoxDecoration(
-      border: Border(left: BorderSide(color: AppCores.linha)),
+    decoration: BoxDecoration(
+      border: Border(left: BorderSide(color: context.cores.linha)),
     ),
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -863,9 +878,9 @@ class _LinhaDoTempo extends StatelessWidget {
                   width: 10,
                   height: 10,
                   decoration: BoxDecoration(
-                    color: AppCores.papel,
+                    color: context.cores.papel,
                     shape: BoxShape.circle,
-                    border: Border.all(color: AppCores.mata, width: 2),
+                    border: Border.all(color: context.cores.mata, width: 2),
                   ),
                 ),
               ),
@@ -876,18 +891,16 @@ class _LinhaDoTempo extends StatelessWidget {
                   children: [
                     Text(
                       '${item.ano}',
-                      style: const TextStyle(
-                        fontSize: 14,
-                        color: AppCores.tinta3,
+                      style: Escala.bodySmall.copyWith(
+                        color: context.cores.tinta3,
                         fontFeatures: [FontFeature.tabularFigures()],
                       ),
                     ),
                     Text(
                       item.texto,
-                      style: const TextStyle(
-                        fontSize: 15,
+                      style: Escala.bodyMedium.copyWith(
                         height: 1.45,
-                        color: AppCores.tinta2,
+                        color: context.cores.tinta2,
                       ),
                     ),
                   ],
@@ -987,10 +1000,10 @@ class _PainelCelularState extends State<_PainelCelular> {
               constraints: BoxConstraints(
                 maxHeight: MediaQuery.sizeOf(context).height * .6,
               ),
-              decoration: const BoxDecoration(
-                color: AppCores.papel,
+              decoration: BoxDecoration(
+                color: context.cores.papel,
                 borderRadius: BorderRadius.vertical(top: Radius.circular(12)),
-                border: Border(top: BorderSide(color: AppCores.linha)),
+                border: Border(top: BorderSide(color: context.cores.linha)),
                 boxShadow: [
                   BoxShadow(
                     color: Color(0x261D2620),
@@ -1017,7 +1030,7 @@ class _PainelCelularState extends State<_PainelCelular> {
                             width: 36,
                             height: 4,
                             decoration: BoxDecoration(
-                              color: AppCores.linha,
+                              color: context.cores.linha,
                               borderRadius: BorderRadius.circular(2),
                             ),
                           ),
@@ -1027,8 +1040,10 @@ class _PainelCelularState extends State<_PainelCelular> {
                   ),
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
-                    decoration: const BoxDecoration(
-                      border: Border(bottom: BorderSide(color: AppCores.linha)),
+                    decoration: BoxDecoration(
+                      border: Border(
+                        bottom: BorderSide(color: context.cores.linha),
+                      ),
                     ),
                     child: Row(
                       children: [
@@ -1100,17 +1115,16 @@ class _Aba extends StatelessWidget {
         decoration: BoxDecoration(
           border: Border(
             bottom: BorderSide(
-              color: ativa ? AppCores.mata : Colors.transparent,
+              color: ativa ? context.cores.mata : Colors.transparent,
               width: 2,
             ),
           ),
         ),
         child: Text(
           rotulo,
-          style: TextStyle(
-            fontSize: 16,
+          style: Escala.bodyLarge.copyWith(
             fontWeight: ativa ? FontWeight.w600 : FontWeight.w400,
-            color: ativa ? AppCores.tinta : AppCores.tinta3,
+            color: ativa ? context.cores.tinta : context.cores.tinta3,
           ),
         ),
       ),
@@ -1137,11 +1151,19 @@ class _FichaBioma extends StatelessWidget {
           children: [
             _Quadrado(bioma.cor),
             const SizedBox(width: 8),
-            Expanded(child: Text(bioma.nome, style: estiloTitulo(19))),
+            Expanded(
+              child: Text(
+                bioma.nome,
+                style: estiloTitulo(
+                  Escala.titleLarge,
+                  cor: context.cores.tinta,
+                ),
+              ),
+            ),
             IconButton(
               onPressed: aoFechar,
               icon: const Icon(Icons.close, size: 18),
-              color: AppCores.tinta3,
+              color: context.cores.tinta3,
               tooltip: 'Fechar',
             ),
           ],
@@ -1163,7 +1185,7 @@ class _FichaBioma extends StatelessWidget {
               const SizedBox(height: 8),
               Text(
                 bioma.descricao,
-                style: const TextStyle(fontSize: 14, color: AppCores.tinta2),
+                style: Escala.bodySmall.copyWith(color: context.cores.tinta2),
               ),
             ],
           ),
@@ -1190,14 +1212,13 @@ class _LinhaFicha extends StatelessWidget {
     children: [
       Text(
         rotulo,
-        style: const TextStyle(fontSize: 14, color: AppCores.tinta3),
+        style: Escala.bodySmall.copyWith(color: context.cores.tinta3),
       ),
       Text(
         valor,
-        style: TextStyle(
-          fontSize: 14,
+        style: Escala.bodySmall.copyWith(
           fontWeight: destaque ? FontWeight.w600 : FontWeight.w400,
-          color: destaque ? AppCores.terra : AppCores.tinta2,
+          color: destaque ? context.cores.terra : context.cores.tinta2,
         ),
       ),
     ],

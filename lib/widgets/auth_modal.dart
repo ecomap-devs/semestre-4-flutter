@@ -20,7 +20,7 @@ class AuthModal extends StatefulWidget {
   static Future<void> abrir(BuildContext context, AuthService auth) {
     return showDialog<void>(
       context: context,
-      barrierColor: AppCores.tinta.withValues(alpha: 0.55),
+      barrierColor: context.cores.tinta.withValues(alpha: 0.55),
       builder: (_) => AuthModal(auth: auth),
     );
   }
@@ -134,13 +134,16 @@ class _AuthModalState extends State<AuthModal> {
                     Expanded(
                       child: Text(
                         _cadastro ? 'Criar conta' : 'Entrar na conta',
-                        style: estiloTitulo(26),
+                        style: estiloTitulo(
+                          Escala.headlineMedium,
+                          cor: context.cores.tinta,
+                        ),
                       ),
                     ),
                     IconButton(
                       onPressed: () => Navigator.of(context).pop(),
                       icon: const Icon(Icons.close, size: 20),
-                      color: AppCores.tinta3,
+                      color: context.cores.tinta3,
                       tooltip: 'Fechar',
                     ),
                   ],
@@ -150,7 +153,9 @@ class _AuthModalState extends State<AuthModal> {
                   _cadastro
                       ? 'Cadastre-se para participar da comunidade.'
                       : 'Acesse para deixar sua avaliação.',
-                  style: const TextStyle(fontSize: 15, color: AppCores.tinta3),
+                  style: Escala.bodyMedium.copyWith(
+                    color: context.cores.tinta3,
+                  ),
                 ),
                 const SizedBox(height: 24),
 
@@ -188,27 +193,26 @@ class _AuthModalState extends State<AuthModal> {
                               width: 80,
                               height: 80,
                               decoration: BoxDecoration(
-                                color: AppCores.mataClara,
+                                color: context.cores.mataClara,
                                 shape: BoxShape.circle,
-                                border: Border.all(color: AppCores.mata),
+                                border: Border.all(color: context.cores.mata),
                               ),
                               clipBehavior: Clip.antiAlias,
                               child: _bytesFoto != null
                                   ? Image.memory(_bytesFoto!, fit: BoxFit.cover)
-                                  : const Icon(
+                                  : Icon(
                                       Icons.photo_camera_outlined,
                                       size: 24,
-                                      color: AppCores.mata,
+                                      color: context.cores.mata,
                                     ),
                             ),
                           ),
                         ),
                         const SizedBox(height: 8),
-                        const Text(
+                        Text(
                           'Foto de perfil (opcional)',
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: AppCores.tinta3,
+                          style: Escala.bodySmall.copyWith(
+                            color: context.cores.tinta3,
                           ),
                         ),
                       ],
@@ -265,10 +269,9 @@ class _AuthModalState extends State<AuthModal> {
                       context,
                       destino == '/termos' ? termos : privacidade,
                     ),
-                    estilo: const TextStyle(
-                      fontSize: 14,
+                    estilo: Escala.bodySmall.copyWith(
                       height: 1.45,
-                      color: AppCores.tinta3,
+                      color: context.cores.tinta3,
                     ),
                   ),
                 ],
@@ -284,8 +287,7 @@ class _AuthModalState extends State<AuthModal> {
                     _cadastro
                         ? 'Já tem conta? Entrar'
                         : 'Não tem conta? Cadastre-se',
-                    style: const TextStyle(
-                      fontSize: 15,
+                    style: Escala.bodyMedium.copyWith(
                       fontWeight: FontWeight.w400,
                       decoration: TextDecoration.underline,
                     ),
@@ -310,7 +312,7 @@ class _Rotulo extends StatelessWidget {
     padding: const EdgeInsets.only(bottom: 4),
     child: Text(
       texto,
-      style: const TextStyle(fontSize: 14, color: AppCores.tinta2),
+      style: Escala.bodySmall.copyWith(color: context.cores.tinta2),
     ),
   );
 }

@@ -2,9 +2,11 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 import '../services/auth_service.dart';
+import '../services/preferencia_de_tema.dart';
 import '../theme/app_theme.dart';
 import '../widgets/apagar_conta_dialog.dart';
 import '../widgets/auth_modal.dart';
+import '../widgets/botao_de_tema.dart';
 import 'animais_screen.dart';
 import 'fotos_screen.dart';
 import 'home_screen.dart';
@@ -16,9 +18,14 @@ import 'mapa_screen.dart';
 /// `NavigationBar` no mobile e `NavigationRail` no desktop — o padrao que o
 /// usuario de cada plataforma ja espera —, com o mesmo fade entre telas.
 class AppShell extends StatefulWidget {
-  const AppShell({super.key, required this.auth});
+  AppShell({super.key, required this.auth, PreferenciaDeTema? tema})
+    : tema = tema ?? PreferenciaDeTema();
 
   final AuthService auth;
+
+  /// A escolha de tema do botão da barra. O `EcoMapApp` passa a mesma que o
+  /// `MaterialApp` escuta; sem ela (nos testes), o botão troca só o ícone.
+  final PreferenciaDeTema tema;
 
   @override
   State<AppShell> createState() => _AppShellState();
@@ -115,10 +122,18 @@ class _AppShellState extends State<AppShell> {
                 children: [
                   Image.asset('assets/img/logo.png', height: 30),
                   const SizedBox(width: 10),
-                  Text('EcoMapBrasil', style: estiloTitulo(20)),
+                  Text(
+                    'EcoMapBrasil',
+                    style: estiloTitulo(
+                      Escala.titleLarge,
+                      cor: context.cores.tinta,
+                    ),
+                  ),
                 ],
               ),
               actions: [
+                BotaoDeTema(tema: widget.tema),
+                const SizedBox(width: 4),
                 if (usuario == null)
                   OutlinedButton(
                     onPressed: _pedirLogin,
@@ -128,9 +143,7 @@ class _AppShellState extends State<AppShell> {
                       minimumSize: const Size(48, 40),
                       tapTargetSize: MaterialTapTargetSize.padded,
                       padding: const EdgeInsets.symmetric(horizontal: 16),
-                      textStyle: const TextStyle(
-                        fontFamily: AppFontes.texto,
-                        fontSize: 15,
+                      textStyle: Escala.bodyMedium.copyWith(
                         fontWeight: FontWeight.w600,
                       ),
                     ),
@@ -148,19 +161,19 @@ class _AppShellState extends State<AppShell> {
                         enabled: false,
                         child: Text(
                           usuario.displayName ?? usuario.email ?? 'Usuário',
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontWeight: FontWeight.w600,
-                            color: AppCores.tinta,
+                            color: context.cores.tinta,
                           ),
                         ),
                       ),
                       const PopupMenuDivider(),
                       const PopupMenuItem(value: 'sair', child: Text('Sair')),
-                      const PopupMenuItem(
+                      PopupMenuItem(
                         value: 'apagar',
                         child: Text(
                           'Apagar conta',
-                          style: TextStyle(color: AppCores.terra),
+                          style: TextStyle(color: context.cores.terra),
                         ),
                       ),
                     ],
@@ -168,17 +181,16 @@ class _AppShellState extends State<AppShell> {
                       padding: const EdgeInsets.symmetric(horizontal: 8),
                       child: CircleAvatar(
                         radius: 16,
-                        backgroundColor: AppCores.mataClara,
+                        backgroundColor: context.cores.mataClara,
                         foregroundImage: (usuario.photoURL ?? '').isEmpty
                             ? null
                             : NetworkImage(usuario.photoURL!),
                         child: Text(
                           (usuario.displayName ?? 'U').characters.first
                               .toUpperCase(),
-                          style: const TextStyle(
-                            color: AppCores.mata,
+                          style: Escala.bodySmall.copyWith(
+                            color: context.cores.mata,
                             fontWeight: FontWeight.w600,
-                            fontSize: 14,
                           ),
                         ),
                       ),
@@ -211,8 +223,10 @@ class _AppShellState extends State<AppShell> {
                   ),
             bottomNavigationBar: ehMobile
                 ? DecoratedBox(
-                    decoration: const BoxDecoration(
-                      border: Border(top: BorderSide(color: AppCores.linha)),
+                    decoration: BoxDecoration(
+                      border: Border(
+                        top: BorderSide(color: context.cores.linha),
+                      ),
                     ),
                     child: NavigationBar(
                       selectedIndex: _indice,

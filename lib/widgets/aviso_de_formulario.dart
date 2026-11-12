@@ -16,14 +16,13 @@ class AvisoDeFormulario extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
       decoration: BoxDecoration(
-        color: erro ? AppCores.terraClara : AppCores.mataClara,
+        color: erro ? context.cores.terraClara : context.cores.mataClara,
         borderRadius: BorderRadius.circular(raioPadrao),
       ),
       child: Text(
         texto,
-        style: TextStyle(
-          fontSize: 15,
-          color: erro ? AppCores.terra : AppCores.mataEscura,
+        style: Escala.bodyMedium.copyWith(
+          color: erro ? context.cores.terra : context.cores.mataEscura,
         ),
       ),
     ),

@@ -38,17 +38,15 @@ class BarrasChart extends StatelessWidget {
                         Expanded(
                           child: Text(
                             b.nome,
-                            style: const TextStyle(
-                              fontSize: 15,
-                              color: AppCores.tinta,
+                            style: Escala.bodyMedium.copyWith(
+                              color: context.cores.tinta,
                             ),
                           ),
                         ),
                         Text(
                           '${b.valor} mil km²',
-                          style: const TextStyle(
-                            fontSize: 15,
-                            color: AppCores.tinta3,
+                          style: Escala.bodyMedium.copyWith(
+                            color: context.cores.tinta3,
                             fontFeatures: [FontFeature.tabularFigures()],
                           ),
                         ),
@@ -59,7 +57,7 @@ class BarrasChart extends StatelessWidget {
                       height: 10,
                       alignment: Alignment.centerLeft,
                       decoration: BoxDecoration(
-                        color: AppCores.papel2,
+                        color: context.cores.papel2,
                         borderRadius: BorderRadius.circular(2),
                       ),
                       child: FractionallySizedBox(
@@ -73,7 +71,9 @@ class BarrasChart extends StatelessWidget {
                             ).transform(progresso),
                         child: Container(
                           decoration: BoxDecoration(
-                            color: i == 0 ? AppCores.terra : AppCores.mata,
+                            color: i == 0
+                                ? context.cores.terra
+                                : context.cores.mata,
                             borderRadius: BorderRadius.circular(2),
                           ),
                         ),

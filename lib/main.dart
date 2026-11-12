@@ -4,6 +4,7 @@ import 'config/env.dart';
 import 'screens/app_shell.dart';
 import 'services/auth_service.dart';
 import 'services/firebase_init.dart';
+import 'services/preferencia_de_tema.dart';
 import 'theme/app_theme.dart';
 
 Future<void> main() async {
@@ -20,18 +21,31 @@ Future<void> main() async {
   }
 
   await inicializarServicos();
-  runApp(const EcoMapApp());
+  // Lido antes do primeiro quadro, para o app não abrir no tema errado e
+  // piscar para o escolhido.
+  final tema = await PreferenciaDeTema.carregar();
+  runApp(EcoMapApp(tema: tema));
 }
 
 class EcoMapApp extends StatelessWidget {
-  const EcoMapApp({super.key});
+  const EcoMapApp({super.key, required this.tema});
+
+  final PreferenciaDeTema tema;
 
   @override
-  Widget build(BuildContext context) => MaterialApp(
-    title: 'EcoMapBrasil',
-    debugShowCheckedModeBanner: false,
-    theme: construirTema(),
-    home: AppShell(auth: AuthService()),
+  Widget build(BuildContext context) => ValueListenableBuilder<ThemeMode>(
+    valueListenable: tema,
+    builder: (context, modo, _) => MaterialApp(
+      title: 'EcoMapBrasil',
+      debugShowCheckedModeBanner: false,
+      // Por padrão o tema segue o do sistema: quem usa o celular no escuro
+      // abre o app no escuro (auditoria de responsividade de 11/11/2026). O
+      // botão da barra deixa escolher claro ou escuro só no app.
+      theme: construirTema(),
+      darkTheme: construirTema(escuro: true),
+      themeMode: modo,
+      home: AppShell(auth: AuthService(), tema: tema),
+    ),
   );
 }
 
@@ -57,21 +71,19 @@ class TelaDeConfiguracao extends StatelessWidget {
               children: [
                 const Icon(Icons.key_off, size: 40, color: AppCores.terra),
                 const SizedBox(height: 16),
-                const Text(
+                Text(
                   'Faltam credenciais',
-                  style: TextStyle(
-                    fontSize: 22,
+                  style: Escala.headlineSmall.copyWith(
                     fontWeight: FontWeight.w800,
                     color: AppCores.tinta,
                   ),
                 ),
                 const SizedBox(height: 10),
-                const Text(
+                Text(
                   'O app precisa das chaves do Firebase e do Supabase '
                   'para subir. Copie env.example.json para env.json, '
                   'preencha, e rode com:',
-                  style: TextStyle(
-                    fontSize: 14,
+                  style: Escala.bodySmall.copyWith(
                     height: 1.6,
                     color: AppCores.tinta2,
                   ),
@@ -84,20 +96,17 @@ class TelaDeConfiguracao extends StatelessWidget {
                     color: AppCores.mataNoite,
                     borderRadius: BorderRadius.circular(10),
                   ),
-                  child: const SelectableText(
+                  child: SelectableText(
                     'flutter run --dart-define-from-file=env.json',
-                    style: TextStyle(
-                      fontFamily: 'monospace',
-                      fontSize: 13,
+                    style: Escala.labelMedium.copyWith(
                       color: AppCores.mataClara,
                     ),
                   ),
                 ),
                 const SizedBox(height: 20),
-                const Text(
+                Text(
                   'Variáveis ausentes:',
-                  style: TextStyle(
-                    fontSize: 13,
+                  style: Escala.labelMedium.copyWith(
                     fontWeight: FontWeight.w700,
                     color: AppCores.tinta,
                   ),
@@ -116,9 +125,7 @@ class TelaDeConfiguracao extends StatelessWidget {
                         const SizedBox(width: 8),
                         SelectableText(
                           v,
-                          style: const TextStyle(
-                            fontFamily: 'monospace',
-                            fontSize: 13,
+                          style: Escala.labelMedium.copyWith(
                             color: AppCores.terra,
                           ),
                         ),

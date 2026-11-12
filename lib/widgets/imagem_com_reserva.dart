@@ -30,11 +30,11 @@ class ImagemComReserva extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final reserva = ColoredBox(
-      color: escura ? AppCores.mataNoite : AppCores.papel2,
+      color: escura ? AppCores.mataNoite : context.cores.papel2,
       child: escura
           ? const SizedBox.expand()
-          : const Center(
-              child: Icon(Icons.pets, size: 34, color: AppCores.tinta3),
+          : Center(
+              child: Icon(Icons.pets, size: 34, color: context.cores.tinta3),
             ),
     );
     return Image.network(
@@ -46,7 +46,7 @@ class ImagemComReserva extends StatelessWidget {
       frameBuilder: (_, filho, quadro, sincrono) => sincrono || quadro != null
           ? filho
           : ColoredBox(
-              color: escura ? AppCores.mataNoite : AppCores.papel2,
+              color: escura ? AppCores.mataNoite : context.cores.papel2,
               child: const SizedBox.expand(),
             ),
       errorBuilder: (_, _, _) => reserva,

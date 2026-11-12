@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../models/animal.dart';
+import '../theme/app_theme.dart';
 import 'texto_com_links.dart';
 
 /// "Foto: **autor** · licenca · Wikimedia Commons" sobre fundo escuro, com o
@@ -18,7 +19,7 @@ class CreditoDaFoto extends StatelessWidget {
       Trecho(credito.autor, link: credito.link),
       Trecho(' · ${credito.licenca} · Wikimedia Commons'),
     ],
-    estilo: const TextStyle(fontSize: 12, color: Color(0xB3FFFDF8)),
+    estilo: Escala.labelSmall.copyWith(color: Color(0xB3FFFDF8)),
     corDoLink: const Color(0xD9FFFDF8),
   );
 }
