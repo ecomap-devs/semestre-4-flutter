@@ -113,7 +113,7 @@ lib/
 ├── services/   Firebase, Supabase, leitura de arquivo
 ├── screens/    uma tela por arquivo
 ├── widgets/    componentes reutilizáveis; charts/ para os gráficos
-└── theme/      cores e breakpoints
+└── theme/      cores dos dois temas, escala tipográfica e breakpoints
 ```
 
 Arquivo novo vai na pasta que corresponde ao papel dele. Se não couber em nenhuma,
@@ -152,6 +152,33 @@ Nunca mostre o código cru do Firebase para quem usa o app.
 Use `Breakpoints.ehMobile(context)` (`app_theme.dart`), não `MediaQuery` solto.
 Mobile = `NavigationBar`; desktop = `NavigationRail`. Grades calculam colunas a
 partir da largura disponível, com `LayoutBuilder`.
+
+Celular deitado continua sendo celular: `ehMobile` olha também o lado menor da tela
+(abaixo de 600 dp). O que precisa mudar só com o aparelho deitado (pouca altura) pergunta
+`Breakpoints.ehCelularDeitado(context)`. Toque tem 48 dp no mínimo; para um desenho
+menor, use `ToqueAmpliado`, que aumenta a área sem mudar o desenho.
+
+### Cores, tema e tipografia
+O app tem tema claro e escuro desde a v1.5.0 (12/11/2026): segue o sistema ou a escolha
+do botão da barra (`PreferenciaDeTema`, guardada no aparelho).
+
+- **Cor de algo sobre o papel ou o cartão vem do tema:** `context.cores.tinta`,
+  `context.cores.cartao`… (`Cores`, em `app_theme.dart`). `AppCores` só para o que
+  fica sobre foto ou faixa escura (abertura, rodapé, faixas da Início, crédito das fotos,
+  snackbar), que é escuro nos dois temas, e para as cores que não mudam com o tema (biomas,
+  alerta do DETER). `AppCores.tinta` sobre o papel deixa o texto preto no fundo escuro.
+- **Cor nova entra nos dois temas**, em `Cores.claro` e `Cores.escuro`, e texto tem
+  4,5:1 ou mais sobre o papel e o cartão. `test/tema_escuro_test.dart` confere: ponha a
+  cor nova na lista de lá.
+- **Texto usa um papel da `Escala`** (`Escala.bodyLarge`, `Escala.titleLarge`…), nunca
+  `fontSize` solto: até 11/11/2026 eram 125, em 19 tamanhos. O único que sobra é o título
+  da abertura, que acompanha a largura da tela. Título em serifa é
+  `estiloTitulo(papel, cor: ...)`, com a cor sempre dita.
+- **As cores são as do site**, nos dois temas: `src/app/globals.css` do semestre-4-nextjs.
+  Mudou uma aqui? Mude lá no PR gêmeo, e o contrário também.
+- **Na barra e no rodapé, a marca é o pino** (`assets/img/pino.png`), sem o nome, que fica
+  em texto ao lado: o nome da logo, preto e minúsculo, sumia no escuro e no rodapé. Sai do
+  `tool/icone/gerar.py`, junto dos ícones; não edite à mão.
 
 ---
 

@@ -35,8 +35,10 @@ aparece no site, e vice-versa.
 | 📷 **Fotos** | **Identificação de animal por foto**: tire uma foto ou escolha da galeria, e o Gemini diz qual é o animal, com o nome científico e o grau de confiança. Exige login |
 | 👤 **Conta** | Cadastro e login por e-mail e senha, foto de perfil e **avaliações em estrelas**, salvas e lidas em tempo real |
 
-O layout se adapta à largura: `NavigationBar` no celular, `NavigationRail` em tela
-larga (tablet), e grades que recalculam as colunas conforme o espaço.
+O layout se adapta à largura: `NavigationBar` no celular, em pé ou deitado, `NavigationRail`
+em tela larga (tablet), e grades que recalculam as colunas conforme o espaço. Tem **tema claro
+e escuro**, que segue o do celular ou o que você escolher no botão da barra do topo, com as
+mesmas cores do site.
 
 ## 🧭 Onde este repositório entra
 
@@ -291,7 +293,7 @@ lib/
 ├── models/                    Animal · Bioma · AlertaDesmatamento · Avaliacao · Identificacao
 ├── services/                  Firebase · avaliações · leitura do GeoJSON · identificação por foto · sem_metadados
 ├── screens/                   app_shell · home · mapa · animais · fotos · legal (privacidade e termos)
-├── theme/app_theme.dart       paleta, fontes e breakpoints, iguais aos do site
+├── theme/app_theme.dart       paletas clara e escura, escala tipográfica e breakpoints, iguais aos do site
 └── widgets/
     ├── charts/                  barras · mapa dos biomas
     ├── abertura.dart            a abertura da Home, com as fotos que se alternam
@@ -302,7 +304,7 @@ lib/
 assets/
 ├── data/alertas-desmatamento.json   alertas do DETER/INPE dos últimos 12 meses (cópia do site)
 ├── fonts/                           Fraunces e Source Sans 3, com as licenças OFL
-└── img/logo.png
+└── img/                             logo.png e pino.png, o pino da barra e do rodapé (tool/icone/gerar.py)
 ```
 
 </details>
