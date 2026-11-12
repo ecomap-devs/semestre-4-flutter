@@ -175,6 +175,7 @@ class _FotosScreenState extends State<FotosScreen> {
                     'Que animal é esse?',
                     style: estiloTitulo(
                       (mobile ? Escala.headlineLarge : Escala.displayLarge),
+                      cor: context.cores.tinta,
                     ),
                   ),
                 ),
@@ -184,7 +185,7 @@ class _FotosScreenState extends State<FotosScreen> {
                   'Google, tenta dizer qual é o animal.',
                   style: Escala.titleMedium.copyWith(
                     height: 1.5,
-                    color: AppCores.tinta2,
+                    color: context.cores.tinta2,
                   ),
                 ),
                 const SizedBox(height: 28),
@@ -221,7 +222,10 @@ class _FotosScreenState extends State<FotosScreen> {
         'Só para maiores de 18 anos. A foto é enviada ao Gemini, do Google, '
         'que pode usá-la para melhorar os serviços dele. Não envie fotos de '
         'pessoas.',
-        style: Escala.bodyMedium.copyWith(height: 1.5, color: AppCores.tinta3),
+        style: Escala.bodyMedium.copyWith(
+          height: 1.5,
+          color: context.cores.tinta3,
+        ),
       ),
       Align(
         alignment: Alignment.centerLeft,
@@ -278,14 +282,14 @@ class _FotosScreenState extends State<FotosScreen> {
                 height: 22,
                 child: CircularProgressIndicator(
                   strokeWidth: 2,
-                  backgroundColor: AppCores.linha,
+                  backgroundColor: context.cores.linha,
                 ),
               ),
               SizedBox(width: 12),
               Expanded(
                 child: Text(
                   'Procurando o animal... pode levar alguns segundos.',
-                  style: Escala.bodyLarge.copyWith(color: AppCores.tinta2),
+                  style: Escala.bodyLarge.copyWith(color: context.cores.tinta2),
                 ),
               ),
             ],
@@ -314,8 +318,8 @@ class _Cartao extends StatelessWidget {
   Widget build(BuildContext context) => Container(
     padding: const EdgeInsets.all(24),
     decoration: BoxDecoration(
-      color: AppCores.branco,
-      border: Border.all(color: AppCores.linha),
+      color: context.cores.cartao,
+      border: Border.all(color: context.cores.linha),
       borderRadius: BorderRadius.circular(raioPadrao),
     ),
     child: child,
@@ -339,7 +343,10 @@ class _PerguntaDeIdade extends StatelessWidget {
             header: true,
             child: Text(
               'Você tem 18 anos ou mais?',
-              style: estiloTitulo(Escala.headlineSmall),
+              style: estiloTitulo(
+                Escala.headlineSmall,
+                cor: context.cores.tinta,
+              ),
             ),
           ),
           const SizedBox(height: 8),
@@ -348,7 +355,7 @@ class _PerguntaDeIdade extends StatelessWidget {
             'dele só permitem o uso por quem tem 18 anos ou mais.',
             style: Escala.bodyLarge.copyWith(
               height: 1.5,
-              color: AppCores.tinta2,
+              color: context.cores.tinta2,
             ),
           ),
           const SizedBox(height: 16),
@@ -379,7 +386,10 @@ class _AvisoDeIdade extends StatelessWidget {
         'A identificação por foto é só para quem tem 18 anos ou mais, por '
         'exigência do Google. O mapa, as espécies e o resto do EcoMapBrasil '
         'continuam abertos para você.',
-        style: Escala.bodyLarge.copyWith(height: 1.5, color: AppCores.tinta2),
+        style: Escala.bodyLarge.copyWith(
+          height: 1.5,
+          color: context.cores.tinta2,
+        ),
       ),
     ),
   );
@@ -398,7 +408,10 @@ class _PedirLogin extends StatelessWidget {
         Text(
           'Para identificar animais por foto é preciso entrar na sua conta. '
           'Cada consulta tem custo, e o login evita abuso.',
-          style: Escala.bodyLarge.copyWith(height: 1.5, color: AppCores.tinta2),
+          style: Escala.bodyLarge.copyWith(
+            height: 1.5,
+            color: context.cores.tinta2,
+          ),
         ),
         const SizedBox(height: 16),
         FilledButton(onPressed: aoPedirLogin, child: const Text('Entrar')),
@@ -422,7 +435,7 @@ class _Resultado extends StatelessWidget {
               ? 'Parece haver um animal, mas não deu para dizer qual. '
                     'Tente uma imagem mais nítida, com o animal em destaque.'
               : 'Não encontramos nenhum animal nesta foto.',
-          style: Escala.bodyLarge.copyWith(color: AppCores.tinta2),
+          style: Escala.bodyLarge.copyWith(color: context.cores.tinta2),
         ),
       );
     }
@@ -433,17 +446,20 @@ class _Resultado extends StatelessWidget {
         children: [
           Text(
             'Parece ser',
-            style: Escala.bodyMedium.copyWith(color: AppCores.tinta3),
+            style: Escala.bodyMedium.copyWith(color: context.cores.tinta3),
           ),
           const SizedBox(height: 2),
-          Text(r.nomePopular!, style: estiloTitulo(Escala.headlineLarge)),
+          Text(
+            r.nomePopular!,
+            style: estiloTitulo(Escala.headlineLarge, cor: context.cores.tinta),
+          ),
           if (r.nomeCientifico != null) ...[
             const SizedBox(height: 2),
             Text(
               r.nomeCientifico!,
               style: Escala.titleMedium.copyWith(
                 fontStyle: FontStyle.italic,
-                color: AppCores.tinta2,
+                color: context.cores.tinta2,
               ),
             ),
           ],
@@ -452,18 +468,21 @@ class _Resultado extends StatelessWidget {
             r.confianca.rotulo,
             style: Escala.bodyMedium.copyWith(
               fontWeight: FontWeight.w600,
-              color: AppCores.mata,
+              color: context.cores.mata,
             ),
           ),
           if (r.descricao != null) ...[
             const SizedBox(height: 20),
-            Text('Por quê', style: estiloTitulo(Escala.titleLarge)),
+            Text(
+              'Por quê',
+              style: estiloTitulo(Escala.titleLarge, cor: context.cores.tinta),
+            ),
             const SizedBox(height: 4),
             Text(
               r.descricao!,
               style: Escala.bodyLarge.copyWith(
                 height: 1.5,
-                color: AppCores.tinta2,
+                color: context.cores.tinta2,
               ),
             ),
           ],
@@ -471,12 +490,12 @@ class _Resultado extends StatelessWidget {
           Container(
             width: double.infinity,
             padding: const EdgeInsets.only(top: 12),
-            decoration: const BoxDecoration(
-              border: Border(top: BorderSide(color: AppCores.linha)),
+            decoration: BoxDecoration(
+              border: Border(top: BorderSide(color: context.cores.linha)),
             ),
             child: Text(
               'Identificação feita por inteligência artificial: pode errar.',
-              style: Escala.bodySmall.copyWith(color: AppCores.tinta3),
+              style: Escala.bodySmall.copyWith(color: context.cores.tinta3),
             ),
           ),
         ],

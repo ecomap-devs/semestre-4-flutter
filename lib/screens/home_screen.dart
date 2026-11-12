@@ -154,7 +154,7 @@ class _Secao extends StatelessWidget {
   Widget build(BuildContext context) {
     final mobile = Breakpoints.ehMobile(context);
     return ColoredBox(
-      color: cor ?? AppCores.papel,
+      color: cor ?? context.cores.papel,
       child: Padding(
         padding: EdgeInsets.symmetric(
           horizontal: mobile ? 20 : 24,
@@ -200,7 +200,7 @@ class _TituloSecao extends StatelessWidget {
               titulo,
               style: estiloTitulo(
                 papel,
-                cor: escuro ? AppCores.branco : AppCores.tinta,
+                cor: escuro ? AppCores.branco : context.cores.tinta,
                 altura: 1.05,
               ),
             ),
@@ -213,7 +213,7 @@ class _TituloSecao extends StatelessWidget {
                 intro!,
                 style: Escala.titleMedium.copyWith(
                   height: 1.5,
-                  color: escuro ? AppCores.claroSuave : AppCores.tinta2,
+                  color: escuro ? AppCores.claroSuave : context.cores.tinta2,
                 ),
               ),
             ),
@@ -357,7 +357,7 @@ class _SecaoMapa extends StatelessWidget {
               'desmatado.',
               style: Escala.titleMedium.copyWith(
                 height: 1.5,
-                color: AppCores.tinta2,
+                color: context.cores.tinta2,
               ),
             ),
           ),
@@ -535,7 +535,7 @@ class _Especies extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => _Secao(
-    cor: AppCores.papel2,
+    cor: context.cores.papel2,
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -599,7 +599,7 @@ class _CartaoDestaque extends StatelessWidget {
           // fonte.
           aspectRatio: 4 / 3,
           child: ColoredBox(
-            color: AppCores.linha,
+            color: context.cores.linha,
             child: ImagemComReserva(url: animal.imagem, ajuste: BoxFit.contain),
           ),
         ),
@@ -609,22 +609,28 @@ class _CartaoDestaque extends StatelessWidget {
         animal.status,
         style: Escala.bodySmall.copyWith(
           fontWeight: FontWeight.w600,
-          color: animal.corStatus,
+          color: context.cores.status(animal.status),
         ),
       ),
       const SizedBox(height: 4),
-      Text(animal.nome, style: estiloTitulo(Escala.headlineMedium)),
+      Text(
+        animal.nome,
+        style: estiloTitulo(Escala.headlineMedium, cor: context.cores.tinta),
+      ),
       const SizedBox(height: 8),
       Text(
         animal.descricao,
         maxLines: 3,
         overflow: TextOverflow.ellipsis,
-        style: Escala.bodyLarge.copyWith(height: 1.5, color: AppCores.tinta2),
+        style: Escala.bodyLarge.copyWith(
+          height: 1.5,
+          color: context.cores.tinta2,
+        ),
       ),
       const SizedBox(height: 8),
       Text(
         '${animal.bioma} · no mundo (IUCN): ${animal.iucnOuNaoAvaliada}',
-        style: Escala.bodySmall.copyWith(color: AppCores.tinta3),
+        style: Escala.bodySmall.copyWith(color: context.cores.tinta3),
       ),
     ],
   );
@@ -633,7 +639,8 @@ class _CartaoDestaque extends StatelessWidget {
 class _Dados extends StatelessWidget {
   const _Dados({super.key});
 
-  static TextStyle get _subtitulo => estiloTitulo(Escala.headlineSmall);
+  static TextStyle _subtitulo(BuildContext context) =>
+      estiloTitulo(Escala.headlineSmall, cor: context.cores.tinta);
 
   @override
   Widget build(BuildContext context) {
@@ -641,15 +648,15 @@ class _Dados extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text('Área desmatada por bioma', style: _subtitulo),
+          Text('Área desmatada por bioma', style: _subtitulo(context)),
           const SizedBox(height: 24),
           const BarrasChart(),
           const SizedBox(height: 42),
-          Text('Desmatado no último ano medido', style: _subtitulo),
+          Text('Desmatado no último ano medido', style: _subtitulo(context)),
           const SizedBox(height: 6),
           Text(
             'De ${ultimoPeriodo.rotulo}',
-            style: Escala.bodyMedium.copyWith(color: AppCores.tinta3),
+            style: Escala.bodyMedium.copyWith(color: context.cores.tinta3),
           ),
           const SizedBox(height: 20),
           const _UltimoPeriodo(),
@@ -661,7 +668,7 @@ class _Dados extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text('Linha do tempo', style: _subtitulo),
+          Text('Linha do tempo', style: _subtitulo(context)),
           const SizedBox(height: 24),
           const _LinhaDoTempo(),
         ],
@@ -698,7 +705,7 @@ class _Dados extends StatelessWidget {
             'Desmatamento: PRODES/INPE, pelo TerraBrasilis, atualizado em '
             '$dadosAtualizadosEm. Área dos biomas: IBGE (2019). Na linha do '
             'tempo, as taxas são as oficiais da Amazônia Legal.',
-            style: Escala.bodySmall.copyWith(color: AppCores.tinta3),
+            style: Escala.bodySmall.copyWith(color: context.cores.tinta3),
           ),
         ],
       ),
@@ -720,8 +727,8 @@ class _UltimoPeriodo extends StatelessWidget {
         for (final b in ultimoPeriodo.biomas)
           Container(
             padding: const EdgeInsets.only(top: 12),
-            decoration: const BoxDecoration(
-              border: Border(top: BorderSide(color: AppCores.linha)),
+            decoration: BoxDecoration(
+              border: Border(top: BorderSide(color: context.cores.linha)),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -734,19 +741,23 @@ class _UltimoPeriodo extends StatelessWidget {
                         text: 'km²',
                         style: estiloTitulo(
                           Escala.titleLarge,
-                          cor: AppCores.tinta2,
+                          cor: context.cores.tinta2,
                         ),
                       ),
                     ],
                   ),
-                  style: estiloTitulo(Escala.headlineLarge).copyWith(
-                    fontFeatures: const [FontFeature.tabularFigures()],
-                  ),
+                  style:
+                      estiloTitulo(
+                        Escala.headlineLarge,
+                        cor: context.cores.tinta,
+                      ).copyWith(
+                        fontFeatures: const [FontFeature.tabularFigures()],
+                      ),
                 ),
                 const SizedBox(height: 4),
                 Text(
                   b.nome,
-                  style: Escala.bodySmall.copyWith(color: AppCores.tinta3),
+                  style: Escala.bodySmall.copyWith(color: context.cores.tinta3),
                 ),
               ],
             ),
@@ -762,8 +773,8 @@ class _LinhaDoTempo extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Container(
     margin: const EdgeInsets.only(left: 6),
-    decoration: const BoxDecoration(
-      border: Border(left: BorderSide(color: AppCores.linha)),
+    decoration: BoxDecoration(
+      border: Border(left: BorderSide(color: context.cores.linha)),
     ),
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -779,9 +790,9 @@ class _LinhaDoTempo extends StatelessWidget {
                   width: 10,
                   height: 10,
                   decoration: BoxDecoration(
-                    color: AppCores.papel,
+                    color: context.cores.papel,
                     shape: BoxShape.circle,
-                    border: Border.all(color: AppCores.mata, width: 2),
+                    border: Border.all(color: context.cores.mata, width: 2),
                   ),
                 ),
               ),
@@ -793,7 +804,7 @@ class _LinhaDoTempo extends StatelessWidget {
                     Text(
                       '${item.ano}',
                       style: Escala.bodySmall.copyWith(
-                        color: AppCores.tinta3,
+                        color: context.cores.tinta3,
                         fontFeatures: [FontFeature.tabularFigures()],
                       ),
                     ),
@@ -801,14 +812,14 @@ class _LinhaDoTempo extends StatelessWidget {
                       item.titulo,
                       style: Escala.bodyLarge.copyWith(
                         fontWeight: FontWeight.w600,
-                        color: AppCores.tinta,
+                        color: context.cores.tinta,
                       ),
                     ),
                     Text(
                       item.texto,
                       style: Escala.bodyMedium.copyWith(
                         height: 1.45,
-                        color: AppCores.tinta2,
+                        color: context.cores.tinta2,
                       ),
                     ),
                   ],
@@ -894,10 +905,8 @@ class _Solucoes extends StatelessWidget {
 class _ComoDenunciar extends StatelessWidget {
   const _ComoDenunciar({super.key});
 
-  static final _texto = Escala.titleMedium.copyWith(
-    height: 1.5,
-    color: AppCores.tinta2,
-  );
+  static TextStyle _texto(BuildContext context) =>
+      Escala.titleMedium.copyWith(height: 1.5, color: context.cores.tinta2);
 
   @override
   Widget build(BuildContext context) {
@@ -911,7 +920,10 @@ class _ComoDenunciar extends StatelessWidget {
             header: true,
             child: Text(
               'O que contar na denúncia',
-              style: estiloTitulo(Escala.headlineSmall),
+              style: estiloTitulo(
+                Escala.headlineSmall,
+                cor: context.cores.tinta,
+              ),
             ),
           ),
           const SizedBox(height: 14),
@@ -921,8 +933,8 @@ class _ComoDenunciar extends StatelessWidget {
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('•  ', style: _texto),
-                  Expanded(child: Text(item, style: _texto)),
+                  Text('•  ', style: _texto(context)),
+                  Expanded(child: Text(item, style: _texto(context))),
                 ],
               ),
             ),
@@ -938,11 +950,14 @@ class _ComoDenunciar extends StatelessWidget {
             header: true,
             child: Text(
               'Sem se identificar',
-              style: estiloTitulo(Escala.headlineSmall),
+              style: estiloTitulo(
+                Escala.headlineSmall,
+                cor: context.cores.tinta,
+              ),
             ),
           ),
           const SizedBox(height: 14),
-          Text(sobreAnonimato, style: _texto),
+          Text(sobreAnonimato, style: _texto(context)),
           const SizedBox(height: 16),
           // Como no site: o nome da pagina e o link, sem o endereco por extenso
           // (ate 10/11/2026 o app nao abria links e mostrava o endereco).
@@ -950,7 +965,7 @@ class _ComoDenunciar extends StatelessWidget {
             const Trecho('Fonte: '),
             Trecho(fonteDenuncia.rotulo, link: fonteDenuncia.link),
             Trecho(', conferido em ${fonteDenuncia.conferidoEm}.'),
-          ], estilo: Escala.bodySmall.copyWith(color: AppCores.tinta3)),
+          ], estilo: Escala.bodySmall.copyWith(color: context.cores.tinta3)),
         ],
       ),
     );
@@ -979,9 +994,12 @@ class _ComoDenunciar extends StatelessWidget {
                       atraso: Duration(milliseconds: (i % colunas) * 120),
                       child: Container(
                         padding: const EdgeInsets.only(top: 18),
-                        decoration: const BoxDecoration(
+                        decoration: BoxDecoration(
                           border: Border(
-                            top: BorderSide(color: AppCores.terra, width: 2),
+                            top: BorderSide(
+                              color: context.cores.terra,
+                              width: 2,
+                            ),
                           ),
                         ),
                         child: Column(
@@ -991,7 +1009,7 @@ class _ComoDenunciar extends StatelessWidget {
                               canal.titulo,
                               style: Escala.bodyLarge.copyWith(
                                 fontWeight: FontWeight.w600,
-                                color: AppCores.tinta3,
+                                color: context.cores.tinta3,
                               ),
                             ),
                             const SizedBox(height: 6),
@@ -1001,7 +1019,7 @@ class _ComoDenunciar extends StatelessWidget {
                               canal.texto,
                               style: Escala.bodyLarge.copyWith(
                                 height: 1.5,
-                                color: AppCores.tinta2,
+                                color: context.cores.tinta2,
                               ),
                             ),
                           ],
@@ -1106,11 +1124,11 @@ class _ContatoDoCanal extends StatelessWidget {
           style:
               estiloTitulo(
                 Escala.displaySmall,
-                cor: AppCores.mata,
+                cor: context.cores.mata,
                 altura: 1.1,
               ).copyWith(
                 decoration: TextDecoration.underline,
-                decorationColor: AppCores.mata.withValues(alpha: 0.35),
+                decorationColor: context.cores.mata.withValues(alpha: 0.35),
               ),
         ),
       ),
@@ -1341,13 +1359,13 @@ class _VoltarAoTopoState extends State<_VoltarAoTopo> {
   Widget build(BuildContext context) {
     if (!_visivel) return const SizedBox.shrink();
     return Material(
-      color: AppCores.branco,
-      shape: const CircleBorder(side: BorderSide(color: AppCores.linha)),
+      color: context.cores.cartao,
+      shape: CircleBorder(side: BorderSide(color: context.cores.linha)),
       elevation: 2,
       shadowColor: const Color(0x331D2620),
       child: IconButton(
         tooltip: 'Voltar ao topo',
-        icon: const Icon(Icons.arrow_upward, size: 20, color: AppCores.tinta),
+        icon: Icon(Icons.arrow_upward, size: 20, color: context.cores.tinta),
         onPressed: () => widget.controlador.animateTo(
           0,
           duration: MediaQuery.disableAnimationsOf(context)

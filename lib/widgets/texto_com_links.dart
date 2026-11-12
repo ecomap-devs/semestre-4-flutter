@@ -29,14 +29,14 @@ class TextoComLinks extends StatefulWidget {
     this.trechos, {
     super.key,
     required this.estilo,
-    this.corDoLink = AppCores.mata,
+    this.corDoLink,
   });
 
   final List<Trecho> trechos;
   final TextStyle estilo;
 
-  /// A cor dos links. Sobre fundo escuro, um claro; no resto, o verde do app.
-  final Color corDoLink;
+  /// A cor dos links. Sobre fundo escuro, um claro; sem ela, a mata do tema.
+  final Color? corDoLink;
 
   @override
   State<TextoComLinks> createState() => _TextoComLinksState();
@@ -79,10 +79,10 @@ class _TextoComLinksState extends State<TextoComLinks> {
                 text: t.texto,
                 recognizer: _toque(link),
                 style: TextStyle(
-                  color: widget.corDoLink,
+                  color: widget.corDoLink ?? context.cores.mata,
                   fontWeight: FontWeight.w600,
                   decoration: TextDecoration.underline,
-                  decorationColor: widget.corDoLink,
+                  decorationColor: widget.corDoLink ?? context.cores.mata,
                 ),
               )
             else

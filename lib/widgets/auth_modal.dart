@@ -20,7 +20,7 @@ class AuthModal extends StatefulWidget {
   static Future<void> abrir(BuildContext context, AuthService auth) {
     return showDialog<void>(
       context: context,
-      barrierColor: AppCores.tinta.withValues(alpha: 0.55),
+      barrierColor: context.cores.tinta.withValues(alpha: 0.55),
       builder: (_) => AuthModal(auth: auth),
     );
   }
@@ -134,13 +134,16 @@ class _AuthModalState extends State<AuthModal> {
                     Expanded(
                       child: Text(
                         _cadastro ? 'Criar conta' : 'Entrar na conta',
-                        style: estiloTitulo(Escala.headlineMedium),
+                        style: estiloTitulo(
+                          Escala.headlineMedium,
+                          cor: context.cores.tinta,
+                        ),
                       ),
                     ),
                     IconButton(
                       onPressed: () => Navigator.of(context).pop(),
                       icon: const Icon(Icons.close, size: 20),
-                      color: AppCores.tinta3,
+                      color: context.cores.tinta3,
                       tooltip: 'Fechar',
                     ),
                   ],
@@ -150,7 +153,9 @@ class _AuthModalState extends State<AuthModal> {
                   _cadastro
                       ? 'Cadastre-se para participar da comunidade.'
                       : 'Acesse para deixar sua avaliação.',
-                  style: Escala.bodyMedium.copyWith(color: AppCores.tinta3),
+                  style: Escala.bodyMedium.copyWith(
+                    color: context.cores.tinta3,
+                  ),
                 ),
                 const SizedBox(height: 24),
 
@@ -188,17 +193,17 @@ class _AuthModalState extends State<AuthModal> {
                               width: 80,
                               height: 80,
                               decoration: BoxDecoration(
-                                color: AppCores.mataClara,
+                                color: context.cores.mataClara,
                                 shape: BoxShape.circle,
-                                border: Border.all(color: AppCores.mata),
+                                border: Border.all(color: context.cores.mata),
                               ),
                               clipBehavior: Clip.antiAlias,
                               child: _bytesFoto != null
                                   ? Image.memory(_bytesFoto!, fit: BoxFit.cover)
-                                  : const Icon(
+                                  : Icon(
                                       Icons.photo_camera_outlined,
                                       size: 24,
-                                      color: AppCores.mata,
+                                      color: context.cores.mata,
                                     ),
                             ),
                           ),
@@ -207,7 +212,7 @@ class _AuthModalState extends State<AuthModal> {
                         Text(
                           'Foto de perfil (opcional)',
                           style: Escala.bodySmall.copyWith(
-                            color: AppCores.tinta3,
+                            color: context.cores.tinta3,
                           ),
                         ),
                       ],
@@ -266,7 +271,7 @@ class _AuthModalState extends State<AuthModal> {
                     ),
                     estilo: Escala.bodySmall.copyWith(
                       height: 1.45,
-                      color: AppCores.tinta3,
+                      color: context.cores.tinta3,
                     ),
                   ),
                 ],
@@ -307,7 +312,7 @@ class _Rotulo extends StatelessWidget {
     padding: const EdgeInsets.only(bottom: 4),
     child: Text(
       texto,
-      style: Escala.bodySmall.copyWith(color: AppCores.tinta2),
+      style: Escala.bodySmall.copyWith(color: context.cores.tinta2),
     ),
   );
 }
