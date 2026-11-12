@@ -7,6 +7,7 @@ import '../theme/app_theme.dart';
 import '../widgets/apagar_conta_dialog.dart';
 import '../widgets/auth_modal.dart';
 import '../widgets/botao_de_tema.dart';
+import '../widgets/voltar_para_o_inicio.dart';
 import 'animais_screen.dart';
 import 'fotos_screen.dart';
 import 'home_screen.dart';
@@ -106,14 +107,9 @@ class _AppShellState extends State<AppShell> {
           child: KeyedSubtree(key: ValueKey(_indice), child: telas[_indice]),
         );
 
-        // O Voltar do sistema fechava o app de qualquer aba. Agora, fora do
-        // Inicio, ele volta para o Inicio; so dali o app fecha, como nos apps
-        // do proprio Android (auditoria de 11/11/2026).
-        return PopScope(
-          canPop: _indice == 0,
-          onPopInvokedWithResult: (saiu, _) {
-            if (!saiu) setState(() => _indice = 0);
-          },
+        return VoltarParaOInicio(
+          noInicio: _indice == 0,
+          irParaOInicio: () => setState(() => _indice = 0),
           child: Scaffold(
             appBar: AppBar(
               toolbarHeight: ehMobile ? 56 : 64,
