@@ -315,6 +315,8 @@ class _Texto extends StatelessWidget {
           'Veja onde a floresta está sendo perdida e quais espécies estão '
           'ficando sem lugar para viver.',
           style: (compacto ? Escala.bodyLarge : Escala.titleMedium).copyWith(
+          style: TextStyle(
+            fontSize: compacto ? 16 : 19,
             height: 1.45,
             color: const Color(0xE0FFFDF8),
           ),
@@ -410,6 +412,8 @@ class _Indicadores extends StatelessWidget {
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             style: Escala.bodyMedium.copyWith(
+            style: const TextStyle(
+              fontSize: 15,
               fontStyle: FontStyle.italic,
               color: Color(0xD9FFFDF8),
             ),
