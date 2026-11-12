@@ -4,7 +4,9 @@
 # - mipmap-*/ic_launcher.png: o ícone inteiro, para Android até a versão 7;
 # - mipmap-*/ic_launcher_foreground.png: só o pino, para o ícone adaptativo do Android 8 em
 #   diante. O fundo é a cor ic_launcher_background de values/colors.xml, o papel do app, e
-#   o formato (círculo, quadrado arredondado) quem escolhe é o aparelho.
+#   o formato (círculo, quadrado arredondado) quem escolhe é o aparelho;
+# - assets/img/pino.png: só o pino, para a barra do topo e o rodapé do app. O nome já está
+#   em texto ao lado, e o da logo, preto, sumia no tema escuro e no rodapé verde-escuro.
 #
 # Como refazer:
 #
@@ -28,6 +30,9 @@ DENSIDADES = {"mdpi": 1, "hdpi": 1.5, "xhdpi": 2, "xxhdpi": 3, "xxxhdpi": 4}
 FRACAO_ADAPTATIVO = 62 / 108
 FRACAO_INTEIRO = 0.78
 ARREDONDAMENTO = 0.2
+
+# O pino da barra tem 30 dp de altura; 4x cobre a densidade mais alta.
+ALTURA_PINO = 120
 
 
 def pino():
@@ -64,7 +69,9 @@ def main():
         pasta = RECURSOS / f"mipmap-{nome}"
         inteiro(marca, round(48 * escala)).save(pasta / "ic_launcher.png", optimize=True)
         centralizado(marca, round(108 * escala), FRACAO_ADAPTATIVO).save(pasta / "ic_launcher_foreground.png", optimize=True)
-    print("ok: ic_launcher e ic_launcher_foreground em", len(DENSIDADES), "densidades")
+    largura = round(marca.width * ALTURA_PINO / marca.height)
+    marca.resize((largura, ALTURA_PINO), Image.LANCZOS).save(RAIZ / "assets" / "img" / "pino.png", optimize=True)
+    print("ok: ic_launcher e ic_launcher_foreground em", len(DENSIDADES), "densidades, e assets/img/pino.png")
 
 
 if __name__ == "__main__":

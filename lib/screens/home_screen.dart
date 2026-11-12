@@ -1198,7 +1198,7 @@ class _Rodape extends StatelessWidget {
       children: [
         Row(
           children: [
-            Image.asset('assets/img/logo.png', height: 28),
+            Image.asset('assets/img/pino.png', height: 26),
             const SizedBox(width: 8),
             Text(
               'EcoMapBrasil',

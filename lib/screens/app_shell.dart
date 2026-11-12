@@ -116,7 +116,7 @@ class _AppShellState extends State<AppShell> {
               titleSpacing: ehMobile ? 16 : 24,
               title: Row(
                 children: [
-                  Image.asset('assets/img/logo.png', height: 30),
+                  Image.asset('assets/img/pino.png', height: 28),
                   const SizedBox(width: 10),
                   Text(
                     'EcoMapBrasil',

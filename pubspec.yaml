@@ -70,7 +70,9 @@ flutter:
 
   assets:
     - assets/data/alertas-desmatamento.json
-    - assets/img/logo.png
+    # Só o pino: o nome da logo, preto, sumia no tema escuro e no rodapé. A
+    # logo inteira fica em assets/img/ para o tool/icone/gerar.py.
+    - assets/img/pino.png
 
   # As mesmas fontes do site (semestre-4-nextjs): Fraunces nos títulos e
   # Source Sans 3 no texto. Licença OFL, em assets/fonts/. O Fraunces só existe
