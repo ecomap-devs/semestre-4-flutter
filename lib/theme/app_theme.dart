@@ -16,7 +16,9 @@ class AppCores {
 
   static const tinta = Color(0xFF1D2620); // títulos
   static const tinta2 = Color(0xFF4A5249); // texto corrido
-  static const tinta3 = Color(0xFF7A8075); // legenda, data, texto de apoio
+  // Legenda, data, texto de apoio. Era 0xFF7A8075, com 3,7:1 sobre o papel;
+  // desde 12/11/2026 passa de 4,5:1 sobre papel, papel2, cartão e mataClara.
+  static const tinta3 = Color(0xFF646A5F);
 
   static const mata = Color(0xFF2F5233); // cor principal: botão, link, destaque
   static const mataEscura = Color(0xFF1F3A24); // faixa escura
@@ -34,6 +36,12 @@ class AppCores {
 
   /// Escurecimento das fotos (rgb 16,24,18), em várias opacidades.
   static const sombraFoto = Color(0xFF101812);
+
+  /// O véu atrás de diálogo e ficha: a tinta com 55%, como o
+  /// rgba(29,38,32,.55) do site. Fixo de propósito: até 12/11/2026 era
+  /// `context.cores.tinta`, que no tema escuro é quase branco e cobria a tela
+  /// com um véu claro.
+  static const veu = Color(0x8C1D2620);
 
   /// Vermelho dos alertas do DETER, no mapa e na legenda. Mais fechado que
   /// os tons dos biomas, para não se confundir com a Caatinga.
