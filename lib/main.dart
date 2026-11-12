@@ -4,6 +4,7 @@ import 'config/env.dart';
 import 'screens/app_shell.dart';
 import 'services/auth_service.dart';
 import 'services/firebase_init.dart';
+import 'services/preferencia_de_tema.dart';
 import 'theme/app_theme.dart';
 
 Future<void> main() async {
@@ -20,21 +21,31 @@ Future<void> main() async {
   }
 
   await inicializarServicos();
-  runApp(const EcoMapApp());
+  // Lido antes do primeiro quadro, para o app não abrir no tema errado e
+  // piscar para o escolhido.
+  final tema = await PreferenciaDeTema.carregar();
+  runApp(EcoMapApp(tema: tema));
 }
 
 class EcoMapApp extends StatelessWidget {
-  const EcoMapApp({super.key});
+  const EcoMapApp({super.key, required this.tema});
+
+  final PreferenciaDeTema tema;
 
   @override
-  Widget build(BuildContext context) => MaterialApp(
-    title: 'EcoMapBrasil',
-    debugShowCheckedModeBanner: false,
-    // O tema segue o do sistema: quem usa o celular no escuro abre o app no
-    // escuro (auditoria de responsividade de 11/11/2026).
-    theme: construirTema(),
-    darkTheme: construirTema(escuro: true),
-    home: AppShell(auth: AuthService()),
+  Widget build(BuildContext context) => ValueListenableBuilder<ThemeMode>(
+    valueListenable: tema,
+    builder: (context, modo, _) => MaterialApp(
+      title: 'EcoMapBrasil',
+      debugShowCheckedModeBanner: false,
+      // Por padrão o tema segue o do sistema: quem usa o celular no escuro
+      // abre o app no escuro (auditoria de responsividade de 11/11/2026). O
+      // botão da barra deixa escolher claro ou escuro só no app.
+      theme: construirTema(),
+      darkTheme: construirTema(escuro: true),
+      themeMode: modo,
+      home: AppShell(auth: AuthService(), tema: tema),
+    ),
   );
 }
 
