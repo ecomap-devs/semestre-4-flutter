@@ -98,11 +98,11 @@ class _LegalScreenState extends State<LegalScreen> {
     final mobile = Breakpoints.ehMobile(context);
 
     return Scaffold(
-      backgroundColor: AppCores.papel,
+      backgroundColor: context.cores.papel,
       appBar: AppBar(
         title: Text(doc.titulo),
-        backgroundColor: AppCores.papel,
-        foregroundColor: AppCores.tinta,
+        backgroundColor: context.cores.papel,
+        foregroundColor: context.cores.tinta,
       ),
       body: SingleChildScrollView(
         padding: EdgeInsets.fromLTRB(
@@ -123,6 +123,7 @@ class _LegalScreenState extends State<LegalScreen> {
                     doc.titulo,
                     style: estiloTitulo(
                       (mobile ? Escala.displaySmall : Escala.displayLarge),
+                      cor: context.cores.tinta,
                       altura: 1.05,
                     ),
                   ),
@@ -130,7 +131,9 @@ class _LegalScreenState extends State<LegalScreen> {
                 const SizedBox(height: 10),
                 Text(
                   'Versão de $atualizadoEm',
-                  style: Escala.bodyMedium.copyWith(color: AppCores.tinta3),
+                  style: Escala.bodyMedium.copyWith(
+                    color: context.cores.tinta3,
+                  ),
                 ),
                 const SizedBox(height: 18),
                 TextoMarcado(
@@ -138,7 +141,7 @@ class _LegalScreenState extends State<LegalScreen> {
                   aoSeguir: _seguir,
                   estilo: Escala.titleMedium.copyWith(
                     height: 1.55,
-                    color: AppCores.tinta2,
+                    color: context.cores.tinta2,
                   ),
                 ),
                 const SizedBox(height: 28),
@@ -152,6 +155,7 @@ class _LegalScreenState extends State<LegalScreen> {
                       s.titulo,
                       style: estiloTitulo(
                         (mobile ? Escala.headlineSmall : Escala.headlineMedium),
+                        cor: context.cores.tinta,
                       ),
                     ),
                   ),
@@ -162,7 +166,7 @@ class _LegalScreenState extends State<LegalScreen> {
                   ],
                   const SizedBox(height: 22),
                 ],
-                const Divider(color: AppCores.linha, height: 1),
+                Divider(color: context.cores.linha, height: 1),
                 const SizedBox(height: 20),
                 Wrap(
                   spacing: 12,
@@ -202,8 +206,10 @@ class _Indice extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => DecoratedBox(
-    decoration: const BoxDecoration(
-      border: Border.symmetric(horizontal: BorderSide(color: AppCores.linha)),
+    decoration: BoxDecoration(
+      border: Border.symmetric(
+        horizontal: BorderSide(color: context.cores.linha),
+      ),
     ),
     child: Padding(
       padding: const EdgeInsets.symmetric(vertical: 12),
@@ -214,7 +220,7 @@ class _Indice extends StatelessWidget {
             'Nesta página',
             style: Escala.bodySmall.copyWith(
               fontWeight: FontWeight.w600,
-              color: AppCores.tinta3,
+              color: context.cores.tinta3,
             ),
           ),
           const SizedBox(height: 4),
@@ -227,9 +233,9 @@ class _Indice extends StatelessWidget {
                 child: Text(
                   '${i + 1}. ${s.titulo}',
                   style: Escala.bodyLarge.copyWith(
-                    color: AppCores.mata,
+                    color: context.cores.mata,
                     decoration: TextDecoration.underline,
-                    decorationColor: AppCores.mata,
+                    decorationColor: context.cores.mata,
                   ),
                 ),
               ),
@@ -246,17 +252,15 @@ class _Bloco extends StatelessWidget {
   final BlocoLegal bloco;
   final void Function(String destino) aoSeguir;
 
-  static final _corpo = Escala.bodyLarge.copyWith(
-    height: 1.55,
-    color: AppCores.tinta2,
-  );
+  static TextStyle _corpo(BuildContext context) =>
+      Escala.bodyLarge.copyWith(height: 1.55, color: context.cores.tinta2);
 
   @override
   Widget build(BuildContext context) => switch (bloco) {
     ParagrafoLegal(:final texto) => TextoMarcado(
       texto,
       aoSeguir: aoSeguir,
-      estilo: _corpo,
+      estilo: _corpo(context),
     ),
     ListaLegal(:final itens) => Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -267,9 +271,13 @@ class _Bloco extends StatelessWidget {
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('•  ', style: _corpo),
+                Text('•  ', style: _corpo(context)),
                 Expanded(
-                  child: TextoMarcado(item, aoSeguir: aoSeguir, estilo: _corpo),
+                  child: TextoMarcado(
+                    item,
+                    aoSeguir: aoSeguir,
+                    estilo: _corpo(context),
+                  ),
                 ),
               ],
             ),
@@ -286,8 +294,8 @@ class _Bloco extends StatelessWidget {
             margin: const EdgeInsets.only(bottom: 10),
             padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
-              color: AppCores.branco,
-              border: Border.all(color: AppCores.linha),
+              color: context.cores.cartao,
+              border: Border.all(color: context.cores.linha),
               borderRadius: BorderRadius.circular(8),
             ),
             child: Column(
@@ -299,7 +307,7 @@ class _Bloco extends StatelessWidget {
                   estilo: Escala.bodyLarge.copyWith(
                     height: 1.45,
                     fontWeight: FontWeight.w600,
-                    color: AppCores.tinta,
+                    color: context.cores.tinta,
                   ),
                 ),
                 for (
@@ -312,7 +320,7 @@ class _Bloco extends StatelessWidget {
                     colunas[j],
                     style: Escala.labelMedium.copyWith(
                       fontWeight: FontWeight.w600,
-                      color: AppCores.tinta3,
+                      color: context.cores.tinta3,
                     ),
                   ),
                   TextoMarcado(
@@ -320,7 +328,7 @@ class _Bloco extends StatelessWidget {
                     aoSeguir: aoSeguir,
                     estilo: Escala.bodyMedium.copyWith(
                       height: 1.5,
-                      color: AppCores.tinta2,
+                      color: context.cores.tinta2,
                     ),
                   ),
                 ],
@@ -382,9 +390,9 @@ class _TextoMarcadoState extends State<TextoMarcado> {
         trechos.add(
           TextSpan(
             text: parte.substring(2, parte.length - 2),
-            style: const TextStyle(
+            style: TextStyle(
               fontWeight: FontWeight.w600,
-              color: AppCores.tinta,
+              color: context.cores.tinta,
             ),
           ),
         );
@@ -392,9 +400,9 @@ class _TextoMarcadoState extends State<TextoMarcado> {
         trechos.add(
           TextSpan(
             text: parte.substring(1, parte.length - 1),
-            style: const TextStyle(
+            style: TextStyle(
               fontFamily: 'monospace',
-              backgroundColor: AppCores.papel2,
+              backgroundColor: context.cores.papel2,
             ),
           ),
         );
@@ -408,11 +416,11 @@ class _TextoMarcadoState extends State<TextoMarcado> {
           TextSpan(
             text: link[1],
             recognizer: toque,
-            style: const TextStyle(
-              color: AppCores.mata,
+            style: TextStyle(
+              color: context.cores.mata,
               fontWeight: FontWeight.w600,
               decoration: TextDecoration.underline,
-              decorationColor: AppCores.mata,
+              decorationColor: context.cores.mata,
             ),
           ),
         );

@@ -30,7 +30,10 @@ class EcoMapApp extends StatelessWidget {
   Widget build(BuildContext context) => MaterialApp(
     title: 'EcoMapBrasil',
     debugShowCheckedModeBanner: false,
+    // O tema segue o do sistema: quem usa o celular no escuro abre o app no
+    // escuro (auditoria de responsividade de 11/11/2026).
     theme: construirTema(),
+    darkTheme: construirTema(escuro: true),
     home: AppShell(auth: AuthService()),
   );
 }

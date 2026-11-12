@@ -115,7 +115,13 @@ class _AppShellState extends State<AppShell> {
                 children: [
                   Image.asset('assets/img/logo.png', height: 30),
                   const SizedBox(width: 10),
-                  Text('EcoMapBrasil', style: estiloTitulo(Escala.titleLarge)),
+                  Text(
+                    'EcoMapBrasil',
+                    style: estiloTitulo(
+                      Escala.titleLarge,
+                      cor: context.cores.tinta,
+                    ),
+                  ),
                 ],
               ),
               actions: [
@@ -146,19 +152,19 @@ class _AppShellState extends State<AppShell> {
                         enabled: false,
                         child: Text(
                           usuario.displayName ?? usuario.email ?? 'Usuário',
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontWeight: FontWeight.w600,
-                            color: AppCores.tinta,
+                            color: context.cores.tinta,
                           ),
                         ),
                       ),
                       const PopupMenuDivider(),
                       const PopupMenuItem(value: 'sair', child: Text('Sair')),
-                      const PopupMenuItem(
+                      PopupMenuItem(
                         value: 'apagar',
                         child: Text(
                           'Apagar conta',
-                          style: TextStyle(color: AppCores.terra),
+                          style: TextStyle(color: context.cores.terra),
                         ),
                       ),
                     ],
@@ -166,7 +172,7 @@ class _AppShellState extends State<AppShell> {
                       padding: const EdgeInsets.symmetric(horizontal: 8),
                       child: CircleAvatar(
                         radius: 16,
-                        backgroundColor: AppCores.mataClara,
+                        backgroundColor: context.cores.mataClara,
                         foregroundImage: (usuario.photoURL ?? '').isEmpty
                             ? null
                             : NetworkImage(usuario.photoURL!),
@@ -174,7 +180,7 @@ class _AppShellState extends State<AppShell> {
                           (usuario.displayName ?? 'U').characters.first
                               .toUpperCase(),
                           style: Escala.bodySmall.copyWith(
-                            color: AppCores.mata,
+                            color: context.cores.mata,
                             fontWeight: FontWeight.w600,
                           ),
                         ),
@@ -208,8 +214,10 @@ class _AppShellState extends State<AppShell> {
                   ),
             bottomNavigationBar: ehMobile
                 ? DecoratedBox(
-                    decoration: const BoxDecoration(
-                      border: Border(top: BorderSide(color: AppCores.linha)),
+                    decoration: BoxDecoration(
+                      border: Border(
+                        top: BorderSide(color: context.cores.linha),
+                      ),
                     ),
                     child: NavigationBar(
                       selectedIndex: _indice,

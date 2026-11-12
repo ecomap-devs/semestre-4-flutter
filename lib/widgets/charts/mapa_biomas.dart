@@ -101,7 +101,11 @@ class _MapaBiomasState extends State<MapaBiomas> {
                       duracao: const Duration(milliseconds: 1100),
                       builder: (_, t, _) => CustomPaint(
                         size: c.biggest,
-                        painter: _BiomasPainter(entrada: t, ativo: ativo),
+                        painter: _BiomasPainter(
+                          entrada: t,
+                          ativo: ativo,
+                          contorno: context.cores.papel,
+                        ),
                       ),
                     ),
                   ),
@@ -118,7 +122,9 @@ class _MapaBiomasState extends State<MapaBiomas> {
               child: ativo == null
                   ? Text(
                       'Toque num bioma para ver quanto dele já foi desmatado.',
-                      style: Escala.bodyLarge.copyWith(color: AppCores.tinta3),
+                      style: Escala.bodyLarge.copyWith(
+                        color: context.cores.tinta3,
+                      ),
                     )
                   : Wrap(
                       crossAxisAlignment: WrapCrossAlignment.end,
@@ -128,7 +134,7 @@ class _MapaBiomasState extends State<MapaBiomas> {
                           '${ativo.percentualDesmatado}%',
                           style: estiloTitulo(
                             Escala.displayMedium,
-                            cor: AppCores.terra,
+                            cor: context.cores.terra,
                           ),
                         ),
                         Padding(
@@ -139,8 +145,8 @@ class _MapaBiomasState extends State<MapaBiomas> {
                                 TextSpan(text: '${ativo.preposicao} '),
                                 TextSpan(
                                   text: ativo.nome,
-                                  style: const TextStyle(
-                                    color: AppCores.tinta,
+                                  style: TextStyle(
+                                    color: context.cores.tinta,
                                     fontWeight: FontWeight.w600,
                                   ),
                                 ),
@@ -148,7 +154,7 @@ class _MapaBiomasState extends State<MapaBiomas> {
                               ],
                             ),
                             style: Escala.titleMedium.copyWith(
-                              color: AppCores.tinta2,
+                              color: context.cores.tinta2,
                             ),
                           ),
                         ),
@@ -201,10 +207,10 @@ class _ItemLegenda extends StatelessWidget {
           constraints: const BoxConstraints(minHeight: 36),
           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
           decoration: BoxDecoration(
-            color: ativo ? AppCores.branco : Colors.transparent,
+            color: ativo ? context.cores.cartao : Colors.transparent,
             borderRadius: BorderRadius.circular(999),
             border: Border.all(
-              color: ativo ? AppCores.linha : Colors.transparent,
+              color: ativo ? context.cores.linha : Colors.transparent,
             ),
           ),
           child: Row(
@@ -222,7 +228,7 @@ class _ItemLegenda extends StatelessWidget {
               Text(
                 bioma.nome,
                 style: Escala.bodySmall.copyWith(
-                  color: ativo ? AppCores.tinta : AppCores.tinta2,
+                  color: ativo ? context.cores.tinta : context.cores.tinta2,
                 ),
               ),
             ],
@@ -234,11 +240,18 @@ class _ItemLegenda extends StatelessWidget {
 }
 
 class _BiomasPainter extends CustomPainter {
-  _BiomasPainter({required this.entrada, required this.ativo});
+  _BiomasPainter({
+    required this.entrada,
+    required this.ativo,
+    required this.contorno,
+  });
 
   /// Progresso da entrada: os biomas aparecem um depois do outro.
   final double entrada;
   final Bioma? ativo;
+
+  /// Cor da divisa entre os biomas: a do fundo, que muda com o tema.
+  final Color contorno;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -248,8 +261,8 @@ class _BiomasPainter extends CustomPainter {
       ..scale(escala)
       ..translate(-_limites.left, -_limites.top);
 
-    final contorno = Paint()
-      ..color = AppCores.papel
+    final traco = Paint()
+      ..color = contorno
       ..style = PaintingStyle.stroke
       ..strokeWidth = 1 / escala
       ..strokeJoin = StrokeJoin.round;
@@ -267,12 +280,12 @@ class _BiomasPainter extends CustomPainter {
           _caminhos[i],
           Paint()..color = b.cor.withValues(alpha: opacidade),
         )
-        ..drawPath(_caminhos[i], contorno);
+        ..drawPath(_caminhos[i], traco);
     }
     canvas.restore();
   }
 
   @override
   bool shouldRepaint(_BiomasPainter old) =>
-      old.entrada != entrada || old.ativo != ativo;
+      old.entrada != entrada || old.ativo != ativo || old.contorno != contorno;
 }

@@ -66,6 +66,170 @@ class AppCores {
   };
 }
 
+/// Cores que mudam com o tema claro ou escuro do sistema.
+///
+/// Até 11/11/2026 o app só tinha tema claro, e quem usava o celular no escuro
+/// abria uma tela de papel quase branco (auditoria de responsividade da
+/// v1.3.0). Tudo que fica sobre o papel ou o cartão usa estas cores, por
+/// `context.cores`; o que fica sobre foto ou faixa escura (abertura, rodapé,
+/// faixas da Início) continua em [AppCores], porque já é escuro nos dois temas.
+///
+/// O escuro não é o claro invertido: o fundo é a mata de noite, e o texto é o
+/// papel do tema claro. A mata, a terra e o ocre clareiam para manter o
+/// contraste de texto (4,5:1 ou mais sobre o fundo e sobre o cartão).
+@immutable
+class Cores extends ThemeExtension<Cores> {
+  const Cores({
+    required this.papel,
+    required this.papel2,
+    required this.cartao,
+    required this.linha,
+    required this.tinta,
+    required this.tinta2,
+    required this.tinta3,
+    required this.mata,
+    required this.mataEscura,
+    required this.mataClara,
+    required this.terra,
+    required this.terraClara,
+    required this.ocre,
+    required this.ocreClara,
+    required this.sobreDestaque,
+  });
+
+  final Color papel; // fundo das telas
+  final Color papel2; // seção alternada, campo desabilitado
+  final Color cartao; // cartão sobre o papel (o `branco` do tema claro)
+  final Color linha; // bordas e divisórias
+  final Color tinta; // títulos
+  final Color tinta2; // texto corrido
+  final Color tinta3; // legenda, data, texto de apoio
+  final Color mata; // botão, link, destaque
+  final Color mataEscura; // texto de sucesso
+  final Color mataClara; // fundo de sucesso, seleção
+  final Color terra; // perda, alerta, erro
+  final Color terraClara;
+  final Color ocre; // estrelas, atenção
+  final Color ocreClara;
+
+  /// Texto e ícone sobre um fundo cheio de [mata] ou [terra]: botão,
+  /// filtro ativo. No claro é o branco; no escuro, a mata fica clara e o texto
+  /// por cima precisa ser escuro.
+  final Color sobreDestaque;
+
+  static const claro = Cores(
+    papel: AppCores.papel,
+    papel2: AppCores.papel2,
+    cartao: AppCores.branco,
+    linha: AppCores.linha,
+    tinta: AppCores.tinta,
+    tinta2: AppCores.tinta2,
+    tinta3: AppCores.tinta3,
+    mata: AppCores.mata,
+    mataEscura: AppCores.mataEscura,
+    mataClara: AppCores.mataClara,
+    terra: AppCores.terra,
+    terraClara: AppCores.terraClara,
+    ocre: AppCores.ocre,
+    ocreClara: AppCores.ocreClara,
+    sobreDestaque: AppCores.branco,
+  );
+
+  static const escuro = Cores(
+    papel: Color(0xFF131814),
+    papel2: Color(0xFF1B221D),
+    cartao: Color(0xFF1F2721),
+    linha: Color(0xFF333D35),
+    tinta: Color(0xFFECE8DE),
+    tinta2: Color(0xFFC5C7BD),
+    tinta3: Color(0xFF979C90),
+    mata: Color(0xFF8FBF8A),
+    mataEscura: Color(0xFFB5D6AE),
+    mataClara: Color(0xFF24362A),
+    terra: Color(0xFFE08A6C),
+    terraClara: Color(0xFF3A231B),
+    ocre: Color(0xFFD9AE57),
+    ocreClara: Color(0xFF3A2F17),
+    sobreDestaque: Color(0xFF10170F),
+  );
+
+  /// Cor do texto do status, do mais grave ao menos grave — a mesma ordem de
+  /// [AppCores.status], com os tons deste tema.
+  Color status(String status) => switch (status) {
+    'Extinta' || 'Extinta na natureza' || 'Regionalmente extinta' => tinta,
+    'Criticamente em perigo' => terra,
+    'Em perigo' => ocre,
+    'Não ameaçada' => mata,
+    _ => tinta3,
+  };
+
+  @override
+  Cores copyWith({
+    Color? papel,
+    Color? papel2,
+    Color? cartao,
+    Color? linha,
+    Color? tinta,
+    Color? tinta2,
+    Color? tinta3,
+    Color? mata,
+    Color? mataEscura,
+    Color? mataClara,
+    Color? terra,
+    Color? terraClara,
+    Color? ocre,
+    Color? ocreClara,
+    Color? sobreDestaque,
+  }) => Cores(
+    papel: papel ?? this.papel,
+    papel2: papel2 ?? this.papel2,
+    cartao: cartao ?? this.cartao,
+    linha: linha ?? this.linha,
+    tinta: tinta ?? this.tinta,
+    tinta2: tinta2 ?? this.tinta2,
+    tinta3: tinta3 ?? this.tinta3,
+    mata: mata ?? this.mata,
+    mataEscura: mataEscura ?? this.mataEscura,
+    mataClara: mataClara ?? this.mataClara,
+    terra: terra ?? this.terra,
+    terraClara: terraClara ?? this.terraClara,
+    ocre: ocre ?? this.ocre,
+    ocreClara: ocreClara ?? this.ocreClara,
+    sobreDestaque: sobreDestaque ?? this.sobreDestaque,
+  );
+
+  @override
+  Cores lerp(Cores? outro, double t) {
+    if (outro == null) return this;
+    Color m(Color a, Color b) => Color.lerp(a, b, t)!;
+    return Cores(
+      papel: m(papel, outro.papel),
+      papel2: m(papel2, outro.papel2),
+      cartao: m(cartao, outro.cartao),
+      linha: m(linha, outro.linha),
+      tinta: m(tinta, outro.tinta),
+      tinta2: m(tinta2, outro.tinta2),
+      tinta3: m(tinta3, outro.tinta3),
+      mata: m(mata, outro.mata),
+      mataEscura: m(mataEscura, outro.mataEscura),
+      mataClara: m(mataClara, outro.mataClara),
+      terra: m(terra, outro.terra),
+      terraClara: m(terraClara, outro.terraClara),
+      ocre: m(ocre, outro.ocre),
+      ocreClara: m(ocreClara, outro.ocreClara),
+      sobreDestaque: m(sobreDestaque, outro.sobreDestaque),
+    );
+  }
+}
+
+/// `context.cores.tinta` no lugar de `AppCores.tinta`, para seguir o tema.
+extension CoresDoTema on BuildContext {
+  Cores get cores => Theme.of(this).extension<Cores>() ?? Cores.claro;
+
+  /// Tema escuro ligado (pelo sistema).
+  bool get temaEscuro => Theme.of(this).brightness == Brightness.dark;
+}
+
 /// Famílias de fonte declaradas no `pubspec.yaml`.
 class AppFontes {
   const AppFontes._();
@@ -248,9 +412,12 @@ class Escala {
 
 /// Título em serifa, com peso médio: o 800 em tudo era o que mais dava cara
 /// de modelo pronto. O tamanho vem de um papel da [Escala].
+///
+/// A cor é obrigatória: um padrão fixo deixava o título escuro sobre o fundo
+/// escuro do tema da noite. Use `context.cores.tinta` sobre o papel.
 TextStyle estiloTitulo(
   TextStyle papel, {
-  Color cor = AppCores.tinta,
+  required Color cor,
   FontWeight peso = FontWeight.w500,
   double? altura,
 }) => papel.copyWith(
@@ -290,92 +457,95 @@ class Breakpoints {
   }
 }
 
-ThemeData construirTema() {
+/// Tema do app. [escuro] liga as cores de [Cores.escuro]; o `MaterialApp`
+/// monta os dois e o sistema escolhe.
+ThemeData construirTema({bool escuro = false}) {
+  final c = escuro ? Cores.escuro : Cores.claro;
   final cantos = RoundedRectangleBorder(
     borderRadius: BorderRadius.circular(raioPadrao),
   );
   final borda = OutlineInputBorder(
     borderRadius: BorderRadius.circular(raioPadrao),
-    borderSide: const BorderSide(color: AppCores.linha),
+    borderSide: BorderSide(color: c.linha),
   );
   final base = ThemeData(
+    brightness: escuro ? Brightness.dark : Brightness.light,
+    extensions: [c],
     colorScheme: ColorScheme.fromSeed(
+      brightness: escuro ? Brightness.dark : Brightness.light,
       seedColor: AppCores.mata,
-      primary: AppCores.mata,
-      surface: AppCores.papel,
-      error: AppCores.terra,
+      onPrimary: c.sobreDestaque,
+      onSurface: c.tinta,
+      surfaceContainerHighest: c.papel2,
+      primary: c.mata,
+      surface: c.papel,
+      error: c.terra,
     ),
     useMaterial3: true,
-    scaffoldBackgroundColor: AppCores.papel,
+    scaffoldBackgroundColor: c.papel,
     fontFamily: AppFontes.texto,
   );
 
   return base.copyWith(
-    appBarTheme: const AppBarTheme(
-      backgroundColor: AppCores.papel,
-      foregroundColor: AppCores.tinta,
+    appBarTheme: AppBarTheme(
+      backgroundColor: c.papel,
+      foregroundColor: c.tinta,
       surfaceTintColor: Colors.transparent,
       elevation: 0,
       scrolledUnderElevation: 0,
-      shape: Border(bottom: BorderSide(color: AppCores.linha)),
+      shape: Border(bottom: BorderSide(color: c.linha)),
     ),
-    textTheme: Escala.textTheme(titulo: AppCores.tinta, corpo: AppCores.tinta2),
-    dividerTheme: const DividerThemeData(color: AppCores.linha),
+    textTheme: Escala.textTheme(titulo: c.tinta, corpo: c.tinta2),
+    dividerTheme: DividerThemeData(color: c.linha),
     navigationBarTheme: NavigationBarThemeData(
       height: 68,
       elevation: 0,
-      backgroundColor: AppCores.papel,
+      backgroundColor: c.papel,
       surfaceTintColor: Colors.transparent,
-      indicatorColor: AppCores.mataClara,
+      indicatorColor: c.mataClara,
       labelTextStyle: WidgetStateProperty.resolveWith(
         (estados) => Escala.labelMedium.copyWith(
           fontWeight: estados.contains(WidgetState.selected)
               ? FontWeight.w600
               : FontWeight.w400,
-          color: estados.contains(WidgetState.selected)
-              ? AppCores.tinta
-              : AppCores.tinta3,
+          color: estados.contains(WidgetState.selected) ? c.tinta : c.tinta3,
         ),
       ),
       iconTheme: WidgetStateProperty.resolveWith(
         (estados) => IconThemeData(
-          color: estados.contains(WidgetState.selected)
-              ? AppCores.mata
-              : AppCores.tinta3,
+          color: estados.contains(WidgetState.selected) ? c.mata : c.tinta3,
         ),
       ),
     ),
     navigationRailTheme: NavigationRailThemeData(
-      backgroundColor: AppCores.papel,
-      indicatorColor: AppCores.mataClara,
-      selectedIconTheme: IconThemeData(color: AppCores.mata),
-      unselectedIconTheme: IconThemeData(color: AppCores.tinta3),
+      backgroundColor: c.papel,
+      indicatorColor: c.mataClara,
+      selectedIconTheme: IconThemeData(color: c.mata),
+      unselectedIconTheme: IconThemeData(color: c.tinta3),
       selectedLabelTextStyle: Escala.labelMedium.copyWith(
         fontWeight: FontWeight.w600,
-        color: AppCores.tinta,
+        color: c.tinta,
       ),
-      unselectedLabelTextStyle: Escala.labelMedium.copyWith(
-        color: AppCores.tinta3,
-      ),
+      unselectedLabelTextStyle: Escala.labelMedium.copyWith(color: c.tinta3),
     ),
     inputDecorationTheme: InputDecorationTheme(
       filled: true,
-      fillColor: AppCores.branco,
-      hintStyle: const TextStyle(color: AppCores.tinta3),
+      fillColor: c.cartao,
+      hintStyle: TextStyle(color: c.tinta3),
       contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       border: borda,
       enabledBorder: borda,
       disabledBorder: borda,
       focusedBorder: borda.copyWith(
-        borderSide: const BorderSide(color: AppCores.mata, width: 1.5),
+        borderSide: BorderSide(color: c.mata, width: 1.5),
       ),
     ),
     filledButtonTheme: FilledButtonThemeData(
       style: FilledButton.styleFrom(
-        backgroundColor: AppCores.mata,
-        foregroundColor: AppCores.branco,
-        disabledBackgroundColor: AppCores.mata.withValues(alpha: 0.6),
-        disabledForegroundColor: AppCores.branco,
+        backgroundColor: c.mata,
+        foregroundColor: c.sobreDestaque,
+        disabledBackgroundColor: c.mata.withValues(alpha: 0.6),
+        disabledForegroundColor: c.sobreDestaque,
         minimumSize: const Size(48, 48),
         padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 12),
         shape: cantos,
@@ -384,8 +554,8 @@ ThemeData construirTema() {
     ),
     outlinedButtonTheme: OutlinedButtonThemeData(
       style: OutlinedButton.styleFrom(
-        foregroundColor: AppCores.mata,
-        side: const BorderSide(color: AppCores.mata),
+        foregroundColor: c.mata,
+        side: BorderSide(color: c.mata),
         minimumSize: const Size(48, 48),
         padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 12),
         shape: cantos,
@@ -394,29 +564,27 @@ ThemeData construirTema() {
     ),
     textButtonTheme: TextButtonThemeData(
       style: TextButton.styleFrom(
-        foregroundColor: AppCores.mata,
+        foregroundColor: c.mata,
         textStyle: Escala.labelLarge,
       ),
     ),
-    progressIndicatorTheme: const ProgressIndicatorThemeData(
-      color: AppCores.mata,
-    ),
-    bottomSheetTheme: const BottomSheetThemeData(
-      backgroundColor: AppCores.papel,
+    progressIndicatorTheme: ProgressIndicatorThemeData(color: c.mata),
+    bottomSheetTheme: BottomSheetThemeData(
+      backgroundColor: c.papel,
       surfaceTintColor: Colors.transparent,
     ),
     dialogTheme: DialogThemeData(
-      backgroundColor: AppCores.branco,
+      backgroundColor: c.cartao,
       surfaceTintColor: Colors.transparent,
       shape: cantos,
     ),
-    popupMenuTheme: const PopupMenuThemeData(
-      color: AppCores.branco,
+    popupMenuTheme: PopupMenuThemeData(
+      color: c.cartao,
       surfaceTintColor: Colors.transparent,
     ),
     snackBarTheme: SnackBarThemeData(
       backgroundColor: AppCores.mataNoite,
-      contentTextStyle: Escala.bodyMedium.copyWith(color: AppCores.branco),
+      contentTextStyle: Escala.bodyMedium.copyWith(color: c.papel),
       behavior: SnackBarBehavior.floating,
     ),
   );
